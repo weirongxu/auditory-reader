@@ -13,6 +13,8 @@
     "dev:server": "run-p dev:server:node dev:server:web",
     "dev:server:web": "webpack-dev-server --port 4000 --mode development --env app_mode=server",
     "dev:server:node": "ts-node-esm src/server/index.ts",
+    "predeploy": "run-s build:sw",
+    "deploy": "gh-pages -d sw-public",
     "start": "node lib/server/index.js",
     "lint": "eslint src --ext tsx,ts"
   },
@@ -67,6 +69,7 @@
     "eslint": "^8.31.0",
     "eslint-plugin-import": "^2.26.0",
     "file-loader": "^6.2.0",
+    "gh-pages": "^4.0.0",
     "html-webpack-plugin": "^5.5.0",
     "idb": "^7.1.1",
     "mini-css-extract-plugin": "^2.7.2",

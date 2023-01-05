@@ -4,24 +4,18 @@ on:
   push:
     branches:
       - master
-      - develop
-  pull_request:
-    branches:
-      - master
-      - develop
 
 jobs:
   test:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         node-version: [14]
 
     env:
-      NODE_ENV: test
+      NODE_ENV: production
 
     steps:
       - name: Use Node.js ${{ matrix.node-version }}
@@ -31,14 +25,11 @@ jobs:
       - name: Install pnpm
         run: |
           curl -fsSL https://get.pnpm.io/install.sh | sh -
-      - name: Set git
-        run: |
-          git config --global core.autocrlf false
       - uses: actions/checkout@v2
       - name: Install Packages
         run: pnpm install
-      - name: Lint
-        run: pnpm lint
+      - name: Deploy
+        run: pnpm deploy
       # - name: Run unit tests
       #   env:
       #     NODE_ENV: test
