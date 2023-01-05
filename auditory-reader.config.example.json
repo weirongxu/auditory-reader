@@ -1,0 +1,11 @@
+{
+  "$schema": "./speech.config.schema.json",
+  "appBodyLimit": "20mb",
+  "accounts": [
+    {
+      "account": "tmp",
+      "password": "tmp"
+    }
+  ],
+  "sessionKey": ""
+}

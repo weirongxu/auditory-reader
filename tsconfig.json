@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "target": "ES2020",
+    "strict": true,
+    "outDir": "lib",
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
+    "skipLibCheck": true,
+    "incremental": true,
+    "module": "ES2020"
+  },
+  "exclude": ["node_modules", "lib", "server-public", "sw-public"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js"]
+}

@@ -1,0 +1,142 @@
+import { isBrowser } from '@react-hookz/web/cjs/util/const'
+import { useCallback, useMemo, useState } from 'react'
+import type { BookTypes } from './book/types.js'
+import { sortBy } from './util/collection.js'
+
+export let allVoices: SpeechSynthesisVoice[] = []
+if (isBrowser) {
+  const loadVoices = () => {
+    allVoices = speechSynthesis.getVoices()
+  }
+  loadVoices()
+  if (window.speechSynthesis.addEventListener) {
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices, {
+      once: true,
+    })
+  }
+}
+
+function createStore<T>(options: {
+  storeKey: string
+  read: (value: string | null) => T
+  write: (value: T) => string | null
+}): () => [T, (value: T) => void] {
+  const { storeKey, read, write } = options
+  const getOriginStoredValue = () => localStorage.getItem(storeKey)
+  return () => {
+    const [inner, setInner] = useState<T>(() => read(getOriginStoredValue()))
+    const setValue = useCallback((value: T) => {
+      setInner(value)
+      const writeValue = write(value)
+      if (writeValue) localStorage.setItem(storeKey, writeValue)
+      else localStorage.removeItem(storeKey)
+    }, [])
+    return [inner, setValue]
+  }
+}
+
+const useLastVoiceURIDict = createStore<Record<string, string>>({
+  storeKey: 'voiceURILastDict',
+  read: (uriDictStr) => (uriDictStr ? JSON.parse(uriDictStr) : {}),
+  write: (uriDict) => JSON.stringify(uriDict),
+})
+
+const useLastVoiceURI = (book: BookTypes.Entity) => {
+  const [dict, setDict] = useLastVoiceURIDict()
+
+  const lastURI = useMemo(
+    () => dict[book.langCode] ?? null,
+    [book.langCode, dict]
+  )
+
+  const setLastURI = useCallback(
+    (lastURI: string | null) => {
+      const newDict = { ...dict }
+      if (lastURI) newDict[book.langCode] = lastURI
+      else delete newDict[book.langCode]
+      setDict(newDict)
+    },
+    [book.langCode, dict, setDict]
+  )
+
+  return [lastURI, setLastURI] as const
+}
+
+const useVoiceURLDict = createStore<Record<string, string>>({
+  storeKey: 'voiceURIDict',
+  read: (voiceURIStr) => (voiceURIStr ? JSON.parse(voiceURIStr) : {}),
+  write: (voiceURIDict) => JSON.stringify(voiceURIDict),
+})
+
+export const useVoice = (book: BookTypes.Entity) => {
+  const [dict, setDict] = useVoiceURLDict()
+  const [lastVoiceURI, setLastVoiceURI] = useLastVoiceURI(book)
+
+  const allSortedVoices = useMemo(() => {
+    return sortBy(allVoices, (v) => !v.lang.startsWith(`${book.langCode}-`))
+  }, [book.langCode])
+
+  const voiceURI = useMemo((): string | null => {
+    return dict[book.uuid] ?? lastVoiceURI ?? allSortedVoices[0]?.voiceURI
+  }, [allSortedVoices, book.uuid, lastVoiceURI, dict])
+
+  const setVoiceURI = useCallback(
+    (voiceURI: string | null) => {
+      const newDict = { ...dict }
+      if (voiceURI) newDict[book.uuid] = voiceURI
+      else delete dict[book.uuid]
+      setDict(newDict)
+      setLastVoiceURI(voiceURI)
+    },
+    [book.uuid, dict, setDict, setLastVoiceURI]
+  )
+
+  const voice = useMemo(() => {
+    return (
+      (voiceURI
+        ? allSortedVoices.find((v) => v.voiceURI === voiceURI)
+        : null) ??
+      allSortedVoices[0] ??
+      null
+    )
+  }, [allSortedVoices, voiceURI])
+
+  const setVoice = useCallback(
+    (voice: SpeechSynthesisVoice | null) => {
+      setVoiceURI(voice?.voiceURI ?? null)
+    },
+    [setVoiceURI]
+  )
+
+  return { voiceURI, setVoiceURI, voice, setVoice, allSortedVoices }
+}
+
+export const useAutoSection = createStore<boolean>({
+  storeKey: 'autoSection',
+  read: (v) => (v ? v === '1' : true),
+  write: (v) => (v ? '1' : '0'),
+})
+
+export const useStopTimer = createStore<boolean>({
+  storeKey: 'stopTimer',
+  read: (v) => (v ? v === '1' : true),
+  write: (v) => (v ? '1' : '0'),
+})
+
+export const useStopTimerSeconds = createStore<number>({
+  storeKey: 'stopTimerSeconds',
+  read: (v) => (v ? Number(v) : 30 * 60),
+  write: (v) => v.toString(),
+})
+
+export const usePersonReplace = createStore<boolean>({
+  storeKey: 'personReplace',
+  read: (v) => (v ? v === '1' : false),
+  write: (v) => (v ? '1' : '0'),
+})
+
+export const useSpeechSpeed = createStore<number>({
+  storeKey: 'SpeechSpeed',
+  read: (v) => (v ? Number(v) : 1),
+  write: (v) => v.toString(),
+})

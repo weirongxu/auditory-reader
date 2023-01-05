@@ -1,0 +1,16 @@
+# deps & cache
+node_modules
+/.cache
+
+# build dist & public
+/lib
+/sw-public
+/server-public
+
+# data
+/server-data
+/book-data
+
+# env & config
+auditory-reader.config.json
+.env

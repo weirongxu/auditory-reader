@@ -1,0 +1,11 @@
+{
+  "coc.preferences.formatOnSave": true,
+  "javascript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "json.schemas": [
+    {
+      "fileMatch": ["/speech.config.json"],
+      "url": "./speech.config.schema.json"
+    }
+  ]
+}

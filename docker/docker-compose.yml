@@ -1,0 +1,12 @@
+version: '3'
+services:
+  server:
+    image: node:18
+    container_name: auditory-reader
+    restart: unless-stopped
+    working_dir: /app
+    command: 'npm start'
+    ports:
+      - '0.0.0.0:8080:4001'
+    volumes:
+      - ../:/app
