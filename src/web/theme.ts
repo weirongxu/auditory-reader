@@ -6,10 +6,7 @@ export const useTheme = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
   const [userColorScheme] = useUserColorScheme()
 
-  console.dir(userColorScheme)
-
   const localTheme = useMemo(() => {
-    console.log('changed theme')
     return createTheme({
       palette: {
         mode:

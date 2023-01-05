@@ -31,4 +31,7 @@ export const langZh = {
   language: '语言',
   file: '文件',
   text: '文本',
+  system: '系统',
+  dark: '暗色',
+  light: '亮色',
 }
