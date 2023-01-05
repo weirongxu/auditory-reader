@@ -23,18 +23,12 @@ jobs:
       NODE_ENV: test
 
     steps:
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install pnpm
-        run: |
-          curl -fsSL https://get.pnpm.io/install.sh | sh -
-      - name: Set git
-        run: |
-          git config --global core.autocrlf false
-      - uses: actions/checkout@v2
-      - name: Install Packages
-        run: pnpm install
-      - name: Lint
-        run: pnpm lint
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - run: pnpm install
+      - run: pnpm lint

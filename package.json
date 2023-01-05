@@ -13,7 +13,7 @@
     "dev:server": "run-p dev:server:node dev:server:web",
     "dev:server:web": "webpack-dev-server --port 4000 --mode development --env app_mode=server",
     "dev:server:node": "ts-node-esm src/server/index.ts",
-    "predeploy": "run-s build:sw",
+    "predeploy": "webpack build --mode production --env=app_public_path=/auditory-reader/ --env app_mode=service-worker",
     "deploy": "gh-pages -d sw-public",
     "start": "node lib/server/index.js",
     "lint": "eslint src --ext tsx,ts"
