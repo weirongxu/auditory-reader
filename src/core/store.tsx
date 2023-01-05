@@ -1,5 +1,6 @@
 import { isBrowser } from '@react-hookz/web/cjs/util/const'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
+import { createGlobalState } from 'react-hooks-global-state'
 import type { BookTypes } from './book/types.js'
 import { sortBy } from './util/collection.js'
 
@@ -23,14 +24,20 @@ function createStore<T>(options: {
 }): () => [T, (value: T) => void] {
   const { storeKey, read, write } = options
   const getOriginStoredValue = () => localStorage.getItem(storeKey)
+  const { useGlobalState } = createGlobalState<{ value: T }>({
+    value: read(getOriginStoredValue()),
+  })
   return () => {
-    const [inner, setInner] = useState<T>(() => read(getOriginStoredValue()))
-    const setValue = useCallback((value: T) => {
-      setInner(value)
-      const writeValue = write(value)
-      if (writeValue) localStorage.setItem(storeKey, writeValue)
-      else localStorage.removeItem(storeKey)
-    }, [])
+    const [inner, setInner] = useGlobalState('value')
+    const setValue = useCallback(
+      (value: T) => {
+        setInner(value)
+        const writeValue = write(value)
+        if (writeValue) localStorage.setItem(storeKey, writeValue)
+        else localStorage.removeItem(storeKey)
+      },
+      [setInner]
+    )
     return [inner, setValue]
   }
 }
@@ -136,7 +143,15 @@ export const usePersonReplace = createStore<boolean>({
 })
 
 export const useSpeechSpeed = createStore<number>({
-  storeKey: 'SpeechSpeed',
+  storeKey: 'speechSpeed',
   read: (v) => (v ? Number(v) : 1),
   write: (v) => v.toString(),
+})
+
+export type ColorScheme = 'system' | 'dark' | 'light'
+
+export const useUserColorScheme = createStore<ColorScheme>({
+  storeKey: 'userColorScheme',
+  read: (v) => (v ?? 'system') as ColorScheme,
+  write: (v) => v,
 })

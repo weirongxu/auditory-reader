@@ -4,6 +4,7 @@ export const langEn = {
   timerSetting: 'Timer (Minute)',
   personReplaceSetting: '中文人称替换',
   speedSetting: 'Speed',
+  userColorSchemeSetting: 'Color scheme',
   error: {
     login: '$t(account) or $t(password) error',
   },
@@ -29,5 +30,8 @@ export const langEn = {
   bookContent: 'Book content',
   language: 'Language',
   file: 'File',
-  text: 'text',
+  text: 'Text',
+  system: 'System',
+  dark: 'Dark',
+  light: 'Light',
 }

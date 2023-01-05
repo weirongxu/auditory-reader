@@ -2,6 +2,7 @@ import { ArrowRight } from '@mui/icons-material'
 import {
   Checkbox,
   FormControlLabel,
+  FormGroup,
   List,
   ListItem,
   Popover,
@@ -14,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
 import {
   useAutoSection,
+  useUserColorScheme,
   usePersonReplace,
   useSpeechSpeed,
   useStopTimer,
@@ -162,6 +164,37 @@ const PlaySpeed = () => {
   )
 }
 
+const ColorSchemeSelect = () => {
+  const [userColorScheme, setUserColorScheme] = useUserColorScheme()
+  return (
+    <>
+      <SettingLine>
+        <span>{t('userColorSchemeSetting')}</span>
+      </SettingLine>
+      <SettingLine>
+        <FormGroup>
+          {(['system', 'dark', 'light'] as const).map((value) => {
+            return (
+              <FormControlLabel
+                key={value}
+                label={t(value)}
+                control={
+                  <Checkbox
+                    checked={userColorScheme === value}
+                    onChange={(v) => {
+                      if (v.currentTarget.checked) setUserColorScheme(value)
+                    }}
+                  ></Checkbox>
+                }
+              ></FormControlLabel>
+            )
+          })}
+        </FormGroup>
+      </SettingLine>
+    </>
+  )
+}
+
 export const GlobalSettings = () => {
   return (
     <>
@@ -169,6 +202,7 @@ export const GlobalSettings = () => {
       <TimerInput></TimerInput>
       <PersonReplaceUI></PersonReplaceUI>
       <PlaySpeed></PlaySpeed>
+      <ColorSchemeSelect></ColorSchemeSelect>
     </>
   )
 }

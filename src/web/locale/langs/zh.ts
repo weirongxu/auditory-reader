@@ -4,6 +4,7 @@ export const langZh = {
   timerSetting: '计时器 (分钟)',
   personReplaceSetting: '中文人称替换',
   speedSetting: '速度',
+  userColorSchemeSetting: '颜色主题',
   error: {
     login: '$t(account)或$t(password)错误',
   },

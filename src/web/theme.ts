@@ -1,13 +1,23 @@
 import { createTheme, useMediaQuery } from '@mui/material'
 import { useMemo } from 'react'
+import { useUserColorScheme } from '../core/store.js'
 
 export const useTheme = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
+  const [userColorScheme] = useUserColorScheme()
+
+  console.dir(userColorScheme)
 
   const localTheme = useMemo(() => {
+    console.log('changed theme')
     return createTheme({
       palette: {
-        mode: prefersDarkMode ? 'dark' : 'light',
+        mode:
+          userColorScheme === 'system'
+            ? prefersDarkMode
+              ? 'dark'
+              : 'light'
+            : userColorScheme,
       },
       components: {
         MuiChip: {
@@ -72,7 +82,7 @@ export const useTheme = () => {
         },
       },
     })
-  }, [prefersDarkMode])
+  }, [prefersDarkMode, userColorScheme])
 
   return localTheme
 }
