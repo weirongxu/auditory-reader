@@ -186,6 +186,7 @@ function AddFile() {
                 setFile(file)
               })
             }}
+            prompt={t('prompt.uploadBook')}
           ></Dropzone>
         </FormControl>
 

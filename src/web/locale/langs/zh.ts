@@ -14,6 +14,8 @@ export const langZh = {
     inputAccount: '请输入$t(account)',
     inputPassword: '请输入$t(password)',
     dropzone: '拖动文件到这里或者点击选择文件',
+    dropzoneDrag: '拖动文件到这里',
+    uploadBook: '支持 .epub 和 .txt',
     removeBook: '删除本书？',
   },
   account: '帐号',

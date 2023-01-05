@@ -1,11 +1,11 @@
 import { FileUpload, Photo } from '@mui/icons-material'
-import { Stack } from '@mui/material'
+import { Stack, Typography } from '@mui/material'
 import type { DropzoneProps } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 import styles from './dropzone.module.scss'
 
-export const Dropzone = (props: DropzoneProps) => {
+export const Dropzone = (props: DropzoneProps & { prompt?: string }) => {
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
     useDropzone(props)
   const { t } = useTranslation()
@@ -23,15 +23,23 @@ export const Dropzone = (props: DropzoneProps) => {
             )
           })}
         </Stack>
-      ) : isDragActive ? (
-        <Stack direction="row" spacing={2}>
-          <FileUpload></FileUpload>
-          <div>Drop file here</div>
-        </Stack>
       ) : (
-        <Stack direction="row" spacing={2}>
-          <Photo></Photo>
-          <div>{t('prompt.dropzone')}</div>
+        <Stack spacing={2} justifyContent="center">
+          {isDragActive ? (
+            <Stack direction="row" spacing={2}>
+              <FileUpload></FileUpload>
+              <div>Drop file here</div>
+              <div>{t('prompt.dropzone')}</div>
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={2}>
+              <Photo></Photo>
+              <div>{t('prompt.dropzone')}</div>
+            </Stack>
+          )}
+          {props.prompt && (
+            <Typography sx={{ textAlign: 'center' }}>{props.prompt}</Typography>
+          )}
         </Stack>
       )}
     </div>
