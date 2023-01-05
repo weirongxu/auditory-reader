@@ -22,6 +22,6 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'zh',
+    lng: global.navigator?.languages?.at(0) ?? 'en',
   })
   .catch(console.error)

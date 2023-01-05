@@ -1,3 +1,4 @@
+import { Book } from '@mui/icons-material'
 import {
   Button,
   CircularProgress,
@@ -13,7 +14,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { useConfirm } from 'material-ui-confirm'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
@@ -22,6 +23,7 @@ import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { useHeaderItems } from '../layout/use-header.js'
 
 export function BookList() {
   const nav = useNavigate()
@@ -30,6 +32,18 @@ export function BookList() {
   const theme = useTheme()
   const confirm = useConfirm()
   const { t } = useTranslation()
+
+  const HeaderRight = useMemo(() => {
+    return (
+      <>
+        <LinkWrap to="/books/add">
+          {(href) => <Button href={href}>{t('add')}</Button>}
+        </LinkWrap>
+      </>
+    )
+  }, [t])
+
+  useHeaderItems({ right: HeaderRight })
 
   useEffect(() => {
     if (page) reload()
@@ -47,13 +61,6 @@ export function BookList() {
 
   return (
     <>
-      <LinkWrap to="/books/add">
-        {(href) => (
-          <Button sx={{ margin: 2 }} href={href}>
-            {t('add')}
-          </Button>
-        )}
-      </LinkWrap>
       {Pager}
       <TableContainer
         sx={{
@@ -64,7 +71,7 @@ export function BookList() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              <TableCell>{t('bookName')}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>

@@ -52,7 +52,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
             {(href) => (
               <MuiLink href={href}>
                 <Typography display="flex">
-                  <MenuBook></MenuBook>
+                  <MenuBook sx={{ marginRight: 1 }}></MenuBook>
                   Auditory Reader
                 </Typography>
               </MuiLink>
