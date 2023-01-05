@@ -40,7 +40,6 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-hooks-global-state": "^2.1.0",
-    "react-i18next": "^12.1.1",
     "react-router-dom": "^6.6.1",
     "tsconfig-paths": "^4.1.2",
     "type-fest": "^3.5.0",

@@ -1,4 +1,3 @@
-import { Book } from '@mui/icons-material'
 import {
   Button,
   CircularProgress,
@@ -13,9 +12,9 @@ import {
   TableRow,
   useTheme,
 } from '@mui/material'
+import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
@@ -31,7 +30,6 @@ export function BookList() {
   const { data: books, reload } = useAction(booksPageRouter, { page })
   const theme = useTheme()
   const confirm = useConfirm()
-  const { t } = useTranslation()
 
   const HeaderRight = useMemo(() => {
     return (
@@ -41,7 +39,7 @@ export function BookList() {
         </LinkWrap>
       </>
     )
-  }, [t])
+  }, [])
 
   useHeaderItems({ right: HeaderRight })
 

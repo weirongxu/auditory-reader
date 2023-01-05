@@ -5,8 +5,8 @@ import {
   Stack,
   TextField,
 } from '@mui/material'
+import { t } from 'i18next'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { booksShowRouter } from '../../../core/api/books/show.js'
 import { booksUpdateRouter } from '../../../core/api/books/update.js'
@@ -22,7 +22,6 @@ function UpdateForm(props: { book: BookTypes.Entity }) {
   const langOptions = useOrderedLangOptions()
   const [name, setName] = useState<string>(book.name)
   const [langCode, setLangCode] = useState<LangCode>(book.langCode)
-  const { t } = useTranslation()
 
   // const form = useForm<{
   //   name: string

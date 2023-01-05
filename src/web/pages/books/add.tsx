@@ -7,9 +7,9 @@ import {
   Tabs,
   TextField,
 } from '@mui/material'
+import { t } from 'i18next'
 import path from 'path'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateRouter } from '../../../core/api/books/create.js'
 import { BookEpub } from '../../../core/book/book-epub.js'
@@ -28,7 +28,6 @@ function AddText() {
   const [name, setName] = useState<string>()
   const [langCode, setLangCode] = useState<LangCode>()
   const [content, setContent] = useState<string>()
-  const { t } = useTranslation()
 
   return (
     <form
@@ -103,7 +102,6 @@ function AddFile() {
   const [name, setName] = useState<string>()
   const [langCode, setLangCode] = useState<LangCode>()
   const [file, setFile] = useState<File>()
-  const { t } = useTranslation()
 
   return (
     <form
@@ -200,7 +198,6 @@ function AddFile() {
 
 export function BookAdd() {
   const [tab, setTab] = useState(0)
-  const { t } = useTranslation()
   return (
     <>
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>

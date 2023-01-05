@@ -11,7 +11,6 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
 import {
   useAutoSection,
@@ -81,7 +80,6 @@ function PersonReplaceCheckBox(props: {
   const { checked, onChange } = props
   const [personReplaceOpened, setPersonReplaceOpened] = useState<boolean>(false)
   const [anchor, setAnchor] = useState<any>()
-  const { t } = useTranslation()
 
   return (
     <>

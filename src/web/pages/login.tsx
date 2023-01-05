@@ -1,6 +1,6 @@
 import { Box, Button, Stack, TextField, Typography } from '@mui/material'
+import { t } from 'i18next'
 import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { loginRouter } from '../../core/api/login.js'
 import { userRouter } from '../../core/api/user.js'
@@ -12,7 +12,6 @@ export function Login() {
   const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>()
   const { data: user } = useAction(userRouter, null)
-  const { t } = useTranslation()
 
   useEffect(() => {
     if (user) {

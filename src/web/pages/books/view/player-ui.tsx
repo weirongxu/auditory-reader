@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   FastForward,
   FastRewind,
   Pause,
@@ -12,18 +11,12 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Checkbox,
   Chip,
-  FormControlLabel,
-  List,
-  ListItem,
   Popover,
   Stack,
   TextField,
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import {
   useAutoSection,

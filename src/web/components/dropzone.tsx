@@ -1,14 +1,13 @@
 import { FileUpload, Photo } from '@mui/icons-material'
 import { Stack, Typography } from '@mui/material'
+import { t } from 'i18next'
 import type { DropzoneProps } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
-import { useTranslation } from 'react-i18next'
 import styles from './dropzone.module.scss'
 
 export const Dropzone = (props: DropzoneProps & { prompt?: string }) => {
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
     useDropzone(props)
-  const { t } = useTranslation()
   return (
     <div {...getRootProps({ className: styles.dropzone })}>
       <input {...getInputProps()} />
