@@ -9,14 +9,16 @@ import { UResponseHold, UResponse } from '../../core/route/response.js'
 export default null
 declare let self: ServiceWorkerGlobalScope
 
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
   // eslint-disable-next-line no-console
   console.log('service-worker: installed')
+  event.waitUntil(self.skipWaiting())
 })
 
-self.addEventListener('activate', () => {
+self.addEventListener('activate', (event) => {
   // eslint-disable-next-line no-console
   console.log('service-worker: activate event in progress.')
+  event.waitUntil(self.clients.claim())
 })
 
 self.addEventListener('fetch', (event) => {

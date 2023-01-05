@@ -25,6 +25,7 @@ export async function registerAPI() {
       scope: env.appPublicRoot,
     }
   )
+  await navigator.serviceWorker.ready
   if (service.active) {
     // eslint-disable-next-line no-console
     console.log('service-worker: registered')
