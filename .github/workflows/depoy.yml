@@ -30,7 +30,3 @@ jobs:
         run: pnpm install
       - name: Deploy
         run: pnpm deploy
-      # - name: Run unit tests
-      #   env:
-      #     NODE_ENV: test
-      #   run: yarn test
