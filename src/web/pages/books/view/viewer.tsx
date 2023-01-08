@@ -1,3 +1,4 @@
+import { useTheme } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useWindowFocus from 'use-window-focus'
@@ -22,6 +23,12 @@ export function useViewer(props: BookContextProps) {
     setStarted,
     setFocusedNavs,
   })
+
+  // dark scheme
+  const theme = useTheme()
+  useEffect(() => {
+    player.iframeCtrler.updateColorTheme(theme.palette.mode)
+  }, [player.iframeCtrler, theme.palette.mode])
 
   const MainContent = useMemo(
     () => (

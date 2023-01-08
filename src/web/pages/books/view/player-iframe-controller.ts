@@ -11,6 +11,7 @@ import {
   minIndexBy,
 } from '../../../../core/util/collection.js'
 import {
+  COLOR_SCHEME_DARK_CLASS,
   IGNORE_TAGS,
   PARA_ACTIVE_CLASS,
   PARA_BLOCK_CLASS,
@@ -22,6 +23,8 @@ import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import { globalStyle } from '../../../../core/style.js'
 import { async } from '../../../../core/util/promise.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
+
+type ColorScheme = 'light' | 'dark'
 
 function getMatchedNavs(
   pos: BookTypes.PropertyPosition,
@@ -174,6 +177,7 @@ export class PlayerIframeController {
   elemTexts: ParagraphElemText[] = []
   mainContentRootPath: string
   mainContentRootUrl: string
+  colorScheme: ColorScheme = 'light'
 
   get book() {
     return this.player.book
@@ -294,10 +298,22 @@ export class PlayerIframeController {
     }
   }
 
+  updateColorTheme(colorScheme: ColorScheme) {
+    this.colorScheme = colorScheme
+    const doc = this.iframe?.contentDocument
+    if (!doc) return
+    if (colorScheme === 'dark') {
+      doc.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
+    } else {
+      doc.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
+    }
+  }
+
   onLoaded(iframe: HTMLIFrameElement) {
     const doc = iframe.contentDocument
     // load inject and hook
     if (doc) {
+      this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       this.hookALinks(doc)
       this.hookParagraphClick()
@@ -307,23 +323,30 @@ export class PlayerIframeController {
 
   injectCSS(doc: Document) {
     const styleElem = doc.createElement('style')
+    const contentSelectors = [
+      'a',
+      'article',
+      'cite',
+      'code',
+      'div',
+      'li',
+      'p',
+      'pre',
+      'span',
+      'table',
+      'body',
+    ]
     styleElem.innerHTML = `
       ${globalStyle}
 
-      @media (prefers-color-scheme: dark) {
-        body {
-          background-color: var(--main-bg);
-        }
-
-        a, article, cite, code, div, li, p, pre, span, table, body {
-          color: var(--main-fg) !important;
-        }
+      .${COLOR_SCHEME_DARK_CLASS} body {
+        background-color: var(--main-bg);
       }
 
-      html, body {
-        /* min-width: 100%; */
-        /* min-height: 100%; */
-        /* user-select: none; */
+      ${contentSelectors
+        .map((s) => `.${COLOR_SCHEME_DARK_CLASS} ${s}`)
+        .join(', ')} {
+        color: var(--main-fg) !important;
       }
 
       .${PARA_BLOCK_CLASS} {

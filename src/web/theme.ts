@@ -2,7 +2,7 @@ import { createTheme, useMediaQuery } from '@mui/material'
 import { useMemo } from 'react'
 import { useUserColorScheme } from '../core/store.js'
 
-export const useTheme = () => {
+export const useAppTheme = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
   const [userColorScheme] = useUserColorScheme()
 

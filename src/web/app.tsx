@@ -10,14 +10,15 @@ import {
 } from '@mui/material'
 import { ConfirmProvider } from 'material-ui-confirm'
 import { useEffect, useState } from 'react'
+import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { globalStyle } from '../core/style.js'
 import { useStyle } from './hooks/useStyle.js'
 import { RootEntry } from './pages/entry.js'
 import { registerAPI } from './service-worker/register.js'
-import { useTheme } from './theme.js'
+import { useAppTheme } from './theme.js'
 
 export function App() {
-  const theme = useTheme()
+  const theme = useAppTheme()
   const [loadedStatus, setLoadedStatus] = useState<boolean | string>(false)
 
   useEffect(() => {
@@ -35,6 +36,11 @@ export function App() {
       })
   }, [])
 
+  useEffect(() => {
+    if (theme.palette.mode === 'dark')
+      document.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
+    else document.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
+  }, [theme.palette.mode])
   useStyle(globalStyle)
 
   return (
