@@ -26,7 +26,7 @@ import { useHeaderItems } from '../layout/use-header.js'
 
 export function BookList() {
   const nav = useNavigate()
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState<number>()
   const { data: books, reload } = useAction(booksPageRouter, { page })
   const theme = useTheme()
   const confirm = useConfirm()
