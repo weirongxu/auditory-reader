@@ -147,10 +147,10 @@ export class Utterer {
     let retriedCount = 0
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      if (!this.player.states.started) return
+      if (!this.states.started) return
       try {
         const node =
-          this.player.iframeCtrler.elemTexts[this.player.states.pos.paragraph]
+          this.player.iframeCtrler.elemTexts[this.states.pos.paragraph]
         if (node) {
           const ret = await this.speak(node)
           // continue when cancel
@@ -165,9 +165,14 @@ export class Utterer {
           this.player.iframeCtrler.elemTexts.length - 1
         ) {
           // next section
-          if (this.states.autoNextSection) await this.player.nextSection()
+          if (
+            this.states.pos.section < this.player.book.spines.length - 1 &&
+            this.states.autoNextSection
+          )
+            await this.player.nextSection()
           // stop
           else this.player.pause()
+
           continue
         }
 
