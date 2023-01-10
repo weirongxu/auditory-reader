@@ -49,13 +49,15 @@ export function BookList() {
 
   if (!books) return <CircularProgress />
 
-  const Pager = (
-    <Pagination
-      onChange={(_, page) => setPage(page)}
-      page={page}
-      count={books.pageCount}
-    ></Pagination>
-  )
+  const Pager =
+    books.pageCount > 1 ? (
+      <Pagination
+        sx={{ marginTop: 2 }}
+        onChange={(_, page) => setPage(page)}
+        page={page}
+        count={books.pageCount}
+      ></Pagination>
+    ) : null
 
   return (
     <>
