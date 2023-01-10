@@ -148,7 +148,8 @@ export const useSpeechSpeed = createStore<number>({
   write: (v) => v.toString(),
 })
 
-export type ColorScheme = 'system' | 'dark' | 'light'
+export const COLOR_SCHEMES = ['system', 'dark', 'light'] as const
+export type ColorScheme = typeof COLOR_SCHEMES[number]
 
 export const useUserColorScheme = createStore<ColorScheme>({
   storeKey: 'userColorScheme',

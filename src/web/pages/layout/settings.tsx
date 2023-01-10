@@ -1,24 +1,29 @@
 import { ArrowRight } from '@mui/icons-material'
 import {
+  Box,
   Checkbox,
   FormControlLabel,
-  FormGroup,
   List,
   ListItem,
   Popover,
+  Radio,
+  RadioGroup,
   Slider,
+  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
+import type { ColorScheme } from '../../../core/store.js'
 import {
+  COLOR_SCHEMES,
   useAutoSection,
-  useUserColorScheme,
   usePersonReplace,
   useSpeechSpeed,
   useStopTimer,
   useStopTimerSeconds,
+  useUserColorScheme,
 } from '../../../core/store.js'
 import { supportTouch } from '../../../core/util/browser.js'
 import { SettingLine } from './use-header.js'
@@ -169,26 +174,25 @@ const ColorSchemeSelect = () => {
       <SettingLine>
         <span>{t('userColorSchemeSetting')}</span>
       </SettingLine>
-      <SettingLine>
-        <FormGroup>
-          {(['system', 'dark', 'light'] as const).map((value) => {
+      <Box sx={{ paddingLeft: 2 }}>
+        <RadioGroup
+          defaultValue={userColorScheme}
+          onChange={(e) => {
+            setUserColorScheme(e.target.value as ColorScheme)
+          }}
+        >
+          {COLOR_SCHEMES.map((value) => {
             return (
               <FormControlLabel
                 key={value}
                 label={t(value)}
-                control={
-                  <Checkbox
-                    checked={userColorScheme === value}
-                    onChange={(v) => {
-                      if (v.currentTarget.checked) setUserColorScheme(value)
-                    }}
-                  ></Checkbox>
-                }
+                value={value}
+                control={<Radio></Radio>}
               ></FormControlLabel>
             )
           })}
-        </FormGroup>
-      </SettingLine>
+        </RadioGroup>
+      </Box>
     </>
   )
 }
