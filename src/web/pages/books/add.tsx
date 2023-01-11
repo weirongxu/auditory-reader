@@ -43,13 +43,13 @@ function AddText() {
           if (!langCode) return
           const buf = new TextEncoder().encode(content)
           const fileBase64 = arrayBufferToBase64(buf)
-          await booksCreateRouter.action({
+          const entity = await booksCreateRouter.action({
             name,
             langCode,
             bufferBase64: fileBase64,
             type: 'text',
           })
-          nav('/books')
+          nav(`/books/added-successful/${entity.uuid}`)
         })
       }}
     >
@@ -118,23 +118,23 @@ function AddFile() {
           if (file.name.endsWith('.epub')) {
             const buf = await file.arrayBuffer()
             const fileBase64 = arrayBufferToBase64(buf)
-            await booksCreateRouter.action({
+            const entity = await booksCreateRouter.action({
               name,
               langCode,
               bufferBase64: fileBase64,
               type: 'epub',
             })
-            nav('/books')
+            nav(`/books/added-successful/${entity.uuid}`)
           } else if (file.name.endsWith('.txt')) {
             const buf = await file.arrayBuffer()
             const fileBase64 = arrayBufferToBase64(buf)
-            await booksCreateRouter.action({
+            const entity = await booksCreateRouter.action({
               name,
               langCode,
               bufferBase64: fileBase64,
               type: 'text',
             })
-            nav('/books')
+            nav(`/books/added-successful/${entity.uuid}`)
           }
         })
       }}

@@ -20,24 +20,23 @@ export type BookCreate = {
   bufferBase64: string
 }
 
-export const booksCreateRouter = new URouter<BookCreate>(
+export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
   'books/create'
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const buf = Buffer.from(body.bufferBase64, 'base64')
   const uuid = uuidv1()
 
-  await bookManager.list(userInfo.account).add(
-    {
-      uuid,
-      name: body.name,
-      type: body.type,
-      langCode: body.langCode,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    buf
-  )
+  const entity: BookTypes.Entity = {
+    uuid,
+    name: body.name,
+    type: body.type,
+    langCode: body.langCode,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 
-  return {}
+  const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
+
+  return entityJson
 })

@@ -1,7 +1,7 @@
 import {
+  AccountTree,
   FastForward,
   FastRewind,
-  List,
   Pause,
   PlayArrow,
   SkipNext,
@@ -176,7 +176,7 @@ export function usePlayerUI(
             toggleNav()
           }}
         >
-          <List />
+          <AccountTree />
         </TooltipButton>
         <TooltipButton
           tooltip={<span>←</span>}

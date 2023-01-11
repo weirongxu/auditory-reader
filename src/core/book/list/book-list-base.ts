@@ -85,19 +85,24 @@ export abstract class BookListBase {
     await this.write()
   }
 
-  async add(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void> {
+  async add(
+    entity: BookTypes.Entity,
+    file: ArrayBuffer
+  ): Promise<BookTypes.EntityJson> {
     const list = await this.list()
-    list.push({
+    const entityJson: BookTypes.EntityJson = {
       name: entity.name,
       uuid: entity.uuid,
       type: entity.type,
       langCode: entity.langCode,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
-    })
+    }
+    list.push(entityJson)
 
     await this.write()
     await this.bookAdd(entity, file)
+    return entityJson
   }
 
   async delete(uuid: string): Promise<void> {

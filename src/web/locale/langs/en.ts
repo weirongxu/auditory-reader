@@ -5,8 +5,8 @@ export const langEn = {
   personReplaceSetting: '中文人称替换',
   speedSetting: 'Speed',
   userColorSchemeSetting: 'Color scheme',
-  error: {
-    login: '$t(account) or $t(password) error',
+  desc: {
+    addedBookSuccessful: 'Successfully added a new book',
   },
   prompt: {
     inputBookName: 'Please input $t(bookName)',
@@ -18,6 +18,10 @@ export const langEn = {
     uploadBook: 'Support .epub and .txt',
     removeBook: 'Remove this book？',
   },
+  error: {
+    login: '$t(account) or $t(password) error',
+  },
+  view: 'View',
   account: 'Account',
   password: 'Password',
   login: 'Login',

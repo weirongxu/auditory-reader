@@ -5,8 +5,8 @@ export const langZh = {
   personReplaceSetting: '中文人称替换',
   speedSetting: '速度',
   userColorSchemeSetting: '颜色主题',
-  error: {
-    login: '$t(account)或$t(password)错误',
+  desc: {
+    addedBookSuccessful: '成功添加了一本新书',
   },
   prompt: {
     inputBookName: '请输入$t(bookName)',
@@ -17,6 +17,9 @@ export const langZh = {
     dropzoneDrag: '拖动文件到这里',
     uploadBook: '支持 .epub 和 .txt',
     removeBook: '删除本书？',
+  },
+  error: {
+    login: '$t(account)或$t(password)错误',
   },
   account: '帐号',
   password: '密码',
