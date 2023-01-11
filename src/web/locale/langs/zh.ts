@@ -21,6 +21,7 @@ export const langZh = {
   error: {
     login: '$t(account)或$t(password)错误',
   },
+  view: '浏览',
   account: '帐号',
   password: '密码',
   login: '登录',
