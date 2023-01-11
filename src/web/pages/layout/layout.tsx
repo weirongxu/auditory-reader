@@ -13,11 +13,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
+import { isMobile } from '../../../core/util/browser.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { GlobalSettings } from './settings.js'
 import { SettingLine, useGlboalHeaderItems } from './use-header.js'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
+  const [title] = useGlboalHeaderItems('title')
   const [leftItems] = useGlboalHeaderItems('left')
   const [rightItems] = useGlboalHeaderItems('right')
   const [settings] = useGlboalHeaderItems('settings')
@@ -53,7 +55,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
               <MuiLink href={href}>
                 <Typography display="flex">
                   <MenuBook sx={{ marginRight: 1 }}></MenuBook>
-                  Auditory Reader
+                  {title ?? 'Auditory Reader'}
                 </Typography>
               </MuiLink>
             )}

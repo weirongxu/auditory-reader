@@ -1,6 +1,7 @@
 import {
   FastForward,
   FastRewind,
+  List,
   Pause,
   PlayArrow,
   SkipNext,
@@ -26,7 +27,7 @@ import {
   useStopTimerSeconds,
   useVoice,
 } from '../../../../core/store.js'
-import { supportTouch } from '../../../../core/util/browser.js'
+import { isMobile } from '../../../../core/util/browser.js'
 import { useHeaderItems } from '../../layout/use-header.js'
 import { useBookViewNav } from './nav.js'
 import type { Player } from './player'
@@ -49,8 +50,14 @@ function TooltipButton(props: {
   return (
     <>
       <Button
+        sx={{
+          minWidth: 30,
+          minHeight: 30,
+          padding: 0,
+          margin: 0,
+        }}
         onMouseEnter={(e) => {
-          if (supportTouch) return
+          if (isMobile) return
           setAnchor(e.currentTarget)
           setOpen(true)
         }}
@@ -60,7 +67,7 @@ function TooltipButton(props: {
         }}
         {...btnProps}
       ></Button>
-      {!supportTouch && (
+      {!isMobile && (
         <Popover
           sx={{ pointerEvents: 'none' }}
           open={open}
@@ -144,11 +151,7 @@ export function usePlayerUI(
   }
 ) {
   const { book, player, started, focusedNavs } = props
-  const { NavTreeView, ToggleButton: ToggleNavButton } = useBookViewNav(
-    book,
-    player,
-    focusedNavs
-  )
+  const { NavTreeView, toggleNav } = useBookViewNav(book, player, focusedNavs)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
@@ -167,7 +170,14 @@ export function usePlayerUI(
   const PlayerCtrlGroup = useMemo(() => {
     return (
       <ButtonGroup>
-        {ToggleNavButton}
+        <TooltipButton
+          tooltip={<span>←</span>}
+          onClick={() => {
+            toggleNav()
+          }}
+        >
+          <List />
+        </TooltipButton>
         <TooltipButton
           tooltip={<span>←</span>}
           disabled={isFirstSection}
@@ -216,13 +226,13 @@ export function usePlayerUI(
       </ButtonGroup>
     )
   }, [
-    ToggleNavButton,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
     isLastSection,
     player,
     started,
+    toggleNav,
   ])
 
   const TimerRemainUI = useMemo(() => {
@@ -276,6 +286,7 @@ export function usePlayerUI(
   }, [SelectVoices])
 
   useHeaderItems({
+    title: '',
     left: headerLeftItems,
     settings: headerSettingItems,
   })

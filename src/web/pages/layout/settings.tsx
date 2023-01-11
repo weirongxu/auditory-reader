@@ -9,7 +9,6 @@ import {
   Radio,
   RadioGroup,
   Slider,
-  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -25,7 +24,7 @@ import {
   useStopTimerSeconds,
   useUserColorScheme,
 } from '../../../core/store.js'
-import { supportTouch } from '../../../core/util/browser.js'
+import { isMobile } from '../../../core/util/browser.js'
 import { SettingLine } from './use-header.js'
 
 const AutoSectionCheckBox = () => {
@@ -90,7 +89,7 @@ function PersonReplaceCheckBox(props: {
     <>
       <FormControlLabel
         onMouseEnter={(e) => {
-          if (supportTouch) return
+          if (isMobile) return
           setAnchor(e.currentTarget)
           setPersonReplaceOpened(true)
         }}
@@ -108,7 +107,7 @@ function PersonReplaceCheckBox(props: {
           ></Checkbox>
         }
       ></FormControlLabel>
-      {!supportTouch && (
+      {!isMobile && (
         <Popover
           sx={{ pointerEvents: 'none' }}
           open={personReplaceOpened}

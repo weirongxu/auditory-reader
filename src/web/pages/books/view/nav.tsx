@@ -1,6 +1,4 @@
-import { List } from '@mui/icons-material'
-import { Button } from '@mui/material'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { BookViewRes } from '../../../../core/api/books/view.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { compact } from '../../../../core/util/collection.js'
@@ -14,16 +12,8 @@ export function useBookViewNav(
   const [visible, setVisible] = useState<boolean>(false)
   const refNavTreeview = useRef<HTMLDivElement>(null)
 
-  const ToggleButton = useMemo(() => {
-    return (
-      <Button
-        onClick={() => {
-          setVisible((v) => !v)
-        }}
-      >
-        <List></List>
-      </Button>
-    )
+  const toggleNav = useCallback(() => {
+    setVisible((v) => !v)
   }, [])
 
   useEffect(() => {
@@ -76,7 +66,7 @@ export function useBookViewNav(
   }, [visible, book.navs, focusedNavs, player])
 
   return {
-    ToggleButton,
+    toggleNav,
     NavTreeView,
   }
 }
