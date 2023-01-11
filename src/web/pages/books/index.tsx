@@ -54,8 +54,8 @@ export function BookList() {
       <Pagination
         sx={{ marginTop: 2 }}
         onChange={(_, page) => setPage(page)}
-        page={page}
-        count={books.pageCount}
+        page={page ?? 1}
+        count={books?.pageCount}
       ></Pagination>
     ) : null
 

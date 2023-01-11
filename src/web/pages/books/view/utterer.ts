@@ -87,11 +87,6 @@ export class Utterer {
     if (speechSynthesis.speaking) speechSynthesis.cancel()
   }
 
-  /**
-   * @returns
-   * - true: play finished
-   * - false: cancel or play failed
-   */
   async speak(node: ReadablePartText): Promise<SpeakResult> {
     const voice = this.states.voice
     const isPersonReplace = this.states.isPersonReplace
@@ -149,6 +144,31 @@ export class Utterer {
     return result
   }
 
+  private async nextPart() {
+    // end of section
+    if (
+      this.states.pos.paragraph >=
+      this.player.iframeCtrler.readableParts.length - 1
+    ) {
+      // next section
+      if (
+        this.states.pos.section < this.player.book.spines.length - 1 &&
+        this.states.autoNextSection
+      ) {
+        await this.player.nextSection()
+        await nextPagePlay()
+      }
+      // stop
+      else {
+        this.player.pause()
+      }
+    } else {
+      // next paragraph
+      await this.player.nextParagraph()
+      await pressEnterPlay()
+    }
+  }
+
   async startLoop() {
     let retriedCount = 0
     // eslint-disable-next-line no-constant-condition
@@ -167,34 +187,14 @@ export class Utterer {
           }
         }
 
-        // end of section
-        if (
-          this.states.pos.paragraph >=
-          this.player.iframeCtrler.readableParts.length - 1
-        ) {
-          // next section
-          if (
-            this.states.pos.section < this.player.book.spines.length - 1 &&
-            this.states.autoNextSection
-          ) {
-            await this.player.nextSection()
-            await nextPagePlay()
-          }
-          // stop
-          else {
-            this.player.pause()
-          }
-
-          continue
-        }
-
-        // next paragraph
-        await this.player.nextParagraph()
-        await pressEnterPlay()
+        await this.nextPart()
       } catch (err) {
         console.error(err)
         retriedCount += 1
-        if (retriedCount > speakRetriedMax) break
+        if (retriedCount > speakRetriedMax) {
+          await this.nextPart()
+          retriedCount = 0
+        }
       }
     }
   }
