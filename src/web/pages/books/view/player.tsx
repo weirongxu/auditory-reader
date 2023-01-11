@@ -100,10 +100,10 @@ export class Player {
       // new paragraph
       let paragraph = to.paragraph ?? 0
       if (paragraph < 0)
-        paragraph = this.iframeCtrler.elemTexts.length + paragraph
+        paragraph = this.iframeCtrler.readableParts.length + paragraph
       if (
-        this.iframeCtrler.elemTexts.length &&
-        (paragraph < 0 || paragraph >= this.iframeCtrler.elemTexts.length)
+        this.iframeCtrler.readableParts.length &&
+        (paragraph < 0 || paragraph >= this.iframeCtrler.readableParts.length)
       )
         return
 
@@ -135,7 +135,9 @@ export class Player {
   }
 
   get isLastParagraph() {
-    return this.states.pos.paragraph === this.iframeCtrler.elemTexts.length - 1
+    return (
+      this.states.pos.paragraph === this.iframeCtrler.readableParts.length - 1
+    )
   }
 
   async gotoParagraph(paragraph: number) {
@@ -152,7 +154,7 @@ export class Player {
   }
 
   async nextParagraph() {
-    if (this.states.pos.paragraph >= this.iframeCtrler.elemTexts.length - 1)
+    if (this.states.pos.paragraph >= this.iframeCtrler.readableParts.length - 1)
       await this.checkAndGotoPos({
         section: this.states.pos.section + 1,
         paragraph: 0,

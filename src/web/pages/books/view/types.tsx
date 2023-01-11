@@ -10,8 +10,18 @@ export type BookContextProps = {
   >
 }
 
-export type ParagraphElemText = {
+interface ReadablePartBase {
   elem: HTMLElement
-  text: string
   hash?: string
 }
+
+export interface ReadablePartText extends ReadablePartBase {
+  type: 'text'
+  text: string
+}
+
+export interface ReadablePartImage extends ReadablePartBase {
+  type: 'image'
+}
+
+export type ReadablePart = ReadablePartText | ReadablePartImage

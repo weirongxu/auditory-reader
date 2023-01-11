@@ -1,5 +1,5 @@
 import { IGNORE_TAGS, PARA_HIGHLIGHT_CLASS } from '../../../../core/consts.js'
-import type { ParagraphElemText } from './types.js'
+import type { ReadablePart } from './types.js'
 
 const enum FindRangePosType {
   found,
@@ -83,7 +83,7 @@ export class Highlight {
     }
   }
 
-  highlight(node: ParagraphElemText, charIndex: number, charLength: number) {
+  highlight(node: ReadablePart, charIndex: number, charLength: number) {
     this.highlightClear()
     const range = document.createRange()
     const start = this.#getChildAndIndex(node.elem, charIndex)

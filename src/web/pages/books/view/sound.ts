@@ -1,20 +1,43 @@
 import { Howl } from 'howler'
-import soundKeyboard from './sound/keyboard.mp3'
-import soundRainLoop from './sound/rain-loop.mp3'
+import keyboardURL from './sound/keyboard.mp3'
+import rainLoopURL from './sound/rain-loop.mp3'
+import nextPageURL from './sound/next-page.mp3'
+import shutterURL from './sound/shutter.mp3'
 
-const paragraphEndSound = new Howl({
-  src: [soundKeyboard],
+const shutterSound = new Howl({
+  src: [shutterURL],
+})
+export async function shutterPlay() {
+  shutterSound.play()
+  await new Promise((resolve) => {
+    shutterSound.once('end', resolve)
+  })
+}
+
+const pressEnterSound = new Howl({
+  src: [keyboardURL],
 })
 
-export async function paragraphEndPlay() {
-  paragraphEndSound.play()
+export async function pressEnterPlay() {
+  pressEnterSound.play()
   await new Promise((resolve) => {
-    paragraphEndSound.once('end', resolve)
+    pressEnterSound.once('end', resolve)
+  })
+}
+
+const nextPageSound = new Howl({
+  src: [nextPageURL],
+})
+
+export async function nextPagePlay() {
+  nextPageSound.play()
+  await new Promise((resolve) => {
+    nextPageSound.once('end', resolve)
   })
 }
 
 const rainSound = new Howl({
-  src: [soundRainLoop],
+  src: [rainLoopURL],
 })
 rainSound.loop(true)
 rainSound.fade(0, 0.2, 500)

@@ -1,10 +1,16 @@
-import { findLastIndex } from '../../../../core/util/collection.js'
 import { ZH_PERSON_RULES } from '../../../../core/consts.js'
+import { findLastIndex } from '../../../../core/util/collection.js'
 import { Highlight } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states'
-import { rainStop, rainStart, paragraphEndPlay } from './sound.js'
-import type { ParagraphElemText } from './types'
+import {
+  nextPagePlay,
+  pressEnterPlay,
+  rainStart,
+  rainStop,
+  shutterPlay,
+} from './sound.js'
+import type { ReadablePartText } from './types.js'
 
 function replaceScan(
   text: string,
@@ -86,7 +92,7 @@ export class Utterer {
    * - true: play finished
    * - false: cancel or play failed
    */
-  async speak(node: ParagraphElemText): Promise<SpeakResult> {
+  async speak(node: ReadablePartText): Promise<SpeakResult> {
     const voice = this.states.voice
     const isPersonReplace = this.states.isPersonReplace
     const speechSpeed = this.states.speechSpeed
@@ -150,34 +156,41 @@ export class Utterer {
       if (!this.states.started) return
       try {
         const node =
-          this.player.iframeCtrler.elemTexts[this.states.pos.paragraph]
+          this.player.iframeCtrler.readableParts[this.states.pos.paragraph]
         if (node) {
-          const ret = await this.speak(node)
-          // continue when cancel
-          if (ret === 'cancel') continue
+          if (node.type === 'text') {
+            const ret = await this.speak(node)
+            // continue when cancel
+            if (ret === 'cancel') continue
+          } else if (node.type === 'image') {
+            await shutterPlay()
+          }
         }
-
-        await paragraphEndPlay()
 
         // end of section
         if (
           this.states.pos.paragraph >=
-          this.player.iframeCtrler.elemTexts.length - 1
+          this.player.iframeCtrler.readableParts.length - 1
         ) {
           // next section
           if (
             this.states.pos.section < this.player.book.spines.length - 1 &&
             this.states.autoNextSection
-          )
+          ) {
             await this.player.nextSection()
+            await nextPagePlay()
+          }
           // stop
-          else this.player.pause()
+          else {
+            this.player.pause()
+          }
 
           continue
         }
 
         // next paragraph
         await this.player.nextParagraph()
+        await pressEnterPlay()
       } catch (err) {
         console.error(err)
         retriedCount += 1

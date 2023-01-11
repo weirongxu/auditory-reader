@@ -1,7 +1,6 @@
 import { useMountEffect } from '@react-hookz/web'
 import type { RefObject } from 'react'
 import type { Player } from './player'
-import type { ParagraphElemText } from './types'
 import path from 'path'
 import type { BookTypes } from '../../../../core/book/types.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
@@ -23,6 +22,7 @@ import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import { globalStyle } from '../../../../core/style.js'
 import { async } from '../../../../core/util/promise.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
+import type { ReadablePart } from './types.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -111,10 +111,36 @@ function getNavHashes(navs: BookNav[]): string[] {
     .flat()
 }
 
-const getElemTexts = (doc: Document, navs: BookNav[]) => {
+const getReadableParts = (doc: Document, navs: BookNav[]) => {
+  const readableParts: ReadablePart[] = []
+
+  const pushTextPart = (elem: HTMLElement) => {
+    elem.classList.add(PARA_BLOCK_CLASS)
+    const textContent = getContentText(elem)
+    const notEmpty = !!textContent?.trim()
+    if (notEmpty) {
+      readableParts.push({
+        elem,
+        type: 'text',
+        text: textContent,
+      })
+    }
+  }
+
+  const pushImagePart = (elem: HTMLElement) => {
+    elem.classList.add(PARA_BLOCK_CLASS)
+    readableParts.push({
+      elem,
+      type: 'image',
+    })
+  }
+
   // walk
-  const elements = new Set<HTMLElement>()
   for (const node of walkerNode(doc.body)) {
+    if (node instanceof HTMLImageElement) {
+      pushImagePart(node)
+      continue
+    }
     if (!(node instanceof Text)) continue
     const content = node.textContent?.trim()
     if (!content) continue
@@ -125,30 +151,15 @@ const getElemTexts = (doc: Document, navs: BookNav[]) => {
       continue
     }
     if (isAllInlineChild(blockElem)) {
-      elements.add(blockElem)
+      pushTextPart(blockElem)
     } else {
       if (!node.parentElement) continue
       const wrapElem = document.createElement('p')
       node.after(wrapElem)
       wrapElem.appendChild(node)
-      elements.add(wrapElem)
+      pushTextPart(wrapElem)
     }
   }
-
-  // elem to elemText
-  const elemTexts = [...elements]
-    .map((elem) => {
-      elem.classList.add(PARA_BLOCK_CLASS)
-      const textContent = getContentText(elem)
-      const notEmpty = !!textContent?.trim()
-      return notEmpty
-        ? {
-            elem,
-            text: textContent,
-          }
-        : false
-    })
-    .filter((it): it is ParagraphElemText => !!it)
 
   // nav hash
   const navHashes = getNavHashes(navs)
@@ -167,14 +178,14 @@ const getElemTexts = (doc: Document, navs: BookNav[]) => {
       })
     )
   )
-  for (const elemText of elemTexts) {
-    elemText.hash = navHashMap.get(elemText.elem)
+  for (const readablePart of readableParts) {
+    readablePart.hash = navHashMap.get(readablePart.elem)
   }
-  return elemTexts
+  return readableParts
 }
 
 export class PlayerIframeController {
-  elemTexts: ParagraphElemText[] = []
+  readableParts: ReadablePart[] = []
   mainContentRootPath: string
   mainContentRootUrl: string
   colorScheme: ColorScheme = 'light'
@@ -234,7 +245,7 @@ export class PlayerIframeController {
 
   async scrollToPos() {
     // goto paragraph
-    const item = this.elemTexts[this.states.pos.paragraph]
+    const item = this.readableParts[this.states.pos.paragraph]
     if (!item) return
     return await new Promise<void>((resolve) => {
       // waiting the page rendered
@@ -268,10 +279,10 @@ export class PlayerIframeController {
       )
     })
 
-    // load elemTexts
-    this.elemTexts = []
+    // load readableParts
+    this.readableParts = []
     const doc = iframe.contentDocument
-    if (doc) this.elemTexts = getElemTexts(doc, this.book.navs)
+    if (doc) this.readableParts = getReadableParts(doc, this.book.navs)
 
     this.onLoaded(iframe)
     iframe.style.visibility = 'visible'
@@ -285,9 +296,9 @@ export class PlayerIframeController {
     const targetElem = await this.scrollToAnchorId(anchorId)
     let elemIndex: number
     if (targetElem) {
-      elemIndex = this.elemTexts.findIndex((el) => el.elem === targetElem)
+      elemIndex = this.readableParts.findIndex((el) => el.elem === targetElem)
     } else {
-      elemIndex = minIndexBy(this.elemTexts, (el) => {
+      elemIndex = minIndexBy(this.readableParts, (el) => {
         const rect = el.elem.getBoundingClientRect()
         return rect.top < 0 ? Infinity : rect.top
       })
@@ -400,14 +411,16 @@ export class PlayerIframeController {
   hookParagraphClick() {
     const click = (event: Event) => {
       const target = event.currentTarget as Element
-      const paraIndex = this.elemTexts.findIndex((n) => n.elem === target)
+      const paraIndex = this.readableParts.findIndex((n) => n.elem === target)
       if (paraIndex !== -1) {
         this.player.gotoParagraph(paraIndex).catch(console.error)
       }
     }
-    this.elemTexts.forEach((n) => n.elem.addEventListener('click', click))
+    this.readableParts.forEach((n) => n.elem.addEventListener('click', click))
     return () => {
-      this.elemTexts.forEach((n) => n.elem.removeEventListener('click', click))
+      this.readableParts.forEach((n) =>
+        n.elem.removeEventListener('click', click)
+      )
     }
   }
 
@@ -463,9 +476,9 @@ export class PlayerIframeController {
     this.updateFocusedNavs()
   }
 
-  #paragraphLastActive?: ParagraphElemText
+  #paragraphLastActive?: ReadablePart
   paragraphActive() {
-    const item = this.elemTexts[this.states.pos.paragraph]
+    const item = this.readableParts[this.states.pos.paragraph]
     if (
       !item ||
       (this.#paragraphLastActive && item === this.#paragraphLastActive)
@@ -479,10 +492,10 @@ export class PlayerIframeController {
   }
 
   updateFocusedNavs() {
-    const elemTexts = this.elemTexts
+    const readableParts = this.readableParts
     const hash = findLast(
-      elemTexts.slice(0, this.states.pos.paragraph + 1),
-      (elemText) => Boolean(elemText.hash)
+      readableParts.slice(0, this.states.pos.paragraph + 1),
+      (part) => Boolean(part.hash)
     )?.hash
     this.states.focusedNavs = new Set(
       getMatchedNavs(this.states.pos, hash, this.book.navs)
