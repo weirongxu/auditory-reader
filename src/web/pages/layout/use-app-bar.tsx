@@ -1,8 +1,7 @@
-import { Stack } from '@mui/material'
 import { useEffect } from 'react'
 import { createGlobalState } from 'react-hooks-global-state'
 
-export const { useGlobalState: useGlboalHeaderItems } = createGlobalState<{
+export const { useGlobalState: useAppBarState } = createGlobalState<{
   title: React.ReactNode
   left: React.ReactNode
   right: React.ReactNode
@@ -14,20 +13,16 @@ export const { useGlobalState: useGlboalHeaderItems } = createGlobalState<{
   settings: null,
 })
 
-export function SettingLine(props: { children: React.ReactNode }) {
-  return <Stack direction="row">{props.children}</Stack>
-}
-
-export const useHeaderItems = (props: {
+export const useAppBarSync = (props: {
   title?: string
   left?: React.ReactNode
   right?: React.ReactNode
   settings?: React.ReactNode
 }) => {
-  const [, setTitle] = useGlboalHeaderItems('title')
-  const [, setLeftState] = useGlboalHeaderItems('left')
-  const [, setRightState] = useGlboalHeaderItems('right')
-  const [, setSettingsState] = useGlboalHeaderItems('settings')
+  const [, setTitle] = useAppBarState('title')
+  const [, setLeftState] = useAppBarState('left')
+  const [, setRightState] = useAppBarState('right')
+  const [, setSettingsState] = useAppBarState('settings')
 
   useEffect(() => {
     setTitle(props.title)

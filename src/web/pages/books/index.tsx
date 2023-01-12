@@ -22,7 +22,7 @@ import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
-import { useHeaderItems } from '../layout/use-header.js'
+import { useAppBarSync } from '../layout/use-app-bar.js'
 
 export function BookList() {
   const nav = useNavigate()
@@ -41,7 +41,7 @@ export function BookList() {
     )
   }, [])
 
-  useHeaderItems({ right: HeaderRight })
+  useAppBarSync({ right: HeaderRight })
 
   useEffect(() => {
     if (page) reload()

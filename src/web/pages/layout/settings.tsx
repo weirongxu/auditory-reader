@@ -9,6 +9,7 @@ import {
   Radio,
   RadioGroup,
   Slider,
+  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -25,7 +26,10 @@ import {
   useUserColorScheme,
 } from '../../../core/store.js'
 import { isMobile } from '../../../core/util/browser.js'
-import { SettingLine } from './use-header.js'
+
+export function SettingLine(props: { children: React.ReactNode }) {
+  return <Stack direction="row">{props.children}</Stack>
+}
 
 const AutoSectionCheckBox = () => {
   const [autoNextSection, setAutoNextSection] = useAutoSection()

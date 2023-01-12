@@ -28,7 +28,7 @@ import {
   useVoice,
 } from '../../../../core/store.js'
 import { isMobile } from '../../../../core/util/browser.js'
-import { useHeaderItems } from '../../layout/use-header.js'
+import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookViewNav } from './nav.js'
 import type { Player } from './player'
 import { usePlayerSyncUI } from './player-states.js'
@@ -285,7 +285,7 @@ export function usePlayerUI(
     return <>{SelectVoices}</>
   }, [SelectVoices])
 
-  useHeaderItems({
+  useAppBarSync({
     title: '',
     left: headerLeftItems,
     settings: headerSettingItems,
