@@ -438,6 +438,7 @@ export class PlayerIframeController {
         const elemName = e.target.tagName.toLowerCase()
         if (['textarea', 'input'].includes(elemName)) return
       }
+      if (e.altKey || e.ctrlKey) return
       const cb = this.#hotkeys.get(e.key)
       if (cb) {
         e.preventDefault()
