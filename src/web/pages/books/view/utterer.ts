@@ -133,7 +133,8 @@ export class Utterer {
       utterance.addEventListener(
         'error',
         (error) => {
-          reject(error)
+          if (this.state === 'cancel') resolve('cancel')
+          else reject(error)
         },
         { once: true }
       )
