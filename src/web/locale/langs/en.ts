@@ -4,7 +4,8 @@ export const langEn = {
   timerSetting: 'Timer (Minute)',
   personReplaceSetting: '中文人称替换',
   speedSetting: 'Speed',
-  userColorSchemeSetting: 'Color scheme',
+  userColorSchemeSetting: 'Color Scheme',
+  paragraphRepeatSetting: 'Paragraph Repeat',
   desc: {
     addedBookSuccessful: 'Successfully added a new book',
   },

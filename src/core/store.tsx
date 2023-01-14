@@ -156,3 +156,9 @@ export const useUserColorScheme = createStore<ColorScheme>({
   read: (v) => (v ?? 'system') as ColorScheme,
   write: (v) => v,
 })
+
+export const useParagraphRepeat = createStore<number>({
+  storeKey: 'paragraphRepeat',
+  read: (v) => (v ? Number(v) : 1),
+  write: (v) => v.toString(),
+})

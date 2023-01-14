@@ -24,6 +24,7 @@ export class PlayerStatesManager {
   isPersonReplace = false
   speechSpeed = 1
   autoNextSection = false
+  paragraphRepeat = 1
 
   #onUpdateCallbacks: PlayerStatesUpdateCallabck[] = []
 
@@ -94,9 +95,16 @@ export function usePlayerSyncUI(
     speechSpeed: number
     voice: SpeechSynthesisVoice
     autoNextSection: boolean
+    paragraphRepeat: number
   }
 ) {
-  const { isPersonReplace, speechSpeed, voice, autoNextSection } = props
+  const {
+    isPersonReplace,
+    speechSpeed,
+    voice,
+    autoNextSection,
+    paragraphRepeat,
+  } = props
 
   useEffect(() => {
     Object.assign(player.states, {
@@ -104,8 +112,16 @@ export function usePlayerSyncUI(
       speechSpeed,
       voice,
       autoNextSection,
+      paragraphRepeat,
     })
-  }, [player, isPersonReplace, speechSpeed, voice, autoNextSection])
+  }, [
+    player,
+    isPersonReplace,
+    speechSpeed,
+    voice,
+    autoNextSection,
+    paragraphRepeat,
+  ])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,

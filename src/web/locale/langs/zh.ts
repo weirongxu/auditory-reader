@@ -5,6 +5,7 @@ export const langZh = {
   personReplaceSetting: '中文人称替换',
   speedSetting: '速度',
   userColorSchemeSetting: '颜色主题',
+  paragraphRepeatSetting: '段落重复',
   desc: {
     addedBookSuccessful: '成功添加了一本新书',
   },

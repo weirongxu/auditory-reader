@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import {
   useAutoSection,
+  useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
   useStopTimer,
@@ -158,6 +159,7 @@ export function usePlayerUI(
   const [stopTimerEnabled] = useStopTimer()
   const [stopTimerSeconds] = useStopTimerSeconds()
   const [speechSpeed] = useSpeechSpeed()
+  const [paragraphRepeat] = useParagraphRepeat()
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerSyncUI(player, {
@@ -165,6 +167,7 @@ export function usePlayerUI(
       isPersonReplace,
       speechSpeed,
       voice,
+      paragraphRepeat,
     })
 
   const PlayerCtrlGroup = useMemo(() => {

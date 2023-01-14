@@ -2,14 +2,17 @@ import { MenuBook, Settings } from '@mui/icons-material'
 import {
   Box,
   Button,
+  createTheme,
   Drawer,
   IconButton,
   Link as MuiLink,
   Stack,
+  ThemeProvider,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
@@ -28,6 +31,21 @@ export const Layout = (props: { children?: React.ReactNode }) => {
   const [settings] = useAppBarState('settings')
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
+  const theme = useTheme()
+  const settingsTheme = useMemo(
+    () =>
+      createTheme({
+        components: {
+          MuiTextField: {
+            defaultProps: {
+              ...theme.components?.MuiTextField?.defaultProps,
+              inputProps: { sx: { textAlign: 'right' } },
+            },
+          },
+        },
+      }),
+    [theme]
+  )
 
   const appBar = (
     <Stack className={[styles.appBar, barPos].join(' ')} direction="row">
@@ -77,8 +95,10 @@ export const Layout = (props: { children?: React.ReactNode }) => {
                 <h3 style={{ margin: 0 }}>{t('settings')}</h3>
               </Box>
               <Stack sx={{ flex: 1 }}>
-                {settings}
-                <GlobalSettings></GlobalSettings>
+                <ThemeProvider theme={settingsTheme}>
+                  {settings}
+                  <GlobalSettings></GlobalSettings>
+                </ThemeProvider>
               </Stack>
               <Stack>
                 {env.appMode === 'server' && (

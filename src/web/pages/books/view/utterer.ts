@@ -1,5 +1,5 @@
 import { ZH_PERSON_RULES } from '../../../../core/consts.js'
-import { findLastIndex } from '../../../../core/util/collection.js'
+import { findLastIndex, range } from '../../../../core/util/collection.js'
 import { Highlight } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
@@ -182,9 +182,17 @@ export class Utterer {
           this.player.iframeCtrler.readableParts[this.states.pos.paragraph]
         if (node) {
           if (node.type === 'text') {
-            const ret = await this.speak(node)
-            // continue when cancel
-            if (ret === 'cancel') continue
+            let isCancel = false
+            for (const _ of range(0, this.states.paragraphRepeat)) {
+              const ret = await this.speak(node)
+              if (ret === 'cancel') {
+                isCancel = true
+                break
+              }
+            }
+            // May pause, jumps to other paragraphs, leave page.
+            // Continue is necessary, when the user jumps to other paragraphs
+            if (isCancel) continue
           } else if (node.type === 'image') {
             await shutterPlay()
           }
