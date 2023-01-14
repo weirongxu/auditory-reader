@@ -22,7 +22,7 @@ export function useBookViewNav(
     if (!navTreeviewDiv) return
     setTimeout(() => {
       navTreeviewDiv.querySelector('div.item.active')?.scrollIntoView({
-        behavior: 'smooth',
+        behavior: 'auto',
         block: 'start',
       })
     }, 100)

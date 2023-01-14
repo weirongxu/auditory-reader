@@ -34,16 +34,18 @@ export const Layout = (props: { children?: React.ReactNode }) => {
   const theme = useTheme()
   const settingsTheme = useMemo(
     () =>
-      createTheme({
-        components: {
-          MuiTextField: {
-            defaultProps: {
-              ...theme.components?.MuiTextField?.defaultProps,
-              inputProps: { sx: { textAlign: 'right' } },
+      createTheme(
+        {
+          components: {
+            MuiTextField: {
+              defaultProps: {
+                inputProps: { sx: { textAlign: 'right' } },
+              },
             },
           },
         },
-      }),
+        theme
+      ),
     [theme]
   )
 

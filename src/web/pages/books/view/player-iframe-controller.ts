@@ -233,7 +233,7 @@ export class PlayerIframeController {
           // waiting the page rendered
           setTimeout(() => {
             targetEl.scrollIntoView({
-              behavior: 'smooth',
+              behavior: 'auto',
               block: 'center',
             })
             resolve()
@@ -254,7 +254,7 @@ export class PlayerIframeController {
       // waiting the page rendered
       setTimeout(() => {
         item.elem.scrollIntoView({
-          behavior: 'smooth',
+          behavior: 'auto',
           block: 'center',
         })
         resolve()
