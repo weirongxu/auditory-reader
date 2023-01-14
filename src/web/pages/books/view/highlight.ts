@@ -1,5 +1,6 @@
 import { IGNORE_TAGS, PARA_HIGHLIGHT_CLASS } from '../../../../core/consts.js'
 import type { ReadablePart } from './types.js'
+import type { PlayerIframeController } from './player-iframe-controller.js'
 
 const enum FindRangePosType {
   found,
@@ -8,6 +9,8 @@ const enum FindRangePosType {
 
 export class Highlight {
   highlightedElems: HTMLElement[] = []
+
+  constructor(protected iframeCtrl: PlayerIframeController) {}
 
   #findRangePos(
     node: Node,
@@ -103,5 +106,10 @@ export class Highlight {
     this.highlightedElems.push(span)
     span.appendChild(range.extractContents())
     range.insertNode(span)
+    span.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    })
   }
 }

@@ -3,24 +3,24 @@ import type { RefObject } from 'react'
 import { useRef } from 'react'
 import type { BookViewRes } from '../../../../core/api/books/view.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import { Highlight } from './highlight.js'
 import { PlayerIframeController } from './player-iframe-controller.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
 
 export class Player {
-  states = new PlayerStatesManager()
-  utterer = new Utterer(this)
+  states: PlayerStatesManager
+  utterer: Utterer
   iframeCtrler: PlayerIframeController
-  hl = new Highlight()
 
   constructor(
     public book: BookViewRes,
     initPos: BookTypes.PropertyPosition,
     iframeRef: RefObject<HTMLIFrameElement>
   ) {
+    this.states = new PlayerStatesManager()
     this.states.pos = initPos
     this.iframeCtrler = new PlayerIframeController(this, iframeRef)
+    this.utterer = new Utterer(this, this.iframeCtrler)
   }
 
   #onUnmountCallbacks: (() => void)[] = []

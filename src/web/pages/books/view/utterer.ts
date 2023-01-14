@@ -2,6 +2,7 @@ import { ZH_PERSON_RULES } from '../../../../core/consts.js'
 import { findLastIndex } from '../../../../core/util/collection.js'
 import { Highlight } from './highlight.js'
 import type { Player } from './player'
+import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states'
 import {
   nextPagePlay,
@@ -74,11 +75,12 @@ type SpeakResult = 'cancel' | 'done'
 const speakRetriedMax = 3
 
 export class Utterer {
-  hl = new Highlight()
+  hl: Highlight
   state: 'speaking' | 'none' | 'cancel' = 'none'
   states: PlayerStatesManager
 
-  constructor(public player: Player) {
+  constructor(public player: Player, iframeCtrler: PlayerIframeController) {
+    this.hl = new Highlight(iframeCtrler)
     this.states = player.states
   }
 

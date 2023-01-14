@@ -232,7 +232,10 @@ export class PlayerIframeController {
         await new Promise<void>((resolve) => {
           // waiting the page rendered
           setTimeout(() => {
-            targetEl.scrollIntoView({ behavior: 'auto', block: 'center' })
+            targetEl.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            })
             resolve()
           }, 10)
         })
@@ -250,7 +253,10 @@ export class PlayerIframeController {
     return await new Promise<void>((resolve) => {
       // waiting the page rendered
       setTimeout(() => {
-        item.elem.scrollIntoView({ behavior: 'auto', block: 'center' })
+        item.elem.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
         resolve()
       }, 10)
     })
