@@ -3,6 +3,7 @@ import keyboardURL from './sound/keyboard.mp3'
 import rainLoopURL from './sound/rain-loop.mp3'
 import nextPageURL from './sound/next-page.mp3'
 import shutterURL from './sound/shutter.mp3'
+import rewindURL from './sound/rewind.mp3'
 
 const shutterSound = new Howl({
   src: [shutterURL],
@@ -50,4 +51,15 @@ export function rainStart() {
 
 export function rainStop() {
   rainSound.pause()
+}
+
+const rewindSound = new Howl({
+  src: [rewindURL],
+})
+
+export async function rewindPlay() {
+  rewindSound.play()
+  await new Promise((resolve) => {
+    rewindSound.once('end', resolve)
+  })
 }

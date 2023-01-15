@@ -9,6 +9,7 @@ import {
   pressEnterPlay,
   rainStart,
   rainStop,
+  rewindPlay,
   shutterPlay,
 } from './sound.js'
 import type { ReadablePartText } from './types.js'
@@ -183,11 +184,13 @@ export class Utterer {
         if (node) {
           if (node.type === 'text') {
             let isCancel = false
-            for (const _ of range(0, this.states.paragraphRepeat)) {
+            for (let i = 0; i < this.states.paragraphRepeat; i++) {
               const ret = await this.speak(node)
               if (ret === 'cancel') {
                 isCancel = true
                 break
+              } else if (i !== this.states.paragraphRepeat - 1) {
+                await rewindPlay()
               }
             }
             // May pause, jumps to other paragraphs, leave page.

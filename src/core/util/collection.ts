@@ -1,8 +1,17 @@
-export function range(start: number, end: number, step = 1): number[] {
+export function range(
+  start: number,
+  end: number,
+  step = start < end ? 1 : -1
+): number[] {
   const result = []
-  for (let i = start; i < end; i += step) {
-    result.push(i)
-  }
+  if (step > 0)
+    for (let i = start; i < end; i += step) {
+      result.push(i)
+    }
+  else if (step < 0)
+    for (let i = start; i > end; i += step) {
+      result.push(i)
+    }
   return result
 }
 export function compact<T>(
