@@ -55,6 +55,7 @@ export function rainStop() {
 
 const rewindSound = new Howl({
   src: [rewindURL],
+  volume: 0.5,
 })
 
 export async function rewindPlay() {

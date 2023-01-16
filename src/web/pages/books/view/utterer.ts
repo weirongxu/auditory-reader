@@ -1,5 +1,5 @@
 import { ZH_PERSON_RULES } from '../../../../core/consts.js'
-import { findLastIndex, range } from '../../../../core/util/collection.js'
+import { findLastIndex } from '../../../../core/util/collection.js'
 import { Highlight } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
