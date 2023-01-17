@@ -221,32 +221,25 @@ export class PlayerIframeController {
     })
   }
 
-  async scrollToAnchorId(anchorId: string) {
+  getAnchorIdElem(anchorId: string) {
     // goto anchorId
     const win = this.iframe?.contentWindow
     if (!win) return
     const doc = win.document
     try {
-      const targetEl = doc.querySelector(`#${anchorId}`)
-      if (targetEl) {
-        await new Promise<void>((resolve) => {
-          // waiting the page rendered
-          setTimeout(() => {
-            targetEl.scrollIntoView({
-              behavior: 'auto',
-              block: 'center',
-            })
-            resolve()
-          }, 10)
-        })
-        return targetEl.closest(`.${PARA_BLOCK_CLASS}`)
-      }
+      const anchorEl = doc.querySelector(`#${anchorId}`)
+      if (!anchorEl) return
+      return (
+        anchorEl.querySelector(`.${PARA_BLOCK_CLASS}`) ??
+        anchorEl.closest(`.${PARA_BLOCK_CLASS}`) ??
+        anchorEl
+      )
     } catch {
       // ignore selector syntax error
     }
   }
 
-  async scrollToPos() {
+  async scrollToCurPos() {
     // goto paragraph
     const item = this.readableParts[this.states.pos.paragraph]
     if (!item) return
@@ -299,20 +292,29 @@ export class PlayerIframeController {
     const spineIndex = this.book.spines.findIndex((s) => s.href === urlMain)
     if (spineIndex === -1) return
     await this.loadByUrl(urlMain)
-    const targetElem = await this.scrollToAnchorId(anchorId)
-    let elemIndex: number
-    if (targetElem) {
-      elemIndex = this.readableParts.findIndex((el) => el.elem === targetElem)
-    } else {
+
+    const targetElem = this.getAnchorIdElem(anchorId)
+    if (!targetElem) {
+      return
+    }
+
+    let elemIndex = this.readableParts.findIndex((el) => el.elem === targetElem)
+    if (elemIndex === -1) {
+      // Search the nearest element by anchor target element
+      const targetElemTop = targetElem.getBoundingClientRect().top
       elemIndex = minIndexBy(this.readableParts, (el) => {
         const rect = el.elem.getBoundingClientRect()
-        return rect.top < 0 ? Infinity : rect.top
+        return rect.top < targetElemTop ? Infinity : rect.top
       })
+
+      if (elemIndex === -1) return
     }
+
     this.states.pos = {
       section: spineIndex,
       paragraph: elemIndex,
     }
+    await this.scrollToCurPos()
   }
 
   updateColorTheme(colorScheme: ColorScheme) {
@@ -469,7 +471,7 @@ export class PlayerIframeController {
     const spine = this.book.spines[this.states.pos.section]
     if (spine) {
       await this.loadByUrl(spine.href)
-      await this.scrollToPos()
+      await this.scrollToCurPos()
     } else {
       const spine = this.book.spines[0]
       await this.loadByUrl(spine.href)
@@ -477,7 +479,7 @@ export class PlayerIframeController {
         section: 0,
         paragraph: 0,
       }
-      await this.scrollToPos()
+      await this.scrollToCurPos()
     }
     this.paragraphActive()
     this.updateFocusedNavs()

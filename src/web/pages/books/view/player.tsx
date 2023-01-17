@@ -87,7 +87,7 @@ export class Player {
         section,
         paragraph: to.paragraph ?? this.states.pos.paragraph,
       }
-      await this.iframeCtrler.scrollToPos()
+      await this.iframeCtrler.scrollToCurPos()
     } else {
       // Change section
       const href = this.book.spines[section]?.href
@@ -111,7 +111,7 @@ export class Player {
         section,
         paragraph,
       }
-      await this.iframeCtrler.scrollToPos()
+      await this.iframeCtrler.scrollToCurPos()
     }
 
     this.utterer.cancel()
