@@ -215,14 +215,15 @@ export class BookEpub extends BookBase {
   protected async loadNav3() {
     const navManifest = this.manifestItems.find((it) => it.properties === 'nav')
     if (!navManifest) return this.loadNav2()
-    const dom = await this.dom(navManifest.href)
-    if (!dom) return []
-    const navRoot = dom.querySelector(`${NAV_TOC_SELECTOR}>ol`)
+    const navDom = await this.dom(navManifest.href)
+    const navDir = path.dirname(navManifest.href)
+    if (!navDom) return []
+    const navRoot = navDom.querySelector(`${NAV_TOC_SELECTOR}>ol`)
     if (!navRoot) return []
-    return this.parseNav3(navRoot)
+    return this.parseNav3(navRoot, navDir)
   }
 
-  protected parseNav3(dom: Element): BookNav[] {
+  protected parseNav3(dom: Element, dir: string): BookNav[] {
     const nav: BookNav[] = compact(
       Array.from(scopeQuerySelectorAll(dom, ['li'])).map(
         (el): BookNav | undefined => {
@@ -238,7 +239,7 @@ export class BookEpub extends BookBase {
           if (elem.tagName.toLowerCase() === 'a') {
             const src = elem.getAttribute('href')
             if (src) {
-              href = path.join(this.rootDir, src)
+              href = path.join(dir, src)
               ;[hrefBase, hrefHash] = href.split('#', 2)
               spineIndex = this.getSpineIndexByHref(hrefBase)
             }
@@ -250,7 +251,7 @@ export class BookEpub extends BookBase {
             hrefBase,
             hrefHash,
             spineIndex,
-            children: childOl ? this.parseNav3(childOl) : [],
+            children: childOl ? this.parseNav3(childOl, dir) : [],
           }
         }
       )
@@ -263,14 +264,15 @@ export class BookEpub extends BookBase {
     const tocId = this.spine.getAttribute('toc') ?? 'ncx'
     const ncxManifest = this.manifestItems.find((it) => it.id === tocId)
     if (!ncxManifest) return []
-    const dom = await this.dom(ncxManifest.href)
-    if (!dom) return []
-    const navRoot = dom.querySelector('navMap')
+    const navDom = await this.dom(ncxManifest.href)
+    const navDir = path.dirname(ncxManifest.href)
+    if (!navDom) return []
+    const navRoot = navDom.querySelector('navMap')
     if (!navRoot) return []
-    return this.parseNav2(navRoot)
+    return this.parseNav2(navRoot, navDir)
   }
 
-  protected parseNav2(dom: Element): BookNav[] {
+  protected parseNav2(dom: Element, dir: string): BookNav[] {
     const nav: BookNav[] = compact(
       Array.from(scopeQuerySelectorAll(dom, ['navPoint'])).map(
         (el): BookNav | undefined => {
@@ -285,7 +287,7 @@ export class BookEpub extends BookBase {
           let spineIndex: number | undefined
           const src = scopeQuerySelector(el, ['content'])?.getAttribute('src')
           if (src) {
-            href = path.join(this.rootDir, src)
+            href = path.join(dir, src)
             ;[hrefBase, hrefHash] = href.split('#', 2)
             spineIndex = this.getSpineIndexByHref(hrefBase)
           }
@@ -295,7 +297,7 @@ export class BookEpub extends BookBase {
             hrefBase,
             hrefHash,
             spineIndex,
-            children: this.parseNav2(el),
+            children: this.parseNav2(el, dir),
           }
         }
       )
