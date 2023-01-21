@@ -9,6 +9,8 @@ export const globalStyle = `
     --main-fg-active: #111;
     --main-fg-hover: #111;
     --main-border: rgba(100, 100, 100, 0.35);
+    --main-bg-highlight: rgba(10, 120, 220, 0.3);
+    --main-fg-highlight: var(--main-fg);
   }
   :root.${COLOR_SCHEME_DARK_CLASS}  {
     --main-bg: #1a1b1e;
@@ -18,5 +20,7 @@ export const globalStyle = `
     --main-fg-active: #ccc;
     --main-fg-hover: #ccc;
     --main-border: #777;
+    --main-bg-highlight: rgba(255, 255, 255, 0.9);
+    --main-fg-highlight: rgba(100, 100, 100, 0.8);
   }
 `

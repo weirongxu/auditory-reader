@@ -367,7 +367,10 @@ export class PlayerIframeController {
       }
 
       ${contentSelectors
-        .map((s) => `.${COLOR_SCHEME_DARK_CLASS} ${s}`)
+        .map(
+          (s) =>
+            `.${COLOR_SCHEME_DARK_CLASS} ${s}:not(.${PARA_HIGHLIGHT_CLASS})`
+        )
         .join(', ')} {
         color: var(--main-fg) !important;
       }
@@ -385,7 +388,8 @@ export class PlayerIframeController {
       }
 
       .${PARA_HIGHLIGHT_CLASS} {
-        background-color: rgba(10, 120, 220, 0.3);
+        background-color: var(--main-bg-highlight);
+        color: var(--main-fg-highlight) !important;
       }
     `
     doc.head.appendChild(styleElem)
