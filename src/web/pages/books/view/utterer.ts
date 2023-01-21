@@ -79,10 +79,23 @@ export class Utterer {
   hl: Highlight
   state: 'speaking' | 'none' | 'cancel' = 'none'
   states: PlayerStatesManager
+  utterance: SpeechSynthesisUtterance
 
-  constructor(public player: Player, iframeCtrler: PlayerIframeController) {
+  constructor(
+    public player: Player,
+    states: PlayerStatesManager,
+    iframeCtrler: PlayerIframeController
+  ) {
+    this.states = states
     this.hl = new Highlight(iframeCtrler)
-    this.states = player.states
+
+    this.utterance = new SpeechSynthesisUtterance()
+    this.states.uiEvents.on('voice', (voice) => {
+      this.utterance.voice = voice
+    })
+    this.states.uiEvents.on('speechSpeed', (speechSpeed) => {
+      this.utterance.rate = speechSpeed
+    })
   }
 
   cancel() {
@@ -91,49 +104,45 @@ export class Utterer {
   }
 
   async speak(node: ReadablePartText): Promise<SpeakResult> {
-    const voice = this.states.voice
     const isPersonReplace = this.states.isPersonReplace
-    const speechSpeed = this.states.speechSpeed
-
-    if (!voice) return 'cancel'
 
     this.state = 'speaking'
-    const utterance = new SpeechSynthesisUtterance()
     let text = node.text
     text = isPersonReplace ? replacePersonText(text) : text
     const quotePostions = getQoutePostions(text)
-    utterance.text = text
-    utterance.voice = voice
-    utterance.rate = speechSpeed
-    speechSynthesis.speak(utterance)
-    utterance.addEventListener('boundary', (event: SpeechSynthesisEvent) => {
-      // range highlight
-      this.hl.highlight(node, event.charIndex, event.charLength)
+    this.utterance.text = text
+    speechSynthesis.speak(this.utterance)
+    this.utterance.addEventListener(
+      'boundary',
+      (event: SpeechSynthesisEvent) => {
+        // range highlight
+        this.hl.highlight(node, event.charIndex, event.charLength)
 
-      // quote & rain
-      const quotePosIndex = findLastIndex(
-        quotePostions,
-        (p) => p.charIndex <= event.charIndex
-      )
-      if (quotePosIndex === undefined) return rainStop()
-      const posPass = quotePostions.slice(0, quotePosIndex + 1)
-      const startPosList = posPass.filter((p) => p.type === 'start')
-      const endPosList = posPass.filter((p) => p.type === 'end')
-      if (startPosList.length > endPosList.length) {
-        rainStart()
-      } else {
-        rainStop()
+        // quote & rain
+        const quotePosIndex = findLastIndex(
+          quotePostions,
+          (p) => p.charIndex <= event.charIndex
+        )
+        if (quotePosIndex === undefined) return rainStop()
+        const posPass = quotePostions.slice(0, quotePosIndex + 1)
+        const startPosList = posPass.filter((p) => p.type === 'start')
+        const endPosList = posPass.filter((p) => p.type === 'end')
+        if (startPosList.length > endPosList.length) {
+          rainStart()
+        } else {
+          rainStop()
+        }
       }
-    })
+    )
     const result = await new Promise<SpeakResult>((resolve, reject) => {
-      utterance.addEventListener(
+      this.utterance.addEventListener(
         'end',
         () => {
           resolve(this.state === 'cancel' ? 'cancel' : 'done')
         },
         { once: true }
       )
-      utterance.addEventListener(
+      this.utterance.addEventListener(
         'error',
         (error) => {
           if (this.state === 'cancel') resolve('cancel')

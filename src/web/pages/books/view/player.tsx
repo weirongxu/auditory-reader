@@ -19,8 +19,8 @@ export class Player {
   ) {
     this.states = new PlayerStatesManager()
     this.states.pos = initPos
-    this.iframeCtrler = new PlayerIframeController(this, iframeRef)
-    this.utterer = new Utterer(this, this.iframeCtrler)
+    this.iframeCtrler = new PlayerIframeController(this, this.states, iframeRef)
+    this.utterer = new Utterer(this, this.states, this.iframeCtrler)
   }
 
   #onUnmountCallbacks: (() => void)[] = []

@@ -23,6 +23,7 @@ import { globalStyle } from '../../../../core/style.js'
 import { async } from '../../../../core/util/promise.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
 import type { ReadablePart } from './types.js'
+import type { PlayerStatesManager } from './player-states.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -194,16 +195,13 @@ export class PlayerIframeController {
     return this.player.book
   }
 
-  get states() {
-    return this.player.states
-  }
-
   get iframe() {
     return this.iframeRef.current
   }
 
   constructor(
     public player: Player,
+    public states: PlayerStatesManager,
     public iframeRef: RefObject<HTMLIFrameElement>
   ) {
     this.mainContentRootPath = getBooksRenderPath(this.book.item.uuid, '')
@@ -213,11 +211,9 @@ export class PlayerIframeController {
       location.href
     ).toString()
 
-    this.states.onUpdate(({ pos }) => {
-      if (pos) {
-        this.paragraphActive()
-        this.updateFocusedNavs()
-      }
+    this.states.events.on('pos', () => {
+      this.paragraphActive()
+      this.updateFocusedNavs()
     })
   }
 

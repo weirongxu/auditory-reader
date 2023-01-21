@@ -1,8 +1,8 @@
 import type { Dispatch } from 'react'
-import { useMemo } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { Emitter } from '../../../../core/util/emitter.js'
 import type { Player } from './player.js'
 
 type PlayerStates = {
@@ -11,7 +11,13 @@ type PlayerStates = {
   focusedNavs: Set<BookNav>
 }
 
-type PlayerStatesUpdateCallabck = (states: Partial<PlayerStates>) => void
+type PlayerUIStates = {
+  isPersonReplace: boolean
+  speechSpeed: number
+  voice: null | SpeechSynthesisVoice
+  autoNextSection: boolean
+  paragraphRepeat: number
+}
 
 export class PlayerStatesManager {
   #states: PlayerStates = {
@@ -20,27 +26,7 @@ export class PlayerStatesManager {
     focusedNavs: new Set(),
   }
 
-  voice: null | SpeechSynthesisVoice = null
-  isPersonReplace = false
-  speechSpeed = 1
-  autoNextSection = false
-  paragraphRepeat = 1
-
-  #onUpdateCallbacks: PlayerStatesUpdateCallabck[] = []
-
-  onUpdate(callback: PlayerStatesUpdateCallabck) {
-    this.#onUpdateCallbacks.push(callback)
-    return () => {
-      const idx = this.#onUpdateCallbacks.findIndex(() => callback)
-      this.#onUpdateCallbacks.splice(idx, 1)
-    }
-  }
-
-  #tiggerUpdated(states: Partial<PlayerStates>) {
-    for (const cb of this.#onUpdateCallbacks) {
-      cb(states)
-    }
-  }
+  events = new Emitter<PlayerStates>()
 
   get started() {
     return this.#states.started
@@ -48,7 +34,7 @@ export class PlayerStatesManager {
 
   set started(started: boolean) {
     this.#states.started = started
-    this.#tiggerUpdated({ started })
+    this.events.fire('started', started)
   }
 
   get pos() {
@@ -57,12 +43,50 @@ export class PlayerStatesManager {
 
   set pos(pos: BookTypes.PropertyPosition) {
     this.#states.pos = pos
-    this.#tiggerUpdated({ pos })
+    this.events.fire('pos', pos)
   }
 
   set focusedNavs(focusedNavs: Set<BookNav>) {
     this.#states.focusedNavs = focusedNavs
-    this.#tiggerUpdated({ focusedNavs })
+    this.events.fire('focusedNavs', focusedNavs)
+  }
+
+  #uiStates: PlayerUIStates = {
+    voice: null,
+    isPersonReplace: false,
+    speechSpeed: 1,
+    autoNextSection: false,
+    paragraphRepeat: 1,
+  }
+
+  uiEvents = new Emitter<PlayerUIStates>()
+
+  get voice() {
+    return this.#uiStates.voice
+  }
+
+  get isPersonReplace() {
+    return this.#uiStates.isPersonReplace
+  }
+
+  get speechSpeed() {
+    return this.#uiStates.speechSpeed
+  }
+
+  get autoNextSection() {
+    return this.#uiStates.autoNextSection
+  }
+
+  get paragraphRepeat() {
+    return this.#uiStates.paragraphRepeat
+  }
+
+  syncUIState<K extends keyof PlayerUIStates>(
+    name: K,
+    state: PlayerUIStates[K]
+  ) {
+    this.#uiStates[name] = state
+    this.uiEvents.fire(name, state)
   }
 }
 
@@ -77,27 +101,25 @@ export function usePlayerSync(
   const { setPos, setStarted, setFocusedNavs } = props
 
   useEffect(() => {
-    const dispose = player.states.onUpdate((states) => {
-      if (states.pos !== undefined) setPos(states.pos)
-      if (states.started !== undefined) setStarted(states.started)
-      if (states.focusedNavs !== undefined) setFocusedNavs(states.focusedNavs)
-    })
+    const events = player.states.events
+    const disposes = [
+      events.on('pos', (pos) => {
+        setPos(pos)
+      }),
+      events.on('started', (started) => {
+        setStarted(started)
+      }),
+      events.on('focusedNavs', (focusedNavs) => {
+        setFocusedNavs(focusedNavs)
+      }),
+    ]
     return () => {
-      dispose()
+      disposes.forEach((dispose) => dispose())
     }
   }, [player, setPos, setStarted, setFocusedNavs])
 }
 
-export function usePlayerSyncUI(
-  player: Player,
-  props: {
-    isPersonReplace: boolean
-    speechSpeed: number
-    voice: SpeechSynthesisVoice
-    autoNextSection: boolean
-    paragraphRepeat: number
-  }
-) {
+export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
   const {
     isPersonReplace,
     speechSpeed,
@@ -107,21 +129,24 @@ export function usePlayerSyncUI(
   } = props
 
   useEffect(() => {
-    Object.assign(player.states, {
-      isPersonReplace,
-      speechSpeed,
-      voice,
-      autoNextSection,
-      paragraphRepeat,
-    })
-  }, [
-    player,
-    isPersonReplace,
-    speechSpeed,
-    voice,
-    autoNextSection,
-    paragraphRepeat,
-  ])
+    player.states.syncUIState('isPersonReplace', isPersonReplace)
+  }, [player, isPersonReplace])
+
+  useEffect(() => {
+    player.states.syncUIState('speechSpeed', speechSpeed)
+  }, [player, speechSpeed])
+
+  useEffect(() => {
+    player.states.syncUIState('voice', voice)
+  }, [player, voice])
+
+  useEffect(() => {
+    player.states.syncUIState('autoNextSection', autoNextSection)
+  }, [player, autoNextSection])
+
+  useEffect(() => {
+    player.states.syncUIState('paragraphRepeat', paragraphRepeat)
+  }, [player, paragraphRepeat])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,
