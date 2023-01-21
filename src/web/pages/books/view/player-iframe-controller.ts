@@ -113,6 +113,7 @@ function getNavHashes(navs: BookNav[]): string[] {
 }
 
 const getReadableParts = (doc: Document, navs: BookNav[]) => {
+  const blockElemSet = new Set<HTMLElement>()
   const readableParts: ReadablePart[] = []
 
   const pushTextPart = (elem: HTMLElement) => {
@@ -147,10 +148,17 @@ const getReadableParts = (doc: Document, navs: BookNav[]) => {
     if (!content) continue
     const blockElem = getParentBlockElem(node.parentElement)
     if (!blockElem) continue
+
+    // skip tag like: ruby > rt
     if (IGNORE_TAGS.includes(blockElem.tagName.toLowerCase())) {
       blockElem.classList.add(PARA_IGNORE_CLASS)
       continue
     }
+
+    // avoid duplicated
+    if (blockElemSet.has(blockElem)) continue
+    blockElemSet.add(blockElem)
+
     if (isAllInlineChild(blockElem)) {
       pushTextPart(blockElem)
     } else {
