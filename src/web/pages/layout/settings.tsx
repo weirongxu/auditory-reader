@@ -194,7 +194,7 @@ const PlaySpeed = () => {
         ></Slider>
         <TextField
           type="number"
-          value={speechSpeed}
+          defaultValue={speechSpeed}
           onChange={(e) => {
             const f = parseFloat(e.target.value)
             if (!isNaN(f)) setSpeechSpeed(f)
@@ -246,7 +246,7 @@ const ParagraphRepeatInput = () => {
       <TextField
         type="number"
         sx={{ width: 80 }}
-        value={paragraphRepeat}
+        defaultValue={paragraphRepeat}
         onChange={(e) => {
           const f = parseInt(e.target.value, 10)
           if (!isNaN(f)) setParagraphRepeat(f < 1 ? 1 : Math.floor(f))
