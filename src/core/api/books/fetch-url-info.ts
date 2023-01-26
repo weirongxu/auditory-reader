@@ -1,6 +1,6 @@
-import { JSDOM } from 'jsdom'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
+import { fetchDom } from '../../util/http.js'
 
 export type BookFetchUrlInfoQuery = {
   url: string
@@ -17,9 +17,7 @@ export const booksFetchUrlInfoRouter = new URouter<
 >('books/fetch-url-info').routeLogined(async ({ req }) => {
   const body = await req.body
 
-  const res = await fetch(body.url)
-  const html = await res.text()
-  const jsdom = new JSDOM(html)
+  const jsdom = await fetchDom(body.url)
   const doc = jsdom.window.document
   const titleDom =
     doc.querySelector('h1') ??

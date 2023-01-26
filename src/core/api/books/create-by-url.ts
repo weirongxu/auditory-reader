@@ -1,11 +1,11 @@
-import { JSDOM } from 'jsdom'
+import { Readability } from '@mozilla/readability'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
+import { createEpubBy } from '../../gen/epub.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-import { Readability } from '@mozilla/readability'
-import { createEpubBy } from '../../gen/epub.js'
+import { fetchDom } from '../../util/http.js'
 
 export type BookCreateByUrl = {
   name: string
@@ -31,9 +31,7 @@ export const booksCreateByUrlRouter = new URouter<
     updatedAt: date,
   }
 
-  const res = await fetch(body.url)
-  const html = await res.text()
-  const jsdom = new JSDOM(html)
+  const jsdom = await fetchDom(body.url)
   const doc = jsdom.window.document
   const article = new Readability(doc).parse()
 
