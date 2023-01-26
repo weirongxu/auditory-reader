@@ -34,6 +34,8 @@ export const langZh = {
   remove: '删除',
   update: '更新',
   bookName: '书名',
+  url: 'URL',
+  extractUrlInfo: '提取URL信息',
   bookContent: '文本内容',
   language: '语言',
   file: '文件',

@@ -5,14 +5,6 @@ import type { BookTypes } from '../../book/types.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '100mb',
-    },
-  },
-}
-
 export type BookCreate = {
   name: string
   langCode: LangCode

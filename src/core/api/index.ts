@@ -1,4 +1,6 @@
+import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
+import { booksFetchUrlInfoRouter } from './books/fetch-url-info.js'
 import { booksMoveTopRouter } from './books/move-top.js'
 import { booksPageRouter } from './books/page.js'
 import { booksPositionRouter } from './books/position.js'
@@ -17,6 +19,8 @@ export const ROUTERS = [
   logoutRouter,
   userRouter,
   booksCreateRouter,
+  booksFetchUrlInfoRouter,
+  booksCreateByUrlRouter,
   booksMoveTopRouter,
   booksPageRouter,
   booksPositionRouter,

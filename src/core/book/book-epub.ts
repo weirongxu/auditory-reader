@@ -73,11 +73,17 @@ function scopeQuerySelector(
 export class BookEpub extends BookBase {
   protected static async getRootPath(xml: XMLDOMLoader) {
     const containerRoot = await xml.dom('META-INF/container.xml')
-    if (!containerRoot) return
+    if (!containerRoot) {
+      console.error('Parse META-INF/container.xml error')
+      return
+    }
     const rootfilePath = containerRoot
       .querySelector('rootfile')
       ?.getAttribute('full-path')
-    if (!rootfilePath) return
+    if (!rootfilePath) {
+      console.error('rootfile full-path not found')
+      return
+    }
     return path.join('/', rootfilePath)
   }
 
@@ -85,9 +91,15 @@ export class BookEpub extends BookBase {
     const zip = await JSZip.loadAsync(buffer)
     const xml = new XMLDOMLoader(zip)
     const rootPath = await this.getRootPath(xml)
-    if (!rootPath) return
+    if (!rootPath) {
+      console.error(`epub root-path(${rootPath}) not found`)
+      return
+    }
     const rootDoc = await xml.dom(rootPath)
-    if (!rootDoc) return
+    if (!rootDoc) {
+      console.error(`epub root document not found`)
+      return
+    }
     return new BookEpub(zip, xml, xml.win(), rootDoc, path.dirname(rootPath))
   }
 

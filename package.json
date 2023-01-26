@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@emotion/styled": "^11.10.5",
+    "@mozilla/readability": "^0.4.2",
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.11.2",
     "@react-hookz/web": "^20.0.3",
@@ -36,6 +37,7 @@
     "jszip": "^3.10.1",
     "material-ui-confirm": "^3.0.7",
     "mime-types": "^2.1.35",
+    "node-fetch": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",

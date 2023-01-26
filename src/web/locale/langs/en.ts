@@ -34,6 +34,8 @@ export const langEn = {
   remove: 'Remove',
   update: 'Update',
   bookName: 'Book name',
+  url: 'URL',
+  extractUrlInfo: 'Extract URL info',
   bookContent: 'Book content',
   language: 'Language',
   file: 'File',

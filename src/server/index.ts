@@ -11,6 +11,10 @@ import { ROUTERS } from '../core/api/index.js'
 import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'
 import { ErrorResponse } from '../core/route/session.js'
+import fetch from 'node-fetch'
+
+// @ts-ignore
+global.fetch = fetch
 
 const app = express()
 
