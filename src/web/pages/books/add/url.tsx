@@ -49,7 +49,7 @@ export function AddUrl() {
         <Autocomplete
           placeholder={t('prompt.selectLanguage')}
           options={langOptions}
-          value={langOptions.find((l) => l.value === langCode)}
+          value={langOptions.find((l) => l.value === langCode) ?? null}
           onChange={(_, value) => {
             if (value?.value) setLangCode(value.value)
           }}
@@ -63,12 +63,9 @@ export function AddUrl() {
             required
             label={t('url')}
             sx={{ flex: 1 }}
-            value={url}
+            value={url ?? ''}
             onChange={(e) => {
               setUrl(e.target.value)
-            }}
-            inputProps={{
-              endAdornment: <></>,
             }}
           ></TextField>
           <Button

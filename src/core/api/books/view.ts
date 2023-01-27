@@ -2,7 +2,7 @@ import type { BookNav, BookSpine } from '../../book/book-base.js'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'
-import { ErrorResponse } from '../../route/session.js'
+import { ErrorRequestResponse } from '../../route/session.js'
 
 export type BookViewQuery = {
   uuid: string
@@ -20,7 +20,7 @@ export const booksViewRouter = new URouter<BookViewQuery, BookViewRes>(
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
   const book = await bookManager.book(userInfo.account, body.uuid)
-  if (!book) throw new ErrorResponse('Parse epub error')
+  if (!book) throw new ErrorRequestResponse('Parse epub error')
   return {
     item: bookEntity.entity,
     navs: await book.navs(),

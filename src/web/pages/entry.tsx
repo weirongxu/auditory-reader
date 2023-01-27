@@ -10,6 +10,7 @@ import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
 import { BooksEntry } from './books/entry.js'
 import { Layout } from './layout/layout.js'
+import { GlobalSnackbar } from './layout/snackbar.js'
 import { Login } from './login.js'
 import { NotFound } from './not-found.js'
 
@@ -50,6 +51,7 @@ function Main() {
 export function RootEntry() {
   return (
     <HashRouter>
+      <GlobalSnackbar></GlobalSnackbar>
       <Main></Main>
     </HashRouter>
   )

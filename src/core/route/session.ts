@@ -9,7 +9,7 @@ declare module 'express-session' {
   }
 }
 
-export class ErrorResponse extends Error {}
+export class ErrorRequestResponse extends Error {}
 
 export type UserInfo = {
   account: string

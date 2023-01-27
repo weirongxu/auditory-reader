@@ -1,8 +1,14 @@
 import { JSDOM } from 'jsdom'
+import { ErrorRequestResponse } from '../route/session.js'
 
 export async function fetchHtml(url: string) {
-  const res = await fetch(url)
-  return await res.text()
+  try {
+    const res = await fetch(url)
+    return await res.text()
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : err?.toString()
+    throw new ErrorRequestResponse(msg)
+  }
 }
 
 export async function fetchDom(url: string) {

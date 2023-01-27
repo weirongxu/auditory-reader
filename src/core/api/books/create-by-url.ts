@@ -2,7 +2,7 @@ import { Readability } from '@mozilla/readability'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
-import { createEpubBy } from '../../gen/epub.js'
+import { EpubGen } from '../../generate/epub-gen.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
 import { fetchDom } from '../../util/http.js'
@@ -37,17 +37,18 @@ export const booksCreateByUrlRouter = new URouter<
 
   if (!article) throw new Error('parse article error')
 
-  const entityJson = await bookManager.list(userInfo.account).add(
-    entity,
-    await createEpubBy({
-      title: body.name,
-      date,
-      htmlContent: article.content,
-      lang: body.langCode,
-      publisher: body.url,
-      uuid,
-    })
-  )
+  const epubBuf = await new EpubGen({
+    title: body.name,
+    date,
+    htmlContent: article.content,
+    lang: body.langCode,
+    publisher: body.url,
+    uuid,
+  }).gen()
+
+  const entityJson = await bookManager
+    .list(userInfo.account)
+    .add(entity, epubBuf)
 
   return entityJson
 })

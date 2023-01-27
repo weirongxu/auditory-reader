@@ -1,4 +1,10 @@
-import { ActionError, ActionUnauthorized, getActionPath } from './action.js'
+import { pushSnackbar } from '../../web/pages/layout/snackbar-hooks.js'
+import {
+  ActionError,
+  ActionRequestError,
+  ActionUnauthorized,
+  getActionPath,
+} from './action.js'
 import type { URequest } from './request'
 import type { UResponse } from './response'
 import type { UserInfo } from './session'
@@ -68,6 +74,14 @@ export class URouter<Req = any, Res = any> {
       body: body ? JSON.stringify(body) : null,
     })
     if (res.status === 401) throw new ActionUnauthorized()
+    if (res.status.toString().startsWith('4')) {
+      const json = await res.json()
+      pushSnackbar({
+        severity: 'error',
+        message: json.message,
+      })
+      throw new ActionRequestError(json.message)
+    }
     if (!res.status.toString().startsWith('2'))
       throw new ActionError(await res.json())
     return await res.json()

@@ -1,5 +1,5 @@
 import { env } from '../env.js'
-import { ErrorResponse } from '../route/session.js'
+import { ErrorRequestResponse } from '../route/session.js'
 import type { BookBase } from './book-base'
 import { BookEpub } from './book-epub.js'
 import { BookText } from './book-text.js'
@@ -35,7 +35,8 @@ class BookManager {
     let entity = this.cacheEntity.get('uuid')
     if (!entity) {
       entity = await this.list(account).book(uuid)
-      if (!entity) throw new ErrorResponse(`book entity(${uuid}) not found`)
+      if (!entity)
+        throw new ErrorRequestResponse(`book entity(${uuid}) not found`)
       this.cacheEntity.set(uuid, entity)
     }
     return entity
@@ -54,17 +55,17 @@ class BookManager {
     const bookEntity = await this.entity(account, uuid)
     if (bookEntity.entity.type === 'epub') {
       const epub = await BookEpub.read(await bookEntity.readFileBuffer())
-      if (!epub) throw new ErrorResponse('Parse epub error')
+      if (!epub) throw new ErrorRequestResponse('Parse epub error')
       return epub
     } else if (bookEntity.entity.type === 'text') {
       const text = await BookText.read(
         await bookEntity.readFileText(),
         bookEntity.entity.name
       )
-      if (!text) throw new ErrorResponse('Parse text error')
+      if (!text) throw new ErrorRequestResponse('Parse text error')
       return text
     } else {
-      throw new ErrorResponse(
+      throw new ErrorRequestResponse(
         `Unsupported type ${bookEntity.entity.type as string}`
       )
     }

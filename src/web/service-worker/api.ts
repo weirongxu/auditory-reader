@@ -5,6 +5,7 @@ import { ROUTERS } from '../../core/api/index.js'
 import { getActionPath } from '../../core/route/action.js'
 import { URequest } from '../../core/route/request.js'
 import { UResponseHold, UResponse } from '../../core/route/response.js'
+import { ErrorRequestResponse } from '../../core/route/session.js'
 
 export default null
 declare let self: ServiceWorkerGlobalScope
@@ -45,13 +46,30 @@ self.addEventListener('fetch', (event) => {
           ),
           res: UResponse.fromBrowser(resH),
         })
-      ).then((body: any) => {
-        const data = isPlainObject(body) ? JSON.stringify(body) : body
-        return new Response(data, {
-          status: resH.status ?? 200,
-          headers: resH.headers,
+      )
+        .then((body: any) => {
+          const data = isPlainObject(body) ? JSON.stringify(body) : body
+          return new Response(data, {
+            status: resH.status ?? 200,
+            headers: resH.headers,
+          })
         })
-      })
+        .catch((error) => {
+          if (error instanceof ErrorRequestResponse) {
+            return new Response(JSON.stringify({ message: error.message }), {
+              status: 400,
+              headers: resH.headers,
+            })
+          } else {
+            const msg =
+              error instanceof Error ? error.message : error?.toString()
+            console.error(error)
+            return new Response(JSON.stringify({ message: msg }), {
+              status: 500,
+              headers: resH.headers,
+            })
+          }
+        })
     )
   }
 })

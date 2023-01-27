@@ -12,6 +12,12 @@ export class ActionUnauthorized extends Error {
   }
 }
 
+export class ActionRequestError extends Error {
+  constructor(public readonly message: string) {
+    super()
+  }
+}
+
 export class ActionError<T> extends Error {
   constructor(public data: T) {
     super()
@@ -49,7 +55,6 @@ export function useAction<R, P>(router: URouter<R, P>, arg: R) {
   useEffect(() => {
     if (firstLoad) return
     setFirstLoad(true)
-
     reload()
   }, [firstLoad, reload])
 

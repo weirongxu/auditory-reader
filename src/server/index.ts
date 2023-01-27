@@ -10,7 +10,7 @@ import GetFileStore from 'session-file-store'
 import { ROUTERS } from '../core/api/index.js'
 import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'
-import { ErrorResponse } from '../core/route/session.js'
+import { ErrorRequestResponse } from '../core/route/session.js'
 import fetch from 'node-fetch'
 
 // @ts-ignore
@@ -41,7 +41,7 @@ app.use(
 )
 
 // eslint-disable-next-line no-console
-console.log(`register routes`)
+console.log('register routes')
 for (const router of ROUTERS) {
   const fullRoutePath = router.isDynamic
     ? `${router.fullRoutePath}/*`
@@ -62,7 +62,7 @@ for (const router of ROUTERS) {
           }
         })
         .catch((error) => {
-          if (error instanceof ErrorResponse) {
+          if (error instanceof ErrorRequestResponse) {
             res.status(400)
             res.send({ message: error.message })
           } else if (error instanceof Error) {
