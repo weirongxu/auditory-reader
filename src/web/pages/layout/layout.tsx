@@ -94,7 +94,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
                   padding: 1,
                 }}
               >
-                <h3 style={{ margin: 0 }}>{t('settings')}</h3>
+                <h3 style={{ margin: 0 }}>{t('setting.title')}</h3>
               </Box>
               <Stack sx={{ flex: 1 }}>
                 <ThemeProvider theme={settingsTheme}>

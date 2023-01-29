@@ -2,13 +2,14 @@ import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import { Emitter } from '../../../../core/util/emitter.js'
+import type { SplitPageType } from '../../../../core/store.js'
+import { ChangedEmitter } from '../../../../core/util/emitter.js'
 import type { Player } from './player.js'
 
 type PlayerStates = {
   started: boolean
   pos: BookTypes.PropertyPosition
-  focusedNavs: Set<BookNav>
+  focusedNavs: BookNav[]
 }
 
 type PlayerUIStates = {
@@ -17,16 +18,17 @@ type PlayerUIStates = {
   voice: null | SpeechSynthesisVoice
   autoNextSection: boolean
   paragraphRepeat: number
+  splitPage: SplitPageType
 }
 
 export class PlayerStatesManager {
   #states: PlayerStates = {
     started: false,
     pos: { section: 0, paragraph: 0 },
-    focusedNavs: new Set(),
+    focusedNavs: [],
   }
 
-  events = new Emitter<PlayerStates>()
+  events = new ChangedEmitter<PlayerStates>()
 
   get started() {
     return this.#states.started
@@ -46,7 +48,7 @@ export class PlayerStatesManager {
     this.events.fire('pos', pos)
   }
 
-  set focusedNavs(focusedNavs: Set<BookNav>) {
+  set focusedNavs(focusedNavs: BookNav[]) {
     this.#states.focusedNavs = focusedNavs
     this.events.fire('focusedNavs', focusedNavs)
   }
@@ -57,9 +59,10 @@ export class PlayerStatesManager {
     speechSpeed: 1,
     autoNextSection: false,
     paragraphRepeat: 1,
+    splitPage: 'double',
   }
 
-  uiEvents = new Emitter<PlayerUIStates>()
+  uiEvents = new ChangedEmitter<PlayerUIStates>()
 
   get voice() {
     return this.#uiStates.voice
@@ -81,6 +84,10 @@ export class PlayerStatesManager {
     return this.#uiStates.paragraphRepeat
   }
 
+  get splitPage() {
+    return this.#uiStates.splitPage
+  }
+
   syncUIState<K extends keyof PlayerUIStates>(
     name: K,
     state: PlayerUIStates[K]
@@ -95,7 +102,7 @@ export function usePlayerSync(
   props: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
-    setFocusedNavs: Dispatch<Set<BookNav>>
+    setFocusedNavs: Dispatch<BookNav[]>
   }
 ) {
   const { setPos, setStarted, setFocusedNavs } = props
@@ -126,6 +133,7 @@ export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
     voice,
     autoNextSection,
     paragraphRepeat,
+    splitPage,
   } = props
 
   useEffect(() => {
@@ -147,6 +155,10 @@ export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
   useEffect(() => {
     player.states.syncUIState('paragraphRepeat', paragraphRepeat)
   }, [player, paragraphRepeat])
+
+  useEffect(() => {
+    player.states.syncUIState('splitPage', splitPage)
+  }, [player, splitPage])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,

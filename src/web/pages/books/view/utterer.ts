@@ -112,28 +112,26 @@ export class Utterer {
     const quotePostions = getQoutePostions(text)
     this.utterance.text = text
     speechSynthesis.speak(this.utterance)
-    this.utterance.addEventListener(
-      'boundary',
-      (event: SpeechSynthesisEvent) => {
-        // range highlight
-        this.hl.highlight(node, event.charIndex, event.charLength)
+    const boundaryListener = (event: SpeechSynthesisEvent) => {
+      // range highlight
+      this.hl.highlight(node, event.charIndex, event.charLength)
 
-        // quote & rain
-        const quotePosIndex = findLastIndex(
-          quotePostions,
-          (p) => p.charIndex <= event.charIndex
-        )
-        if (quotePosIndex === undefined) return rainStop()
-        const posPass = quotePostions.slice(0, quotePosIndex + 1)
-        const startPosList = posPass.filter((p) => p.type === 'start')
-        const endPosList = posPass.filter((p) => p.type === 'end')
-        if (startPosList.length > endPosList.length) {
-          rainStart()
-        } else {
-          rainStop()
-        }
+      // quote & rain
+      const quotePosIndex = findLastIndex(
+        quotePostions,
+        (p) => p.charIndex <= event.charIndex
+      )
+      if (quotePosIndex === undefined) return rainStop()
+      const posPass = quotePostions.slice(0, quotePosIndex + 1)
+      const startPosList = posPass.filter((p) => p.type === 'start')
+      const endPosList = posPass.filter((p) => p.type === 'end')
+      if (startPosList.length > endPosList.length) {
+        rainStart()
+      } else {
+        rainStop()
       }
-    )
+    }
+    this.utterance.addEventListener('boundary', boundaryListener)
     const result = await new Promise<SpeakResult>((resolve, reject) => {
       this.utterance.addEventListener(
         'end',
@@ -151,6 +149,7 @@ export class Utterer {
         { once: true }
       )
     })
+    this.utterance.removeEventListener('boundary', boundaryListener)
     this.hl.highlightClear()
     rainStop()
     this.state = 'none'

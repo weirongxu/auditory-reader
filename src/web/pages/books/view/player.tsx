@@ -95,7 +95,7 @@ export class Player {
         return
       }
 
-      await this.iframeCtrler.loadByUrl(href)
+      await this.iframeCtrler.loadByPath(href)
 
       // new paragraph
       let paragraph = to.paragraph ?? 0
@@ -117,17 +117,41 @@ export class Player {
     this.utterer.cancel()
   }
 
-  async prevSection() {
-    await this.checkAndGotoPos({ section: this.states.pos.section - 1 })
+  async prevSection(paragraph?: number) {
+    await this.checkAndGotoPos({
+      section: this.states.pos.section - 1,
+      paragraph,
+    })
   }
 
-  async nextSection() {
-    await this.checkAndGotoPos({ section: this.states.pos.section + 1 })
+  async nextSection(paragraph?: number) {
+    await this.checkAndGotoPos({
+      section: this.states.pos.section + 1,
+      paragraph,
+    })
   }
 
-  async gotoUrl(url: string) {
-    await this.iframeCtrler.gotoUrlAndScroll(url)
+  async gotoUrlPath(urlPath: string) {
+    await this.iframeCtrler.gotoUrlPathAndScroll(urlPath)
     this.utterer.cancel()
+  }
+
+  get isFirstPage() {
+    return this.iframeCtrler.curSplitPage === 0
+  }
+
+  get isLastPage() {
+    return (
+      this.iframeCtrler.curSplitPage >= this.iframeCtrler.splitPageCount - 1
+    )
+  }
+
+  async prevPage(count: number, jump: boolean) {
+    await this.iframeCtrler.pushSplitPageAdjust(-count, jump)
+  }
+
+  async nextPage(count: number, jump: boolean) {
+    await this.iframeCtrler.pushSplitPageAdjust(count, jump)
   }
 
   get isFirstParagraph() {
@@ -145,20 +169,13 @@ export class Player {
   }
 
   async prevParagraph() {
-    if (this.states.pos.paragraph === 0)
-      await this.checkAndGotoPos({
-        section: this.states.pos.section - 1,
-        paragraph: -1,
-      })
+    if (this.states.pos.paragraph === 0) await this.prevSection(-1)
     else await this.gotoParagraph(this.states.pos.paragraph - 1)
   }
 
   async nextParagraph() {
     if (this.states.pos.paragraph >= this.iframeCtrler.readableParts.length - 1)
-      await this.checkAndGotoPos({
-        section: this.states.pos.section + 1,
-        paragraph: 0,
-      })
+      await this.nextSection(0)
     else await this.gotoParagraph(this.states.pos.paragraph + 1)
   }
 }

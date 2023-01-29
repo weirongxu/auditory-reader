@@ -5,6 +5,8 @@ export const PARA_ACTIVE_CLASS = '__para_active__'
 
 export const COLOR_SCHEME_DARK_CLASS = '__color_scheme_dark__'
 
+export const COLUMN_BREAK_CLASS = '__column_break__'
+
 export const IGNORE_TAGS = [
   // ruby > rt
   'rt',

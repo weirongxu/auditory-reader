@@ -1,196 +1,55 @@
 import { useMountEffect } from '@react-hookz/web'
-import type { RefObject } from 'react'
-import type { Player } from './player'
 import path from 'path'
-import type { BookTypes } from '../../../../core/book/types.js'
+import type { RefObject } from 'react'
+import { getBooksRenderPath } from '../../../../core/api/books/render.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
-import {
-  compact,
-  findLast,
-  minIndexBy,
-} from '../../../../core/util/collection.js'
+import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import {
   COLOR_SCHEME_DARK_CLASS,
-  IGNORE_TAGS,
+  COLUMN_BREAK_CLASS,
   PARA_ACTIVE_CLASS,
   PARA_BLOCK_CLASS,
   PARA_HIGHLIGHT_CLASS,
-  PARA_IGNORE_CLASS,
 } from '../../../../core/consts.js'
-import { getBooksRenderPath } from '../../../../core/api/books/render.js'
-import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import { globalStyle } from '../../../../core/style.js'
-import { async } from '../../../../core/util/promise.js'
+import {
+  find,
+  findLast,
+  findLastPair,
+  findPair,
+  range,
+} from '../../../../core/util/collection.js'
+import { isInputElement } from '../../../../core/util/dom.js'
+import { async, sleep } from '../../../../core/util/promise.js'
+import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
-import type { ReadablePart } from './types.js'
+import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
+import type { ReadablePart } from './types.js'
+import { getReadableParts } from './utils/readable.js'
 
 type ColorScheme = 'light' | 'dark'
 
-function getMatchedNavs(
-  pos: BookTypes.PropertyPosition,
-  hash: string | undefined = undefined,
-  navs: BookNav[],
-  parentMatches: BookNav[] = []
-): BookNav[] {
-  interface RequiredNav extends BookNav {
-    spineIndex: number
+type SplitPageNode = {
+  top?: {
+    paragraph: number
+    readablePart: ReadablePart
   }
-
-  const reqNavs = navs.filter(
-    (nav): nav is RequiredNav => nav.spineIndex !== undefined
-  )
-  let nav: RequiredNav | undefined
-  nav = reqNavs.find(
-    (nav) => nav.spineIndex === pos.section && nav.hrefHash === hash
-  )
-  if (nav) return [...parentMatches, nav]
-
-  nav = findLast(reqNavs, (nav) => nav.spineIndex <= pos.section)
-  if (nav)
-    return getMatchedNavs(pos, hash, nav.children, [...parentMatches, nav])
-
-  return []
+  scrollLeft: number
 }
 
-function* walkerNode(root: HTMLElement) {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ALL)
-
-  while (true) {
-    const curNode = walker.nextNode()
-    if (curNode) yield curNode
-    else break
-  }
-}
-
-const isBlockElem = (elem: HTMLElement) => {
-  const display = getComputedStyle(elem).getPropertyValue('display')
-  return display !== 'inline'
-}
-
-const getParentBlockElem = (
-  elem: HTMLElement | null
-): HTMLElement | undefined => {
-  if (!elem) return
-  if (isBlockElem(elem)) {
-    return elem
-  } else if (elem.parentElement) {
-    return getParentBlockElem(elem.parentElement)
-  }
-}
-
-const isAllInlineChild = (elem: HTMLElement) => {
-  if (elem.dataset.isAllInlineChild !== undefined) {
-    return elem.dataset.isAllInlineChild === '1'
-  }
-  for (const node of elem.childNodes) {
-    if (node instanceof HTMLElement && isBlockElem(node)) {
-      elem.dataset.isAllInlineChild = '0'
-      return false
-    }
-  }
-  elem.dataset.isAllInlineChild = '1'
-  return true
-}
-
-function getContentText(elem: HTMLElement) {
-  let contentText = ''
-  for (const node of walkerNode(elem)) {
-    if (!(node instanceof Text)) continue
-    if (!node.parentElement) continue
-    if (IGNORE_TAGS.includes(node.parentElement.tagName.toLowerCase())) continue
-    contentText += node.textContent
-  }
-  return contentText
-}
-
-function getNavHashes(navs: BookNav[]): string[] {
-  return navs
-    .map((nav) => {
-      return compact([nav.hrefHash, ...getNavHashes(nav.children)])
-    })
-    .flat()
-}
-
-const getReadableParts = (doc: Document, navs: BookNav[]) => {
-  const blockElemSet = new Set<HTMLElement>()
-  const readableParts: ReadablePart[] = []
-
-  const pushTextPart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BLOCK_CLASS)
-    const textContent = getContentText(elem)
-    const notEmpty = !!textContent?.trim()
-    if (notEmpty) {
-      readableParts.push({
-        elem,
-        type: 'text',
-        text: textContent,
-      })
-    }
-  }
-
-  const pushImagePart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BLOCK_CLASS)
-    readableParts.push({
-      elem,
-      type: 'image',
-    })
-  }
-
-  // walk
-  for (const node of walkerNode(doc.body)) {
-    if (node instanceof HTMLImageElement) {
-      pushImagePart(node)
-      continue
-    }
-    if (!(node instanceof Text)) continue
-    const content = node.textContent?.trim()
-    if (!content) continue
-    const blockElem = getParentBlockElem(node.parentElement)
-    if (!blockElem) continue
-
-    // skip tag like: ruby > rt
-    if (IGNORE_TAGS.includes(blockElem.tagName.toLowerCase())) {
-      blockElem.classList.add(PARA_IGNORE_CLASS)
-      continue
-    }
-
-    // avoid duplicated
-    if (blockElemSet.has(blockElem)) continue
-    blockElemSet.add(blockElem)
-
-    if (isAllInlineChild(blockElem)) {
-      pushTextPart(blockElem)
-    } else {
-      if (!node.parentElement) continue
-      const wrapElem = document.createElement('p')
-      node.after(wrapElem)
-      wrapElem.appendChild(node)
-      pushTextPart(wrapElem)
-    }
-  }
-
-  // nav hash
-  const navHashes = getNavHashes(navs)
-  const navHashMap = new Map(
-    compact(
-      navHashes.map((h) => {
-        try {
-          const hashTarget = doc.querySelector(`#${h}`)
-          const elem = hashTarget?.closest(`.${PARA_BLOCK_CLASS}`)
-          if (elem) {
-            return [elem, h] as const
-          }
-        } catch {
-          // ignore valid selector
-        }
-      })
-    )
-  )
-  for (const readablePart of readableParts) {
-    readablePart.hash = navHashMap.get(readablePart.elem)
-  }
-  return readableParts
+type ScrollOptions = {
+  iteration?: number
+  duration?: number
+  /**
+   * @default true
+   */
+  animated?: boolean
+  /**
+   * @default 'center'
+   */
+  position?: 'center' | 'nearest'
+  abortCtrl?: AbortController
 }
 
 export class PlayerIframeController {
@@ -198,6 +57,14 @@ export class PlayerIframeController {
   mainContentRootPath: string
   mainContentRootUrl: string
   colorScheme: ColorScheme = 'light'
+  splitPageCount = 1
+  splitPageWidth?: number
+  splitPageList: SplitPageNode[] = []
+  win?: Window
+  doc?: Document
+  scrollContainer?: HTMLElement
+  #curAbsPath?: string
+  #isVertical = false
 
   get book() {
     return this.player.book
@@ -205,6 +72,17 @@ export class PlayerIframeController {
 
   get iframe() {
     return this.iframeRef.current
+  }
+
+  get isSplitPage() {
+    if (this.states.splitPage === 'none') return false
+    return !this.#isVertical
+  }
+
+  get curSplitPage() {
+    if (!this.splitPageWidth || !this.scrollContainer) return 0
+
+    return Math.round(this.scrollContainer.scrollLeft / this.splitPageWidth)
   }
 
   constructor(
@@ -223,13 +101,22 @@ export class PlayerIframeController {
       this.paragraphActive()
       this.updateFocusedNavs()
     })
+
+    let firstSplitPageChanged = true
+    this.states.uiEvents.on('splitPage', async () => {
+      if (firstSplitPageChanged) {
+        firstSplitPageChanged = false
+        return
+      }
+      if (this.iframe) await this.load(true)
+    })
   }
 
   getAnchorIdElem(anchorId: string) {
+    if (!anchorId) return
     // goto anchorId
-    const win = this.iframe?.contentWindow
-    if (!win) return
-    const doc = win.document
+    const doc = this.doc
+    if (!doc) return
     try {
       const anchorEl = doc.querySelector(`#${anchorId}`)
       if (!anchorEl) return
@@ -243,35 +130,148 @@ export class PlayerIframeController {
     }
   }
 
-  async scrollToCurPos() {
+  async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
+    if (!this.isSplitPage) {
+      element.scrollIntoView({
+        behavior: options.animated ?? true ? 'smooth' : 'auto',
+        block: options.position ?? 'center',
+      })
+      return
+    }
+
+    if (!this.doc) return
+    const body = this.doc.body
+    const rect = element.getBoundingClientRect()
+    const endLeft =
+      (rect.left + rect.right) / 2 - body.getBoundingClientRect().left
+    await this.scrollToLeft(endLeft, options)
+  }
+
+  async scrollToLeft(
+    left: number,
+    {
+      iteration = 20,
+      duration = 200,
+      animated = true,
+      abortCtrl,
+    }: ScrollOptions = {}
+  ) {
+    const container = this.scrollContainer
+    if (!container) return
+
+    if (!this.isSplitPage) return
+
+    const finalLeft = findLast(
+      this.splitPageList,
+      (page) => page.scrollLeft <= left
+    )?.scrollLeft
+    if (finalLeft === undefined) return
+
+    if (!animated) {
+      container.scrollLeft = finalLeft
+      return
+    }
+
+    let aborted = false
+    abortCtrl?.signal.addEventListener('abort', () => {
+      aborted = true
+    })
+
+    const startLeft = container.scrollLeft
+    const offset = finalLeft - startLeft
+    const unit = offset / iteration
+    const unitTime = duration / iteration
+    for (const i of range(0, iteration + 1)) {
+      if (aborted) break
+      await sleep(unitTime)
+      if (aborted) break
+      const left = startLeft + i * unit
+      container.scrollLeft = left
+    }
+  }
+
+  #splitPageLast?: {
+    abortCtrl: AbortController
+    page: number
+  }
+  async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
+    if (!this.splitPageWidth) return
+
+    if (offsetPage === 0) return
+
+    let endPage: number
+    if (this.#splitPageLast) {
+      endPage = this.#splitPageLast.page + offsetPage
+    } else {
+      endPage = this.curSplitPage + offsetPage
+    }
+
+    // exceed range
+    if (jump) {
+      if (endPage < 0) {
+        return await this.player.prevSection(-1)
+      } else if (endPage >= this.splitPageCount) {
+        return await this.player.nextSection(0)
+      }
+    } else {
+      if (endPage < 0) endPage = 0
+      else if (endPage >= this.splitPageCount) endPage = this.splitPageCount - 1
+    }
+
+    this.#splitPageLast?.abortCtrl.abort()
+    const abortCtrl = new AbortController()
+    this.#splitPageLast = {
+      abortCtrl,
+      page: endPage,
+    }
+
+    const endLeft = endPage * this.splitPageWidth
+    if (jump) {
+      let paragraph: number | undefined = undefined
+      if (offsetPage < 0) {
+        paragraph = findLast(
+          this.splitPageList,
+          (page) => !!page.top && page.scrollLeft <= endLeft
+        )?.top?.paragraph
+      } else {
+        paragraph = find(
+          this.splitPageList,
+          (page) => !!page.top && page.scrollLeft >= endLeft
+        )?.top?.paragraph
+      }
+      if (paragraph !== undefined) await this.player.gotoParagraph(paragraph)
+    } else {
+      await this.scrollToLeft(endLeft, { abortCtrl })
+    }
+
+    this.#splitPageLast = undefined
+  }
+
+  async scrollToCurPos(animated = true) {
     // goto paragraph
     const item = this.readableParts[this.states.pos.paragraph]
     if (!item) return
-    return await new Promise<void>((resolve) => {
-      // waiting the page rendered
-      setTimeout(() => {
-        item.elem.scrollIntoView({
-          behavior: 'auto',
-          block: 'center',
-        })
-        resolve()
-      }, 10)
-    })
+    await this.scrollToElem(item.elem, { animated })
   }
 
   /**
-   * @param urlAbsPath absolute path
+   * @param absPath absolute path
    * @example
    * ```
    * '/OEBPS/Text/index.html'
    * ```
    */
-  async loadByUrl(urlAbsPath: string) {
+  async loadByPath(absPath: string, force = false) {
     const iframe = this.iframe
     if (!iframe) return
 
+    // skip same path
+    if (!force && absPath === this.#curAbsPath) return
+    this.#curAbsPath = absPath
+
+    iframe.src = getBooksRenderPath(this.book.item.uuid, absPath)
+
     iframe.style.visibility = 'hidden'
-    iframe.src = getBooksRenderPath(this.book.item.uuid, urlAbsPath)
     await new Promise<void>((resolve) => {
       iframe.addEventListener(
         'load',
@@ -282,36 +282,38 @@ export class PlayerIframeController {
       )
     })
 
+    const doc = iframe.contentDocument
+    if (!doc) return console.error('iframe load failed')
+
     // load readableParts
     this.readableParts = []
-    const doc = iframe.contentDocument
-    if (doc) this.readableParts = getReadableParts(doc, this.book.navs)
+    this.readableParts = getReadableParts(doc, this.book.navs)
 
-    this.onLoaded(iframe)
+    await this.onLoaded(iframe)
     iframe.style.visibility = 'visible'
   }
 
-  async gotoUrlAndScroll(url: string) {
-    const [urlMain, anchorId] = urlSplitHash(url)
+  async gotoUrlPathAndScroll(path: string) {
+    const [urlMain, anchorId] = urlSplitHash(path)
     const spineIndex = this.book.spines.findIndex((s) => s.href === urlMain)
     if (spineIndex === -1) return
-    await this.loadByUrl(urlMain)
+    await this.loadByPath(urlMain)
 
     const targetElem = this.getAnchorIdElem(anchorId)
     if (!targetElem) {
+      this.states.pos = {
+        section: spineIndex,
+        paragraph: 0,
+      }
+      await this.scrollToCurPos()
       return
     }
 
-    let elemIndex = this.readableParts.findIndex((el) => el.elem === targetElem)
+    const elemIndex = this.readableParts.findIndex(
+      (el) => el.elem === targetElem
+    )
     if (elemIndex === -1) {
-      // Search the nearest element by anchor target element
-      const targetElemTop = targetElem.getBoundingClientRect().top
-      elemIndex = minIndexBy(this.readableParts, (el) => {
-        const rect = el.elem.getBoundingClientRect()
-        return rect.top < targetElemTop ? Infinity : rect.top
-      })
-
-      if (elemIndex === -1) return
+      return
     }
 
     this.states.pos = {
@@ -323,24 +325,50 @@ export class PlayerIframeController {
 
   updateColorTheme(colorScheme: ColorScheme) {
     this.colorScheme = colorScheme
-    const doc = this.iframe?.contentDocument
-    if (!doc) return
+    if (!this.doc) return
     if (colorScheme === 'dark') {
-      doc.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
+      this.doc.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
     } else {
-      doc.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
+      this.doc.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
     }
   }
 
-  onLoaded(iframe: HTMLIFrameElement) {
+  async onLoaded(iframe: HTMLIFrameElement) {
+    const win = iframe.contentWindow
     const doc = iframe.contentDocument
     // load inject and hook
-    if (doc) {
+    if (win && doc) {
+      this.win = win
+      this.doc = doc
+
+      this.#isVertical = win
+        .getComputedStyle(doc.body)
+        .writingMode.startsWith('vertical')
+
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       this.hookALinks(doc)
       this.hookParagraphClick()
       this.hookHotkeys()
+      if (this.isSplitPage) {
+        const body = doc.body
+        const html = doc.documentElement
+        this.scrollContainer =
+          body.clientWidth === body.offsetWidth ? html : body
+        this.hookPageTouch()
+        this.hookPageWheel()
+        await this.splitPage(doc, this.scrollContainer)
+        win.addEventListener(
+          'resize',
+          debounceFn(300, () => {
+            async(async () => {
+              if (!this.win || !this.scrollContainer) return
+              await this.scrollToLeft(this.scrollContainer.scrollLeft)
+              await this.splitPage(doc, this.scrollContainer)
+            })
+          })
+        )
+      }
     }
   }
 
@@ -359,9 +387,44 @@ export class PlayerIframeController {
       'table',
       'body',
     ]
+
+    let pageStyle = ''
+    if (this.isSplitPage) {
+      const columnWidth = this.states.splitPage === 'single' ? '100vw' : '50vw'
+      pageStyle = `
+        /* split page */
+        html {
+          height: 100vh;
+          width: auto;
+          overflow-y: hidden;
+          overflow-x: auto;
+          column-width: ${columnWidth};
+          column-gap: 0;
+          margin: 0;
+          padding: 0;
+        }
+        body {
+          height: 100vh;
+          width: auto;
+        }
+        .${COLUMN_BREAK_CLASS} {
+          content: ' ';
+          break-before: column;
+        }
+      `
+    }
+
     styleElem.innerHTML = `
       ${globalStyle}
+      ${pageStyle}
 
+      /* image */
+      img {
+        max-width: 90vw!important;
+        max-height: 90vh!important;
+      }
+
+      /* scheme */
       .${COLOR_SCHEME_DARK_CLASS} body {
         background-color: var(--main-bg);
       }
@@ -375,6 +438,7 @@ export class PlayerIframeController {
         color: var(--main-fg) !important;
       }
 
+      /* paragraph */
       .${PARA_BLOCK_CLASS} {
         cursor: pointer;
       }
@@ -383,8 +447,16 @@ export class PlayerIframeController {
         background: var(--main-bg-active);
       }
 
+      img.${PARA_BLOCK_CLASS}.${PARA_ACTIVE_CLASS} {
+        outline: 5px solid var(--main-bg-active);
+      }
+
       .${PARA_BLOCK_CLASS}:hover {
         background: var(--main-bg-hover);
+      }
+
+      img.${PARA_BLOCK_CLASS}:hover {
+        outline: 5px solid var(--main-bg-hover);
       }
 
       .${PARA_HIGHLIGHT_CLASS} {
@@ -417,7 +489,7 @@ export class PlayerIframeController {
             }
             rootPath = url.substring(this.mainContentRootUrl.length)
           }
-          await this.gotoUrlAndScroll(rootPath)
+          await this.gotoUrlPathAndScroll(rootPath)
           this.player.utterer.cancel()
         })
       })
@@ -442,52 +514,180 @@ export class PlayerIframeController {
 
   #hotkeys = new Map([
     [' ', () => this.player.toggle()],
-    ['ArrowLeft', () => this.player.prevSection()],
-    ['ArrowRight', () => this.player.nextSection()],
-    ['ArrowUp', () => this.player.prevParagraph()],
-    ['ArrowDown', () => this.player.nextParagraph()],
+    ['shift+arrowleft', () => this.player.prevSection()],
+    ['shift+arrowright', () => this.player.nextSection()],
+    ['arrowleft', () => this.player.prevPage(1, true)],
+    ['arrowright', () => this.player.nextPage(1, true)],
+    ['pageup', () => this.player.prevPage(1, false)],
+    ['pagedown', () => this.player.nextPage(1, false)],
+    ['arrowup', () => this.player.prevParagraph()],
+    ['arrowdown', () => this.player.nextParagraph()],
   ])
   #registeredGlobalHotkey = false
   hookHotkeys() {
     const listener = (e: KeyboardEvent) => {
-      if (e.target instanceof Element) {
-        const elemName = e.target.tagName.toLowerCase()
-        if (['textarea', 'input'].includes(elemName)) return
-      }
+      if (isInputElement(e.target)) return
       if (e.altKey || e.ctrlKey) return
-      const cb = this.#hotkeys.get(e.key)
+      const key = `${e.shiftKey ? 'shift+' : ''}${e.key.toLowerCase()}`
+      const cb = this.#hotkeys.get(key)
       if (cb) {
         e.preventDefault()
         cb()
       }
     }
     if (!this.#registeredGlobalHotkey) {
-      window.addEventListener('keydown', listener)
+      window.addEventListener('keydown', listener, { passive: false })
       this.player.onUnmount(() => {
         window.removeEventListener('keydown', listener)
         this.#registeredGlobalHotkey = false
       })
       this.#registeredGlobalHotkey = true
     }
-    this.iframe?.contentWindow?.addEventListener('keydown', listener)
+    this.win?.addEventListener('keydown', listener, {
+      passive: false,
+    })
     this.player.onUnmount(() => {
-      this.iframe?.contentWindow?.removeEventListener('keydown', listener)
+      this.win?.removeEventListener('keydown', listener)
     })
   }
 
-  async firstLoad() {
+  hookPageTouch() {
+    const doc = this.doc
+    if (!doc) return
+
+    let startX: number | undefined = undefined
+
+    const startlistener = (event: TouchEvent) => {
+      const touch = event.touches[0]
+      if (!touch) return
+      startX = touch.clientX
+    }
+
+    const movelistener = (event: TouchEvent) => {
+      event.preventDefault()
+    }
+
+    const endlistener = (event: TouchEvent) => {
+      if (startX === undefined) return
+      const touch = event.changedTouches[0]
+      if (!touch) return
+      const deltaX = touch.clientX - startX
+      if (deltaX === 0) return
+      if (deltaX < 0) {
+        void this.player.nextPage(1, false)
+      } else {
+        void this.player.prevPage(1, false)
+      }
+    }
+
+    doc.addEventListener('touchstart', startlistener, {
+      passive: false,
+    })
+    doc.addEventListener('touchmove', movelistener, {
+      passive: false,
+    })
+    doc.addEventListener('touchend', endlistener, {
+      passive: false,
+    })
+    this.player.onUnmount(() => {
+      doc.documentElement.removeEventListener('touchstart', startlistener)
+      doc.documentElement.removeEventListener('touchmove', movelistener)
+      doc.documentElement.removeEventListener('touchend', endlistener)
+    })
+  }
+
+  hookPageWheel() {
+    const doc = this.doc
+    if (!doc) return
+
+    const listener = (e: WheelEvent) => {
+      e.preventDefault()
+      if (isInputElement(e.target)) return
+      if (e.deltaY === 0) return
+      if (e.deltaY > 0) {
+        void this.player.nextPage(1, false)
+      } else {
+        void this.player.prevPage(1, false)
+      }
+    }
+
+    doc.documentElement.addEventListener('wheel', listener, {
+      passive: false,
+    })
+    this.player.onUnmount(() => {
+      doc.documentElement.removeEventListener('wheel', listener)
+    })
+  }
+
+  async splitPage(doc: Document, scrollContainer: HTMLElement) {
+    // Make sure the width is loaded correctly
+    scrollContainer.offsetWidth
+
+    let scrollWidth = scrollContainer.scrollWidth
+    let width = scrollContainer.clientWidth
+    let count = Math.round(scrollContainer.scrollWidth / width)
+
+    if (this.states.splitPage === 'double') {
+      count = Math.round((2 * scrollWidth) / width)
+      if (count % 2 === 1) {
+        // add empty page & refresh the scrollWidth
+        count += 1
+        scrollWidth += width
+        const p = doc.createElement('p')
+        p.classList.add(COLUMN_BREAK_CLASS)
+        doc.body.appendChild(p)
+        scrollWidth = scrollContainer.scrollWidth
+      }
+      count /= 2
+    }
+
+    width = scrollWidth / count
+    this.splitPageWidth = width
+    this.splitPageCount = count
+    // eslint-disable-next-line no-console
+    console.debug(`splitPageWidth: ${this.splitPageWidth}`)
+    // eslint-disable-next-line no-console
+    console.debug(`splitPageCount: ${this.splitPageCount}`)
+    this.parseSplitPageTopReadableParts(scrollContainer)
+  }
+
+  private parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
+    const width = this.splitPageWidth
+    if (!width) return
+
+    this.splitPageList = range(0, this.splitPageCount)
+      .map((i) => i * width)
+      .map((scrollLeft) => ({ scrollLeft }))
+
+    const parentLeft = scrollContainer.getBoundingClientRect().left
+    for (const [paragraph, readablePart] of this.readableParts.entries()) {
+      const scrollLeft =
+        readablePart.elem.getBoundingClientRect().left - parentLeft
+      const page = findLast(
+        this.splitPageList,
+        (page) => page.scrollLeft <= scrollLeft
+      )
+      if (page && !page.top)
+        page.top = {
+          readablePart,
+          paragraph,
+        }
+    }
+  }
+
+  async load(force = false) {
     const spine = this.book.spines[this.states.pos.section]
     if (spine) {
-      await this.loadByUrl(spine.href)
-      await this.scrollToCurPos()
+      await this.loadByPath(spine.href, force)
+      await this.scrollToCurPos(false)
     } else {
       const spine = this.book.spines[0]
-      await this.loadByUrl(spine.href)
+      await this.loadByPath(spine.href, force)
       this.states.pos = {
         section: 0,
         paragraph: 0,
       }
-      await this.scrollToCurPos()
+      await this.scrollToCurPos(false)
     }
     this.paragraphActive()
     this.updateFocusedNavs()
@@ -508,20 +708,76 @@ export class PlayerIframeController {
     }
   }
 
+  #flattenedNavs?: BookNav[]
+
+  flattenedNavs() {
+    if (!this.#flattenedNavs) {
+      this.#flattenedNavs = []
+      const stack = [...this.book.navs].reverse()
+      while (stack.length) {
+        const cur = stack.pop()!
+        this.#flattenedNavs.push(cur)
+        stack.push(...cur.children)
+      }
+    }
+    return this.#flattenedNavs
+  }
+
   updateFocusedNavs() {
+    interface RequiredNav extends BookNav {
+      spineIndex: number
+    }
+
+    const navs = this.flattenedNavs().filter(
+      (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section
+    )
+    const existsHashSet = new Set(
+      navs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
+    )
+
     const readableParts = this.readableParts
     const hash = findLast(
       readableParts.slice(0, this.states.pos.paragraph + 1),
-      (part) => Boolean(part.hash)
+      (part) => Boolean(part.hash) && existsHashSet.has(part.hash)
     )?.hash
-    this.states.focusedNavs = new Set(
-      getMatchedNavs(this.states.pos, hash, this.book.navs)
+
+    if (!hash) {
+      this.states.focusedNavs = [navs[0]]
+      return
+    }
+
+    const [matchedNav, matchedNavIndex] = findPair(
+      navs,
+      (nav) => nav.hrefHash === hash
     )
+    if (!matchedNav) {
+      this.states.focusedNavs = [navs[0]]
+      return
+    }
+
+    const matchedNavs: BookNav[] = [matchedNav]
+    let index = matchedNavIndex - 1
+    let level = matchedNav.level - 1
+    while (index >= 0 && level > 0) {
+      const [nav, newIndex] = findLastPair(
+        navs,
+        (nav) => nav.level === level,
+        index
+      )
+      if (nav) {
+        index = newIndex - 1
+        level = nav.level - 1
+        matchedNavs.unshift(nav)
+      } else {
+        break
+      }
+    }
+    this.states.focusedNavs = matchedNavs
   }
 }
 
 export function usePlayerIframe(player: Player) {
   useMountEffect(async () => {
-    await player.iframeCtrler.firstLoad()
+    await player.iframeCtrler.load()
   })
 }

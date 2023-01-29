@@ -1,11 +1,19 @@
 export const langZh = {
-  settings: '设置',
-  autoNextSectionSetting: '自动下一章节',
-  timerSetting: '计时器 (分钟)',
-  personReplaceSetting: '中文人称替换',
-  speedSetting: '速度',
-  userColorSchemeSetting: '颜色主题',
-  paragraphRepeatSetting: '段落重复',
+  setting: {
+    title: '设置',
+    autoNextSection: '自动下一章节',
+    timer: '计时器 (分钟)',
+    personReplace: '中文人称替换',
+    speed: '速度',
+    userColorScheme: '颜色主题',
+    paragraphRepeat: '段落重复',
+    splitPage: '分页',
+    splitPageType: {
+      none: '无',
+      single: '单页',
+      double: '双页',
+    },
+  },
   desc: {
     addedBookSuccessful: '成功添加了一本新书',
   },

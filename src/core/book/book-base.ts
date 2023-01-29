@@ -1,4 +1,6 @@
 export type BookNav = {
+  /** root (minimun) level is 1 */
+  level: number
   label: string
   href?: string
   hrefBase?: string

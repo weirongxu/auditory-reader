@@ -14,7 +14,7 @@ export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
-  const [focusedNavs, setFocusedNavs] = useState<Set<BookNav>>()
+  const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
 
   const player = usePlayer(book, pos, iframeRef)
   usePlayerIframe(player)
@@ -36,11 +36,6 @@ export function useViewer(props: BookContextProps) {
         title="viewer"
         ref={iframeRef}
         sandbox="allow-same-origin"
-        style={{
-          flex: 1,
-          height: '100%',
-          border: 'none',
-        }}
       ></iframe>
     ),
     [iframeRef]

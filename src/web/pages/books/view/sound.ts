@@ -50,7 +50,9 @@ export function rainStart() {
 }
 
 export function rainStop() {
-  rainSound.pause()
+  if (rainSound.playing()) {
+    rainSound.pause()
+  }
 }
 
 const rewindSound = new Howl({

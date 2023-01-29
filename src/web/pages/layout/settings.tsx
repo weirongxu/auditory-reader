@@ -17,7 +17,12 @@ import {
 import { t } from 'i18next'
 import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
-import type { ColorScheme } from '../../../core/store.js'
+import {
+  ColorScheme,
+  SplitPageType,
+  SPLIT_PAGE_TYPES,
+} from '../../../core/store.js'
+import { useSplitPage } from '../../../core/store.js'
 import {
   COLOR_SCHEMES,
   useAutoSection,
@@ -60,10 +65,9 @@ const AutoSectionCheckBox = () => {
   return (
     <SettingLine>
       <FormControlLabel
-        label={t('autoNextSectionSetting')}
+        label={t('setting.autoNextSection')}
         control={
           <Checkbox
-            key="auto-next-section"
             checked={autoNextSection}
             onChange={(v) => {
               setAutoNextSection(v.currentTarget.checked)
@@ -81,7 +85,7 @@ const TimerInput = () => {
   return (
     <SettingLine>
       <FormControlLabel
-        label={t('timerSetting')}
+        label={t('setting.timer')}
         control={
           <Checkbox
             checked={stopTimerEnabled}
@@ -119,7 +123,7 @@ function PersonReplaceCheckBox(props: {
   return (
     <>
       <FormControlLabel
-        label={t('personReplaceSetting')}
+        label={t('setting.personReplace')}
         control={
           <Checkbox
             checked={checked}
@@ -181,7 +185,7 @@ const PlaySpeed = () => {
   const [speechSpeed, setSpeechSpeed] = useSpeechSpeed()
   return (
     <SettingLine>
-      <SettingLabel>{t('speedSetting')}</SettingLabel>
+      <SettingLabel>{t('setting.speed')}</SettingLabel>
       <Stack>
         <Slider
           value={speechSpeed}
@@ -214,7 +218,7 @@ const ColorSchemeSelect = () => {
     <>
       <SettingLine>
         <SettingLabel sx={{ paddingTop: 1 }}>
-          {t('userColorSchemeSetting')}
+          {t('setting.userColorScheme')}
         </SettingLabel>
         <RadioGroup
           defaultValue={userColorScheme}
@@ -242,7 +246,7 @@ const ParagraphRepeatInput = () => {
   const [paragraphRepeat, setParagraphRepeat] = useParagraphRepeat()
   return (
     <SettingLine>
-      <span>{t('paragraphRepeatSetting')}:</span>
+      <span>{t('setting.paragraphRepeat')}:</span>
       <TextField
         type="number"
         sx={{ width: 80 }}
@@ -256,6 +260,34 @@ const ParagraphRepeatInput = () => {
   )
 }
 
+function SplitPageCheckBox() {
+  const [splitPage, setSplitPage] = useSplitPage()
+  return (
+    <SettingLine>
+      <SettingLabel sx={{ paddingTop: 1 }}>
+        {t('setting.splitPage')}
+      </SettingLabel>
+      <RadioGroup
+        defaultValue={splitPage}
+        onChange={(e) => {
+          setSplitPage(e.target.value as SplitPageType)
+        }}
+      >
+        {SPLIT_PAGE_TYPES.map((value) => {
+          return (
+            <FormControlLabel
+              key={value}
+              label={t(`setting.splitPageType.${value}`)}
+              value={value}
+              control={<Radio></Radio>}
+            ></FormControlLabel>
+          )
+        })}
+      </RadioGroup>
+    </SettingLine>
+  )
+}
+
 export const GlobalSettings = () => {
   return (
     <>
@@ -265,6 +297,7 @@ export const GlobalSettings = () => {
       <PlaySpeed></PlaySpeed>
       <ColorSchemeSelect></ColorSchemeSelect>
       <ParagraphRepeatInput></ParagraphRepeatInput>
+      <SplitPageCheckBox></SplitPageCheckBox>
     </>
   )
 }

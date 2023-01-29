@@ -21,6 +21,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import {
   useAutoSection,
+  useSplitPage,
   useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
@@ -148,7 +149,7 @@ export function usePlayerUI(
   props: BookContextProps & {
     started: boolean
     player: Player
-    focusedNavs?: Set<BookNav>
+    focusedNavs?: BookNav[]
   }
 ) {
   const { book, player, started, focusedNavs } = props
@@ -160,6 +161,7 @@ export function usePlayerUI(
   const [stopTimerSeconds] = useStopTimerSeconds()
   const [speechSpeed] = useSpeechSpeed()
   const [paragraphRepeat] = useParagraphRepeat()
+  const [splitPage] = useSplitPage()
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerSyncUI(player, {
@@ -168,21 +170,21 @@ export function usePlayerUI(
       speechSpeed,
       voice,
       paragraphRepeat,
+      splitPage,
     })
 
   const PlayerCtrlGroup = useMemo(() => {
     return (
       <ButtonGroup>
-        <TooltipButton
-          tooltip={<span>←</span>}
+        <Button
           onClick={() => {
             toggleNav()
           }}
         >
           <AccountTree />
-        </TooltipButton>
+        </Button>
         <TooltipButton
-          tooltip={<span>←</span>}
+          tooltip={<span>shift + ←</span>}
           disabled={isFirstSection}
           onClick={() => {
             player.prevSection().catch(console.error)
@@ -218,7 +220,7 @@ export function usePlayerUI(
           <FastForward />
         </TooltipButton>
         <TooltipButton
-          tooltip={<span>→</span>}
+          tooltip={<span>shift + →</span>}
           disabled={isLastSection}
           onClick={() => {
             player.nextSection().catch(console.error)

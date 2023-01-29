@@ -1,6 +1,7 @@
 import { IGNORE_TAGS, PARA_HIGHLIGHT_CLASS } from '../../../../core/consts.js'
-import type { ReadablePart } from './types.js'
+import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
+import type { ReadablePart } from './types.js'
 
 const enum FindRangePosType {
   found,
@@ -86,8 +87,16 @@ export class Highlight {
     }
   }
 
+  #scrollToHighlight = throttleFn(1000, (elem: HTMLElement) => {
+    void this.iframeCtrl.scrollToElem(elem, {
+      position: 'nearest',
+    })
+  })
+
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
-    this.highlightClear()
+    // remove last class
+    this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
+
     const range = document.createRange()
     const start = this.#getChildAndIndex(node.elem, charIndex)
     if (!start) return
@@ -106,10 +115,9 @@ export class Highlight {
     this.highlightedElems.push(span)
     span.appendChild(range.extractContents())
     range.insertNode(span)
-    span.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-      inline: 'nearest',
-    })
+
+    // Note: use previous span, because latest span rect is incorrect
+    const span0 = this.highlightedElems.at(-2)
+    if (span0) this.#scrollToHighlight(span0)
   }
 }

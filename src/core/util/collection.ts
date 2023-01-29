@@ -20,36 +20,70 @@ export function compact<T>(
   return list.filter((it): it is T => !!it)
 }
 
-export function findLastIndex<T>(
+export function findPair<T>(
   list: T[],
-  predicate: (value: T, index: number, list: T[]) => boolean
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex = 0
+): [item: T, index: number] | [undefined, undefined] {
+  let index = startIndex
+  while (index < list.length) {
+    const value = list[index]
+    const testResult = predicate(value, index, list)
+    if (testResult) {
+      return [value, index]
+    }
+    index += 1
+  }
+  return [undefined, undefined]
+}
+
+export function findIndex<T>(
+  list: T[],
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex?: number
 ): number | undefined {
-  let index = list.length - 1
+  return findPair(list, predicate, startIndex)[1]
+}
+
+export function find<T>(
+  list: T[],
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex?: number
+): T | undefined {
+  return findPair(list, predicate, startIndex)[0]
+}
+
+export function findLastPair<T>(
+  list: T[],
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex = list.length - 1
+): [item: T, index: number] | [undefined, undefined] {
+  let index = startIndex
   while (index >= 0) {
     const value = list[index]
     const testResult = predicate(value, index, list)
     if (testResult) {
-      return index
+      return [value, index]
     }
     index -= 1
   }
-  return void undefined
+  return [undefined, undefined]
+}
+
+export function findLastIndex<T>(
+  list: T[],
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex?: number
+): number | undefined {
+  return findLastPair(list, predicate, startIndex)[1]
 }
 
 export function findLast<T>(
   list: T[],
-  predicate: (value: T, index: number, list: T[]) => boolean
+  predicate: (value: T, index: number, list: T[]) => boolean,
+  startIndex?: number
 ): T | undefined {
-  let index = list.length - 1
-  while (index >= 0) {
-    const value = list[index]
-    const testResult = predicate(value, index, list)
-    if (testResult) {
-      return value
-    }
-    index -= 1
-  }
-  return void undefined
+  return findLastPair(list, predicate, startIndex)[0]
 }
 
 export function maxIndexBy<T>(
@@ -134,4 +168,21 @@ export function sortBy<T>(
     return 0
   })
   return listEntries.map((it) => it[1])
+}
+
+export function groupToMap<T, A>(
+  list: T[],
+  getKey: (item: T, index: number, list: T[]) => A
+): Map<A, T[]> {
+  const map = new Map<A, T[]>()
+  for (const [index, item] of list.entries()) {
+    const key = getKey(item, index, list)
+    let group = map.get(key)
+    if (!group) {
+      group = []
+      map.set(key, group)
+    }
+    group.push(item)
+  }
+  return map
 }

@@ -235,7 +235,7 @@ export class BookEpub extends BookBase {
     return this.parseNav3(navRoot, navDir)
   }
 
-  protected parseNav3(dom: Element, dir: string): BookNav[] {
+  protected parseNav3(dom: Element, dir: string, level = 1): BookNav[] {
     const nav: BookNav[] = compact(
       Array.from(scopeQuerySelectorAll(dom, ['li'])).map(
         (el): BookNav | undefined => {
@@ -258,12 +258,13 @@ export class BookEpub extends BookBase {
           }
           const childOl = scopeQuerySelector(el, ['ol'])
           return {
+            level,
             label,
             href,
             hrefBase,
             hrefHash,
             spineIndex,
-            children: childOl ? this.parseNav3(childOl, dir) : [],
+            children: childOl ? this.parseNav3(childOl, dir, level + 1) : [],
           }
         }
       )
@@ -284,7 +285,7 @@ export class BookEpub extends BookBase {
     return this.parseNav2(navRoot, navDir)
   }
 
-  protected parseNav2(dom: Element, dir: string): BookNav[] {
+  protected parseNav2(dom: Element, dir: string, level = 1): BookNav[] {
     const nav: BookNav[] = compact(
       Array.from(scopeQuerySelectorAll(dom, ['navPoint'])).map(
         (el): BookNav | undefined => {
@@ -304,12 +305,13 @@ export class BookEpub extends BookBase {
             spineIndex = this.getSpineIndexByHref(hrefBase)
           }
           return {
+            level,
             label,
             href,
             hrefBase,
             hrefHash,
             spineIndex,
-            children: this.parseNav2(el, dir),
+            children: this.parseNav2(el, dir, level + 1),
           }
         }
       )

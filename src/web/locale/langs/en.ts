@@ -1,11 +1,19 @@
 export const langEn = {
-  settings: 'Settings',
-  autoNextSectionSetting: 'Auto Next Section',
-  timerSetting: 'Timer (Minute)',
-  personReplaceSetting: '中文人称替换',
-  speedSetting: 'Speed',
-  userColorSchemeSetting: 'Color Scheme',
-  paragraphRepeatSetting: 'Paragraph Repeat',
+  setting: {
+    title: 'Settings',
+    autoNextSection: 'Auto Next Section',
+    timer: 'Timer (Minute)',
+    personReplace: '中文人称替换',
+    speed: 'Speed',
+    userColorScheme: 'Color Scheme',
+    paragraphRepeat: 'Paragraph Repeat',
+    splitPage: 'Split Page',
+    splitPageType: {
+      none: 'None',
+      single: 'Single',
+      double: 'Double',
+    },
+  },
   desc: {
     addedBookSuccessful: 'Successfully added a new book',
   },
