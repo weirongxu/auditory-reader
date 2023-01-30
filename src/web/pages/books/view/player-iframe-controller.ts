@@ -84,7 +84,7 @@ export class PlayerIframeController {
   get splitPageType(): SplitPageType {
     if (this.states.splitPage === 'auto') {
       if (this.win) {
-        return this.win.innerWidth > 800 ? 'double' : 'single'
+        return this.win.innerWidth > 700 ? 'double' : 'single'
       } else {
         return 'single'
       }
