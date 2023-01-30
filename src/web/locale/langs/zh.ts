@@ -10,6 +10,7 @@ export const langZh = {
     splitPage: '分页',
     splitPageType: {
       none: '无',
+      auto: '自动',
       single: '单页',
       double: '双页',
     },

@@ -66,7 +66,11 @@ export class Player {
     return this.states.pos.section === this.book.spines.length - 1
   }
 
-  private async checkAndGotoPos(to: { section?: number; paragraph?: number }) {
+  private async checkAndGotoPos(to: {
+    section?: number
+    paragraph?: number
+    animated?: boolean
+  }) {
     if (
       to.section !== undefined &&
       (to.section < 0 || to.section >= this.book.spines.length)
@@ -87,7 +91,7 @@ export class Player {
         section,
         paragraph: to.paragraph ?? this.states.pos.paragraph,
       }
-      await this.iframeCtrler.scrollToCurPos()
+      await this.iframeCtrler.scrollToCurPos(to.animated)
     } else {
       // Change section
       const href = this.book.spines[section]?.href
@@ -111,7 +115,7 @@ export class Player {
         section,
         paragraph,
       }
-      await this.iframeCtrler.scrollToCurPos()
+      await this.iframeCtrler.scrollToCurPos(to.animated)
     }
 
     this.utterer.cancel()
@@ -121,6 +125,7 @@ export class Player {
     await this.checkAndGotoPos({
       section: this.states.pos.section - 1,
       paragraph,
+      animated: false,
     })
   }
 
@@ -128,6 +133,7 @@ export class Player {
     await this.checkAndGotoPos({
       section: this.states.pos.section + 1,
       paragraph,
+      animated: false,
     })
   }
 
@@ -137,12 +143,17 @@ export class Player {
   }
 
   get isFirstPage() {
-    return this.iframeCtrler.curSplitPage === 0
+    return this.iframeCtrler.splitPageCurPage === 0
   }
 
   get isLastPage() {
+    if (
+      !this.iframeCtrler.splitPageCurPage ||
+      !this.iframeCtrler.splitPageCount
+    )
+      return true
     return (
-      this.iframeCtrler.curSplitPage >= this.iframeCtrler.splitPageCount - 1
+      this.iframeCtrler.splitPageCurPage >= this.iframeCtrler.splitPageCount - 1
     )
   }
 

@@ -10,6 +10,7 @@ export const langEn = {
     splitPage: 'Split Page',
     splitPageType: {
       none: 'None',
+      auto: 'Auto',
       single: 'Single',
       double: 'Double',
     },

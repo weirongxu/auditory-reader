@@ -11,6 +11,7 @@ import {
   PARA_BLOCK_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
+import type { SplitPageType } from '../../../../core/store.js'
 import { globalStyle } from '../../../../core/style.js'
 import {
   find,
@@ -57,9 +58,10 @@ export class PlayerIframeController {
   mainContentRootPath: string
   mainContentRootUrl: string
   colorScheme: ColorScheme = 'light'
-  splitPageCount = 1
+  splitPageCount?: number
   splitPageWidth?: number
-  splitPageList: SplitPageNode[] = []
+  splitPageCurPage?: number
+  splitPageList?: SplitPageNode[]
   win?: Window
   doc?: Document
   scrollContainer?: HTMLElement
@@ -79,10 +81,15 @@ export class PlayerIframeController {
     return !this.#isVertical
   }
 
-  get curSplitPage() {
-    if (!this.splitPageWidth || !this.scrollContainer) return 0
-
-    return Math.round(this.scrollContainer.scrollLeft / this.splitPageWidth)
+  get splitPageType(): SplitPageType {
+    if (this.states.splitPage === 'auto') {
+      if (this.win) {
+        return this.win.innerWidth > 800 ? 'double' : 'single'
+      } else {
+        return 'single'
+      }
+    }
+    return this.states.splitPage
   }
 
   constructor(
@@ -158,8 +165,8 @@ export class PlayerIframeController {
   ) {
     const container = this.scrollContainer
     if (!container) return
-
     if (!this.isSplitPage) return
+    if (!this.splitPageList) return
 
     const finalLeft = findLast(
       this.splitPageList,
@@ -182,7 +189,6 @@ export class PlayerIframeController {
     const unit = offset / iteration
     const unitTime = duration / iteration
     for (const i of range(0, iteration + 1)) {
-      if (aborted) break
       await sleep(unitTime)
       if (aborted) break
       const left = startLeft + i * unit
@@ -196,14 +202,16 @@ export class PlayerIframeController {
   }
   async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
     if (!this.splitPageWidth) return
-
     if (offsetPage === 0) return
+    if (this.splitPageCurPage === undefined) return
+    if (!this.splitPageCount) return
+    if (!this.splitPageList) return
 
     let endPage: number
     if (this.#splitPageLast) {
       endPage = this.#splitPageLast.page + offsetPage
     } else {
-      endPage = this.curSplitPage + offsetPage
+      endPage = this.splitPageCurPage + offsetPage
     }
 
     // exceed range
@@ -348,27 +356,34 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       this.hookALinks(doc)
-      this.hookParagraphClick()
-      this.hookHotkeys()
       if (this.isSplitPage) {
+        this.splitPageTypeUpdate(doc)
         const body = doc.body
         const html = doc.documentElement
         this.scrollContainer =
-          body.clientWidth === body.offsetWidth ? html : body
-        this.hookPageTouch()
-        this.hookPageWheel()
-        await this.splitPage(doc, this.scrollContainer)
+          body.clientWidth === body.scrollWidth ? html : body
+
+        // eslint-disable-next-line no-console
+        console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
+        await this.splitPageCalcuate(doc, this.scrollContainer)
         win.addEventListener(
           'resize',
           debounceFn(300, () => {
             async(async () => {
               if (!this.win || !this.scrollContainer) return
+              this.splitPageTypeUpdate(doc)
+              await this.splitPageCalcuate(doc, this.scrollContainer)
               await this.scrollToLeft(this.scrollContainer.scrollLeft)
-              await this.splitPage(doc, this.scrollContainer)
             })
           })
         )
+
+        this.hookPageTouch()
+        this.hookPageWheel()
+        this.hookPageEvents()
       }
+      this.hookParagraphClick()
+      this.hookHotkeys()
     }
   }
 
@@ -390,22 +405,24 @@ export class PlayerIframeController {
 
     let pageStyle = ''
     if (this.isSplitPage) {
-      const columnWidth = this.states.splitPage === 'single' ? '100vw' : '50vw'
       pageStyle = `
         /* split page */
         html {
-          height: 100vh;
+          height: 100%;
           width: auto;
           overflow-y: hidden;
           overflow-x: auto;
-          column-width: ${columnWidth};
+          columns: auto var(--main-column-count);
           column-gap: 0;
           margin: 0;
           padding: 0;
         }
         body {
-          height: 100vh;
+          height: 100%;
           width: auto;
+          margin: 0;
+          padding: 0 10px;
+          box-sizing: border-box;
         }
         .${COLUMN_BREAK_CLASS} {
           content: ' ';
@@ -445,17 +462,11 @@ export class PlayerIframeController {
 
       .${PARA_BLOCK_CLASS}.${PARA_ACTIVE_CLASS} {
         background: var(--main-bg-active);
-      }
-
-      img.${PARA_BLOCK_CLASS}.${PARA_ACTIVE_CLASS} {
         outline: 5px solid var(--main-bg-active);
       }
 
       .${PARA_BLOCK_CLASS}:hover {
         background: var(--main-bg-hover);
-      }
-
-      img.${PARA_BLOCK_CLASS}:hover {
         outline: 5px solid var(--main-bg-hover);
       }
 
@@ -619,15 +630,48 @@ export class PlayerIframeController {
     })
   }
 
-  async splitPage(doc: Document, scrollContainer: HTMLElement) {
+  hookPageEvents() {
+    const win = this.win
+    const scrollContainer = this.scrollContainer
+    if (!win || !scrollContainer) return
+    const doc = this.doc
+    if (!doc) return
+
+    const listener = () => {
+      if (!this.splitPageWidth) return 0
+
+      this.splitPageCurPage = Math.round(
+        scrollContainer.scrollLeft / this.splitPageWidth
+      )
+    }
+    listener()
+
+    win.addEventListener('scroll', listener)
+    this.player.onUnmount(() => {
+      win.removeEventListener('scroll', listener)
+    })
+  }
+
+  splitPageTypeUpdate(doc: Document) {
+    // column count
+    const columnCount = this.splitPageType === 'single' ? 1 : 2
+    doc.documentElement.style.setProperty(
+      '--main-column-count',
+      columnCount.toString()
+    )
+  }
+
+  async splitPageCalcuate(doc: Document, scrollContainer: HTMLElement) {
     // Make sure the width is loaded correctly
     scrollContainer.offsetWidth
 
     let scrollWidth = scrollContainer.scrollWidth
     let width = scrollContainer.clientWidth
-    let count = Math.round(scrollContainer.scrollWidth / width)
+    let count: number
 
-    if (this.states.splitPage === 'double') {
+    // fix column double last page
+    doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
+    if (this.splitPageType === 'double') {
       count = Math.round((2 * scrollWidth) / width)
       if (count % 2 === 1) {
         // add empty page & refresh the scrollWidth
@@ -639,11 +683,15 @@ export class PlayerIframeController {
         scrollWidth = scrollContainer.scrollWidth
       }
       count /= 2
+    } else {
+      count = Math.round(scrollContainer.scrollWidth / width)
     }
 
     width = scrollWidth / count
     this.splitPageWidth = width
     this.splitPageCount = count
+    // eslint-disable-next-line no-console
+    console.debug(`scrollWidth: ${scrollWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`splitPageWidth: ${this.splitPageWidth}`)
     // eslint-disable-next-line no-console
@@ -654,6 +702,7 @@ export class PlayerIframeController {
   private parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
     const width = this.splitPageWidth
     if (!width) return
+    if (!this.splitPageCount) return
 
     this.splitPageList = range(0, this.splitPageCount)
       .map((i) => i * width)
