@@ -158,7 +158,7 @@ export class PlayerIframeController {
     left: number,
     {
       iteration = 20,
-      duration = 200,
+      duration = 100,
       animated = true,
       abortCtrl,
     }: ScrollOptions = {}
@@ -438,6 +438,12 @@ export class PlayerIframeController {
       /* image */
       img {
         max-width: 90vw!important;
+        max-width: var(--main-img-width)!important;
+        max-height: 90vh!important;
+      }
+      svg {
+        max-width: 90vw!important;
+        max-width: var(--main-img-width)!important;
         max-height: 90vh!important;
       }
 
@@ -658,6 +664,11 @@ export class PlayerIframeController {
     doc.documentElement.style.setProperty(
       '--main-column-count',
       columnCount.toString()
+    )
+
+    doc.documentElement.style.setProperty(
+      '--main-img-width',
+      columnCount === 1 ? '90vw' : '45vw'
     )
   }
 
