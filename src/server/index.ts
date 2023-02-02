@@ -11,10 +11,11 @@ import { ROUTERS } from '../core/api/index.js'
 import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'
 import { ErrorRequestResponse } from '../core/route/session.js'
-import fetch from 'node-fetch'
+import fetch, { Headers } from 'node-fetch'
 
 // @ts-ignore
 global.fetch = fetch
+global.Headers = Headers
 
 const app = express()
 

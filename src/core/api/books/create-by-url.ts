@@ -6,6 +6,8 @@ import { EpubGen } from '../../generate/epub-gen.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
 import { fetchDom } from '../../util/http.js'
+import { env } from '../../env.js'
+import { base64HTMLImgs } from '../../util/dom.js'
 
 export type BookCreateByUrl = {
   name: string
@@ -37,10 +39,15 @@ export const booksCreateByUrlRouter = new URouter<
 
   if (!article) throw new Error('parse article error')
 
+  const htmlContent =
+    env.appMode === 'server'
+      ? await base64HTMLImgs(article.content)
+      : article.content
+
   const epubBuf = await new EpubGen({
     title: body.name,
     date,
-    htmlContent: article.content,
+    htmlContent,
     lang: body.langCode,
     publisher: body.url,
     uuid,
