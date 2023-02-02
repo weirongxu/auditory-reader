@@ -111,15 +111,16 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
 
     // avoid duplicated
     if (blockElemSet.has(blockElem)) continue
-    blockElemSet.add(blockElem)
 
     if (isAllInlineChild(blockElem)) {
+      blockElemSet.add(blockElem)
       pushTextPart(blockElem)
     } else {
       if (!node.parentElement) continue
-      const wrapElem = document.createElement('p')
+      const wrapElem = document.createElement('div')
       node.after(wrapElem)
       wrapElem.appendChild(node)
+      blockElemSet.add(wrapElem)
       pushTextPart(wrapElem)
     }
   }
