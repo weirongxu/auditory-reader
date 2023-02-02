@@ -353,26 +353,27 @@ export class PlayerIframeController {
         .getComputedStyle(doc.body)
         .writingMode.startsWith('vertical')
 
+      const body = doc.body
+      const html = doc.documentElement
+      this.scrollContainer =
+        body.clientHeight === body.scrollHeight ? html : body
+      // eslint-disable-next-line no-console
+      console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
+
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       this.hookALinks(doc)
       if (this.isSplitPage) {
         this.splitPageTypeUpdate(doc)
-        const body = doc.body
-        const html = doc.documentElement
-        this.scrollContainer =
-          body.clientWidth === body.scrollWidth ? html : body
 
-        // eslint-disable-next-line no-console
-        console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
-        await this.splitPageCalcuate(doc, this.scrollContainer)
+        await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
           'resize',
           debounceFn(300, () => {
             async(async () => {
               if (!this.win || !this.scrollContainer) return
               this.splitPageTypeUpdate(doc)
-              await this.splitPageCalcuate(doc, this.scrollContainer)
+              await this.splitPageCalcuate(win, doc, this.scrollContainer)
               await this.scrollToLeft(this.scrollContainer.scrollLeft)
             })
           })
@@ -410,9 +411,8 @@ export class PlayerIframeController {
         html {
           height: 100%;
           width: auto;
-          overflow-y: hidden;
           overflow-x: auto;
-          columns: auto var(--main-column-count);
+          columns: auto var(--main-column-count, 1);
           column-gap: 0;
           margin: 0;
           padding: 0;
@@ -437,14 +437,12 @@ export class PlayerIframeController {
 
       /* image */
       img {
-        max-width: 90vw!important;
-        max-width: var(--main-img-width)!important;
-        max-height: 90vh!important;
+        max-width: 100%!important;
+        max-height: 100%!important;
       }
       svg {
-        max-width: 90vw!important;
-        max-width: var(--main-img-width)!important;
-        max-height: 90vh!important;
+        max-width: 100%!important;
+        max-height: 100%!important;
       }
 
       /* scheme */
@@ -482,6 +480,10 @@ export class PlayerIframeController {
       }
     `
     doc.head.appendChild(styleElem)
+
+    doc.querySelectorAll('svg').forEach((svg) => {
+      svg.setAttribute('preserveAspectRatio', 'xMinYMin slice')
+    })
   }
 
   hookALinks(doc: Document) {
@@ -665,19 +667,18 @@ export class PlayerIframeController {
       '--main-column-count',
       columnCount.toString()
     )
-
-    doc.documentElement.style.setProperty(
-      '--main-img-width',
-      columnCount === 1 ? '90vw' : '45vw'
-    )
   }
 
-  async splitPageCalcuate(doc: Document, scrollContainer: HTMLElement) {
+  async splitPageCalcuate(
+    win: Window,
+    doc: Document,
+    scrollContainer: HTMLElement
+  ) {
     // Make sure the width is loaded correctly
     scrollContainer.offsetWidth
 
     let scrollWidth = scrollContainer.scrollWidth
-    let width = scrollContainer.clientWidth
+    let width = win.innerWidth
     let count: number
 
     // fix column double last page
