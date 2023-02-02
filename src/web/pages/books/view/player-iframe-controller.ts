@@ -157,8 +157,8 @@ export class PlayerIframeController {
   async scrollToLeft(
     left: number,
     {
-      iteration = 20,
-      duration = 100,
+      iteration = 10,
+      duration = 20,
       animated = true,
       abortCtrl,
     }: ScrollOptions = {}
