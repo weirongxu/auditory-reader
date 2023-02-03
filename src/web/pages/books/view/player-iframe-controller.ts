@@ -365,7 +365,6 @@ export class PlayerIframeController {
       this.hookALinks(doc)
       if (this.isSplitPage) {
         this.splitPageTypeUpdate(doc)
-
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
           'resize',
@@ -411,6 +410,7 @@ export class PlayerIframeController {
         html {
           height: 100%;
           width: auto;
+          overflow-y: hidden;
           overflow-x: auto;
           columns: auto var(--main-column-count, 1);
           column-gap: 0;
@@ -436,13 +436,9 @@ export class PlayerIframeController {
       ${pageStyle}
 
       /* image */
-      img {
-        max-width: 100%!important;
-        max-height: 100%!important;
-      }
-      svg {
-        max-width: 100%!important;
-        max-height: 100%!important;
+      img, svg {
+        max-width: 90%!important;
+        max-height: 90%!important;
       }
 
       /* scheme */
@@ -482,7 +478,7 @@ export class PlayerIframeController {
     doc.head.appendChild(styleElem)
 
     doc.querySelectorAll('svg').forEach((svg) => {
-      svg.setAttribute('preserveAspectRatio', 'xMinYMin slice')
+      svg.setAttribute('preserveAspectRatio', 'xMinYMin meet')
     })
   }
 
@@ -663,10 +659,8 @@ export class PlayerIframeController {
   splitPageTypeUpdate(doc: Document) {
     // column count
     const columnCount = this.splitPageType === 'single' ? 1 : 2
-    doc.documentElement.style.setProperty(
-      '--main-column-count',
-      columnCount.toString()
-    )
+    const html = doc.documentElement
+    html.style.setProperty('--main-column-count', columnCount.toString())
   }
 
   async splitPageCalcuate(
@@ -678,7 +672,7 @@ export class PlayerIframeController {
     scrollContainer.offsetWidth
 
     let scrollWidth = scrollContainer.scrollWidth
-    let width = win.innerWidth
+    const width = win.innerWidth
     let count: number
 
     // fix column double last page
@@ -699,7 +693,6 @@ export class PlayerIframeController {
       count = Math.round(scrollContainer.scrollWidth / width)
     }
 
-    width = scrollWidth / count
     this.splitPageWidth = width
     this.splitPageCount = count
     // eslint-disable-next-line no-console
