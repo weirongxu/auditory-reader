@@ -17,11 +17,8 @@ import {
 import { t } from 'i18next'
 import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
-import {
-  ColorScheme,
-  SplitPageType,
-  SPLIT_PAGE_TYPES,
-} from '../../../core/store.js'
+import type { ColorScheme, SplitPageType } from '../../../core/store.js'
+import { SPLIT_PAGE_TYPES } from '../../../core/store.js'
 import { useSplitPage } from '../../../core/store.js'
 import {
   COLOR_SCHEMES,

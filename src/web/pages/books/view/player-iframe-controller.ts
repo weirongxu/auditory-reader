@@ -484,7 +484,12 @@ export class PlayerIframeController {
 
   hookALinks(doc: Document) {
     for (const link of doc.querySelectorAll('a')) {
-      if (link.getAttribute('target') === '_blank') continue
+      if (link.getAttribute('target') === '_blank') {
+        link.addEventListener('click', () => {
+          window.open(link.href, '_blank', 'noopener,noreferrer')
+        })
+        continue
+      }
       if (!link.href) continue
 
       link.addEventListener('click', (event) => {

@@ -98,6 +98,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
       continue
     }
     if (!(node instanceof Text)) continue
+
     const content = node.textContent?.trim()
     if (!content) continue
     const blockElem = getParentBlockElem(node.parentElement)
@@ -109,10 +110,12 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
       continue
     }
 
+    if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
+
     // avoid duplicated
     if (blockElemSet.has(blockElem)) continue
 
-    if (isAllInlineChild(blockElem)) {
+    if (isAllInlineChild(blockElem) && blockElem !== doc.body) {
       blockElemSet.add(blockElem)
       pushTextPart(blockElem)
     } else {

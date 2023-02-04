@@ -1,5 +1,6 @@
 import dedent from 'dedent'
 import JSZip from 'jszip'
+import { PARA_IGNORE_CLASS } from '../consts.js'
 
 export class EpubGen {
   zip: JSZip
@@ -12,6 +13,7 @@ export class EpubGen {
       htmlContent: string
       date: Date
       publisher: string
+      sourceURL?: string
     }
   ) {
     this.zip = new JSZip()
@@ -88,7 +90,9 @@ export class EpubGen {
       'text/content.html',
       dedent`
         <?xml version='1.0' encoding='utf-8'?>
-        <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${this.options.lang}">
+        <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${
+          this.options.lang
+        }">
           <head>
             <title>${this.options.title}</title>
             <link href="../stylesheet.css" rel="stylesheet" type="text/css"/>
@@ -96,6 +100,13 @@ export class EpubGen {
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
           </head>
           <body>
+            ${
+              this.options.sourceURL
+                ? `<p class="${PARA_IGNORE_CLASS}"><a target="_blank" href="${this.options.sourceURL}">
+                  ${this.options.sourceURL}
+                </a></p>`
+                : ''
+            }
             <h1>${this.options.title}</h1>
             ${this.options.htmlContent}
           </body>

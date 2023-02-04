@@ -19,7 +19,7 @@ export const booksCreateByUrlRouter = new URouter<
   BookCreateByUrl,
   BookTypes.EntityJson
 >('books/create-by-url').routeLogined(async ({ req, userInfo }) => {
-  const body = await req.body
+  const body: BookCreateByUrl = await req.body
 
   const uuid = uuidv1()
 
@@ -50,6 +50,7 @@ export const booksCreateByUrlRouter = new URouter<
     htmlContent,
     lang: body.langCode,
     publisher: body.url,
+    sourceURL: body.url,
     uuid,
   }).gen()
 
