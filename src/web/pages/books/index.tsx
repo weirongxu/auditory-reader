@@ -16,6 +16,7 @@ import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
@@ -133,6 +134,16 @@ export function BookList() {
                         }}
                       >
                         {t('remove')}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          window.open(
+                            `${booksDownloadRouter.fullRoutePath}?uuid=${book.uuid}`,
+                            '_blank'
+                          )
+                        }}
+                      >
+                        {t('export')}
                       </Button>
                     </Stack>
                   </TableCell>

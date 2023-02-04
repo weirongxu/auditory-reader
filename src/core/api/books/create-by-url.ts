@@ -1,3 +1,4 @@
+import { JSDOM } from 'jsdom'
 import { Readability } from '@mozilla/readability'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
@@ -8,6 +9,7 @@ import { URouter } from '../../route/router.js'
 import { fetchDom } from '../../util/http.js'
 import { env } from '../../env.js'
 import { base64HTMLImgs } from '../../util/dom.js'
+import { XMLDOMLoader } from '../../util/xml-dom.js'
 
 export type BookCreateByUrl = {
   name: string
@@ -39,10 +41,14 @@ export const booksCreateByUrlRouter = new URouter<
 
   if (!article) throw new Error('parse article error')
 
-  const htmlContent =
-    env.appMode === 'server'
-      ? await base64HTMLImgs(article.content)
-      : article.content
+  const articleJsdom = new JSDOM(article.content)
+  const articleDoc = articleJsdom.window.document
+
+  if (env.appMode === 'server') await base64HTMLImgs(articleDoc.body)
+
+  const htmlContent = new articleJsdom.window.XMLSerializer().serializeToString(
+    articleDoc.body
+  )
 
   const epubBuf = await new EpubGen({
     title: body.name,

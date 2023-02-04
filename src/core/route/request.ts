@@ -1,7 +1,8 @@
-import type { Request as ExRequest } from 'express'
+import type { Request as ExpressRequest } from 'express'
 import { USession } from './session.js'
 
 type RequestGetter<Body> = {
+  searchParams: () => URLSearchParams
   body: () => Promise<Body>
   url: () => string
   session: () => USession
@@ -9,8 +10,16 @@ type RequestGetter<Body> = {
 }
 
 export class URequest<Body> {
-  static fromNode<Body>(req: ExRequest, dynamicPaths: string[]) {
+  static fromNode<Body>(req: ExpressRequest, dynamicPaths: string[]) {
+    const searchParams = new URLSearchParams()
+    for (const [key, value] of Object.entries(req.query)) {
+      if (typeof value === 'string') searchParams.append(key, value)
+      else if (Array.isArray(value))
+        for (const item of value)
+          if (typeof item === 'string') searchParams.append(key, item)
+    }
     return new this<Body>({
+      searchParams: () => searchParams,
       body: () => req.body,
       url: () => req.url,
       session: () => USession.fromNode(req.session),
@@ -20,6 +29,7 @@ export class URequest<Body> {
 
   static fromBrowser<Body>(req: Request, dynamicPaths: string[]) {
     return new this<Body>({
+      searchParams: () => new URLSearchParams(req.url),
       body: async () => await req.json(),
       url: () => req.url,
       session: () => USession.fromBrowser(),
@@ -28,6 +38,10 @@ export class URequest<Body> {
   }
 
   constructor(protected readonly getter: RequestGetter<Body>) {}
+
+  get searchParams() {
+    return this.getter.searchParams()
+  }
 
   get body(): Promise<Body> {
     return this.getter.body()

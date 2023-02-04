@@ -1,5 +1,3 @@
-import { JSDOM } from 'jsdom'
-
 export function isInputElement(element: any) {
   if (element instanceof Element) {
     const elemName = element.tagName.toLowerCase()
@@ -9,12 +7,10 @@ export function isInputElement(element: any) {
 }
 
 export async function base64HTMLImgs(
-  html: string,
+  element: HTMLElement,
   options: { referrer?: string } = {}
 ) {
-  const jsdom = new JSDOM(html)
-  const doc = jsdom.window.document
-  const imgs = [...doc.querySelectorAll('img')]
+  const imgs = [...element.querySelectorAll('img')]
   const headers = new Headers({
     ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
   })
@@ -34,5 +30,4 @@ export async function base64HTMLImgs(
       console.error(err)
     }
   }
-  return doc.body.innerHTML
 }

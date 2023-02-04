@@ -1,5 +1,6 @@
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
+import { booksDownloadRouter } from './books/download.js'
 import { booksFetchUrlInfoRouter } from './books/fetch-url-info.js'
 import { booksMoveTopRouter } from './books/move-top.js'
 import { booksPageRouter } from './books/page.js'
@@ -26,6 +27,7 @@ export const ROUTERS = [
   booksPositionRouter,
   booksRemoveRouter,
   booksShowRouter,
+  booksDownloadRouter,
   booksSyncPositionRouter,
   booksUpdateRouter,
   booksViewRouter,
