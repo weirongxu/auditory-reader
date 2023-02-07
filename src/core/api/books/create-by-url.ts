@@ -1,15 +1,14 @@
-import { JSDOM } from 'jsdom'
 import { Readability } from '@mozilla/readability'
+import { JSDOM } from 'jsdom'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
+import { env } from '../../env.js'
 import { EpubGen } from '../../generate/epub-gen.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
+import { HTMLImgs2DataURL } from '../../util/dom.js'
 import { fetchDom } from '../../util/http.js'
-import { env } from '../../env.js'
-import { base64HTMLImgs } from '../../util/dom.js'
-import { XMLDOMLoader } from '../../util/xml-dom.js'
 
 export type BookCreateByUrl = {
   name: string
@@ -44,7 +43,7 @@ export const booksCreateByUrlRouter = new URouter<
   const articleJsdom = new JSDOM(article.content)
   const articleDoc = articleJsdom.window.document
 
-  if (env.appMode === 'server') await base64HTMLImgs(articleDoc.body)
+  if (env.appMode === 'server') await HTMLImgs2DataURL(articleDoc.body)
 
   const htmlContent = new articleJsdom.window.XMLSerializer().serializeToString(
     articleDoc.body

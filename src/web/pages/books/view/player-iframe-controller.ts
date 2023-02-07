@@ -20,10 +20,12 @@ import {
   findPair,
   range,
 } from '../../../../core/util/collection.js'
-import { isInputElement } from '../../../../core/util/dom.js'
+import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
+import { setHotkeyIframeWin } from '../../../hotkey/hotkey-state.js'
+import { setPreviewImgSrc } from '../../../preview-image.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart } from './types.js'
@@ -349,6 +351,8 @@ export class PlayerIframeController {
       this.win = win
       this.doc = doc
 
+      setHotkeyIframeWin(win)
+
       this.#isVertical = win
         .getComputedStyle(doc.body)
         .writingMode.startsWith('vertical')
@@ -362,7 +366,6 @@ export class PlayerIframeController {
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
-      this.hookALinks(doc)
       if (this.isSplitPage) {
         this.splitPageTypeUpdate(doc)
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
@@ -382,8 +385,9 @@ export class PlayerIframeController {
         this.hookPageWheel()
         this.hookPageEvents()
       }
+      this.hookALinks(doc)
+      this.hookImgs(doc)
       this.hookParagraphClick()
-      this.hookHotkeys()
     }
   }
 
@@ -516,6 +520,27 @@ export class PlayerIframeController {
     }
   }
 
+  hookImgs(doc: Document) {
+    for (const img of doc.querySelectorAll('img')) {
+      img.addEventListener('click', (event) => {
+        const src = img.src
+        if (!src) return
+        event.stopPropagation()
+        setPreviewImgSrc(src)
+      })
+    }
+
+    for (const svg of doc.querySelectorAll('svg')) {
+      svg.addEventListener('click', (event) => {
+        event.stopPropagation()
+        async(async () => {
+          const dataURL = await svgToDataUri(svg, doc.URL)
+          setPreviewImgSrc(dataURL)
+        })
+      })
+    }
+  }
+
   hookParagraphClick() {
     const click = (event: Event) => {
       const target = event.currentTarget as Element
@@ -530,45 +555,6 @@ export class PlayerIframeController {
         n.elem.removeEventListener('click', click)
       )
     }
-  }
-
-  #hotkeys = new Map([
-    [' ', () => this.player.toggle()],
-    ['shift+arrowleft', () => this.player.prevSection()],
-    ['shift+arrowright', () => this.player.nextSection()],
-    ['arrowleft', () => this.player.prevPage(1, true)],
-    ['arrowright', () => this.player.nextPage(1, true)],
-    ['pageup', () => this.player.prevPage(1, false)],
-    ['pagedown', () => this.player.nextPage(1, false)],
-    ['arrowup', () => this.player.prevParagraph()],
-    ['arrowdown', () => this.player.nextParagraph()],
-  ])
-  #registeredGlobalHotkey = false
-  hookHotkeys() {
-    const listener = (e: KeyboardEvent) => {
-      if (isInputElement(e.target)) return
-      if (e.altKey || e.ctrlKey) return
-      const key = `${e.shiftKey ? 'shift+' : ''}${e.key.toLowerCase()}`
-      const cb = this.#hotkeys.get(key)
-      if (cb) {
-        e.preventDefault()
-        cb()
-      }
-    }
-    if (!this.#registeredGlobalHotkey) {
-      window.addEventListener('keydown', listener, { passive: false })
-      this.player.onUnmount(() => {
-        window.removeEventListener('keydown', listener)
-        this.#registeredGlobalHotkey = false
-      })
-      this.#registeredGlobalHotkey = true
-    }
-    this.win?.addEventListener('keydown', listener, {
-      passive: false,
-    })
-    this.player.onUnmount(() => {
-      this.win?.removeEventListener('keydown', listener)
-    })
   }
 
   hookPageTouch() {

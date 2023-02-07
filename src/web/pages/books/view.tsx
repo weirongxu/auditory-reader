@@ -1,5 +1,6 @@
 import { CircularProgress, Stack } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { create } from 'pinch-zoom-pan'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
@@ -45,13 +46,45 @@ export const useBookView = (uuid: string) => {
   }
 }
 
+interface PinchZoomPanProps {
+  min?: number
+  max?: number
+  captureWheel?: boolean
+  style?: React.CSSProperties
+  children: React.ReactNode
+}
+
 function BookViewContent(props: BookContextProps) {
-  const { NavTreeView, MainContent } = useViewer(props)
+  const refPreviewDiv = useRef<HTMLDivElement>(null)
+  const { NavTreeView, MainContent, previewImgSrc } = useViewer(props)
 
   return (
     <Stack direction="row" className={styles.contentWrapper}>
       {NavTreeView}
       {MainContent}
+      {previewImgSrc && (
+        <div
+          ref={refPreviewDiv}
+          className="preview-image"
+          onClick={(event) => {
+            if (event.currentTarget === refPreviewDiv.current) {
+              // TODO
+              // previewTonone
+            }
+          }}
+        >
+          <TransformWrapper limitToBounds={false} initialScale={1}>
+            <TransformComponent
+              wrapperStyle={{ width: '100%', height: '100%' }}
+            >
+              <img
+                style={{ width: '100%', height: '100%' }}
+                src={previewImgSrc}
+              />
+            </TransformComponent>
+          </TransformWrapper>
+        </div>
+      )}
     </Stack>
   )
 }

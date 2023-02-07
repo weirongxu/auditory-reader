@@ -1,3 +1,5 @@
+import path from 'path'
+
 export function isInputElement(element: any) {
   if (element instanceof Element) {
     const elemName = element.tagName.toLowerCase()
@@ -6,7 +8,7 @@ export function isInputElement(element: any) {
   return false
 }
 
-export async function base64HTMLImgs(
+export async function HTMLImgs2DataURL(
   element: HTMLElement,
   options: { referrer?: string } = {}
 ) {
@@ -30,4 +32,44 @@ export async function base64HTMLImgs(
       console.error(err)
     }
   }
+}
+
+export async function SVGImgs2DataURL(
+  svgElement: SVGSVGElement,
+  options: { referrer?: string; baseURL?: string } = {}
+) {
+  const imgs = [...svgElement.querySelectorAll('image')]
+  const headers = new Headers({
+    ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
+  })
+  for (const img of imgs) {
+    const relativeSrc = img.href.baseVal
+    if (!relativeSrc) continue
+    const src = options.baseURL
+      ? new URL(relativeSrc, options.baseURL)
+      : relativeSrc
+    try {
+      const res = await fetch(src, {
+        headers,
+      })
+      const contentType = res.headers.get('Content-Type')
+      const buf = await res.arrayBuffer()
+      img.setAttribute(
+        'href',
+        `data:${contentType};base64,${Buffer.from(buf).toString('base64')}`
+      )
+    } catch (err) {
+      console.error(err)
+    }
+  }
+}
+
+export async function svgToDataUri(svgElement: SVGSVGElement, baseURL: string) {
+  const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement
+  await SVGImgs2DataURL(clonedSvg, { baseURL })
+  clonedSvg.setAttribute('width', `${svgElement.clientWidth}px`)
+  const xml = new XMLSerializer().serializeToString(clonedSvg)
+  svgElement.cloneNode()
+  const svg64 = window.btoa(xml)
+  return `data:image/svg+xml;base64,${svg64}`
 }

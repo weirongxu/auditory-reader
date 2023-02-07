@@ -3,7 +3,10 @@ import type { RefObject } from 'react'
 import { useRef } from 'react'
 import type { BookViewRes } from '../../../../core/api/books/view.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import { PlayerIframeController } from './player-iframe-controller.js'
+import {
+  PlayerIframeController,
+  usePlayerIframe,
+} from './player-iframe-controller.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
 
@@ -203,5 +206,6 @@ export function usePlayer(
   useUnmountEffect(() => {
     player.current?.triggerUnmount()
   })
+  usePlayerIframe(player.current)
   return player.current
 }

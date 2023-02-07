@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import useWindowFocus from 'use-window-focus'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { async } from '../../../../core/util/promise.js'
-import { usePlayerIframe } from './player-iframe-controller.js'
+import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
@@ -15,9 +15,9 @@ export function useViewer(props: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
+  const { addHotkeys } = useHotkeys()
 
   const player = usePlayer(book, pos, iframeRef)
-  usePlayerIframe(player)
   usePlayerSync(player, {
     setPos,
     setStarted,
@@ -29,6 +29,22 @@ export function useViewer(props: BookContextProps) {
   useEffect(() => {
     player.iframeCtrler.updateColorTheme(theme.palette.mode)
   }, [player.iframeCtrler, theme.palette.mode])
+
+  // hotkey
+  useEffect(() => {
+    const dispose = addHotkeys([
+      [' ', () => player.toggle()],
+      ['shift+arrowleft', () => player.prevSection()],
+      ['shift+arrowright', () => player.nextSection()],
+      ['arrowleft', () => player.prevPage(1, true)],
+      ['arrowright', () => player.nextPage(1, true)],
+      ['pageup', () => player.prevPage(1, false)],
+      ['pagedown', () => player.nextPage(1, false)],
+      ['arrowup', () => player.prevParagraph()],
+      ['arrowdown', () => player.nextParagraph()],
+    ])
+    return dispose
+  })
 
   const MainContent = useMemo(
     () => (

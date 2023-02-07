@@ -16,6 +16,8 @@ import { useStyle } from './hooks/useStyle.js'
 import { RootEntry } from './pages/entry.js'
 import { registerAPI } from './service-worker/register.js'
 import { useAppTheme } from './theme.js'
+import { PreviewImage } from './preview-image.js'
+import { useHotkeysRegister } from './hotkey/hotkey-state.js'
 
 export function App() {
   const theme = useAppTheme()
@@ -42,6 +44,7 @@ export function App() {
     else document.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
   }, [theme.palette.mode])
   useStyle(globalStyle)
+  useHotkeysRegister()
 
   return (
     <ThemeProvider theme={theme}>
@@ -54,6 +57,7 @@ export function App() {
             {loadedStatus}
           </Alert>
         )}
+        <PreviewImage></PreviewImage>
       </ConfirmProvider>
     </ThemeProvider>
   )
