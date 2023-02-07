@@ -4,10 +4,13 @@ import { createGlobalState } from 'react-hooks-global-state'
 import type { BookTypes } from './book/types.js'
 import { sortBy } from './util/collection.js'
 
-export let allVoices: SpeechSynthesisVoice[] = []
+const { setGlobalState: setAllVoices, useGlobalState: useAllVoices } =
+  createGlobalState<{ voices: SpeechSynthesisVoice[] }>({
+    voices: [],
+  })
 if (isBrowser) {
   const loadVoices = () => {
-    allVoices = speechSynthesis.getVoices()
+    setAllVoices('voices', speechSynthesis.getVoices())
   }
   loadVoices()
   if (window.speechSynthesis.addEventListener) {
@@ -78,10 +81,11 @@ const useVoiceURLDict = createStore<Record<string, string>>({
 export const useVoice = (book: BookTypes.Entity) => {
   const [dict, setDict] = useVoiceURLDict()
   const [lastVoiceURI, setLastVoiceURI] = useLastVoiceURI(book)
+  const [allVoices] = useAllVoices('voices')
 
   const allSortedVoices = useMemo(() => {
     return sortBy(allVoices, (v) => !v.lang.startsWith(`${book.langCode}-`))
-  }, [book.langCode])
+  }, [allVoices, book.langCode])
 
   const voiceURI = useMemo((): string | null => {
     return dict[book.uuid] ?? lastVoiceURI ?? allSortedVoices[0]?.voiceURI

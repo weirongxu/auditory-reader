@@ -87,37 +87,42 @@ export class Highlight {
     }
   }
 
-  #scrollToHighlight = throttleFn(1000, (elem: HTMLElement) => {
-    void this.iframeCtrl.scrollToElem(elem, {
-      position: 'nearest',
-    })
-  })
+  #highlightChars = throttleFn(
+    300,
+    (node: ReadablePart, charIndex: number, charLength: number) => {
+      // remove last class
+      this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
+
+      const range = document.createRange()
+      const start = this.#getChildAndIndex(node.elem, charIndex)
+      if (!start) return
+      const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
+      if (!end) return
+      try {
+        range.setStart(start.node, start.index)
+        range.setEnd(end.node, end.index)
+      } catch (error) {
+        console.error(error)
+        // skip range index error
+        return
+      }
+      const span = document.createElement('span')
+      span.classList.add(PARA_HIGHLIGHT_CLASS)
+      this.highlightedElems.push(span)
+      span.appendChild(range.extractContents())
+      range.insertNode(span)
+
+      // Note: use previous span, because latest span rect is incorrect
+      const span0 = this.highlightedElems.at(-2)
+      if (span0) {
+        void this.iframeCtrl.scrollToElem(span0, {
+          position: 'nearest',
+        })
+      }
+    }
+  )
 
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
-    // remove last class
-    this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
-
-    const range = document.createRange()
-    const start = this.#getChildAndIndex(node.elem, charIndex)
-    if (!start) return
-    const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
-    if (!end) return
-    try {
-      range.setStart(start.node, start.index)
-      range.setEnd(end.node, end.index)
-    } catch (error) {
-      console.error(error)
-      // skip range index error
-      return
-    }
-    const span = document.createElement('span')
-    span.classList.add(PARA_HIGHLIGHT_CLASS)
-    this.highlightedElems.push(span)
-    span.appendChild(range.extractContents())
-    range.insertNode(span)
-
-    // Note: use previous span, because latest span rect is incorrect
-    const span0 = this.highlightedElems.at(-2)
-    if (span0) this.#scrollToHighlight(span0)
+    this.#highlightChars(node, charIndex, charLength)
   }
 }
