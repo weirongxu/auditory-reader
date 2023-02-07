@@ -17,20 +17,21 @@ import {
 import { t } from 'i18next'
 import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
-import type { ColorScheme, SplitPageType } from '../../../core/store.js'
-import { SPLIT_PAGE_TYPES } from '../../../core/store.js'
-import { useSplitPage } from '../../../core/store.js'
+import { isMobile } from '../../../core/util/browser.js'
 import {
-  COLOR_SCHEMES,
   useAutoSection,
-  useParagraphRepeat,
-  usePersonReplace,
-  useSpeechSpeed,
   useStopTimer,
   useStopTimerSeconds,
+  usePersonReplace,
+  useSpeechSpeed,
   useUserColorScheme,
-} from '../../../core/store.js'
-import { isMobile } from '../../../core/util/browser.js'
+  type ColorScheme,
+  COLOR_SCHEMES,
+  useParagraphRepeat,
+  useSplitPage,
+  type SplitPageType,
+  SPLIT_PAGE_TYPES,
+} from '../../store.js'
 
 export function SettingLine(props: { children: React.ReactNode }) {
   return (

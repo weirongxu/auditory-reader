@@ -1,4 +1,4 @@
-import { COLOR_SCHEME_DARK_CLASS } from './consts.js'
+import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 
 export const globalStyle = `
   :root {

@@ -19,17 +19,17 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
+import { isMobile } from '../../../../core/util/browser.js'
 import {
   useAutoSection,
-  useSplitPage,
   useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
+  useSplitPage,
   useStopTimer,
   useStopTimerSeconds,
   useVoice,
-} from '../../../../core/store.js'
-import { isMobile } from '../../../../core/util/browser.js'
+} from '../../../store.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookViewNav } from './nav.js'
 import type { Player } from './player'

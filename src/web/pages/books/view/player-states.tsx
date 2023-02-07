@@ -2,8 +2,8 @@ import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import type { SplitPageType } from '../../../../core/store.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
+import type { SplitPageType } from '../../../store.js'
 import type { Player } from './player.js'
 
 type PlayerStates = {

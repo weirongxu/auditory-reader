@@ -11,8 +11,6 @@ import {
   PARA_BLOCK_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
-import type { SplitPageType } from '../../../../core/store.js'
-import { globalStyle } from '../../../../core/style.js'
 import {
   find,
   findLast,
@@ -26,6 +24,8 @@ import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
 import { setHotkeyIframeWin } from '../../../hotkey/hotkey-state.js'
 import { setPreviewImgSrc } from '../../../preview-image.js'
+import type { SplitPageType } from '../../../store.js'
+import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart } from './types.js'

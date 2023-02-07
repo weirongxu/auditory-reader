@@ -1,8 +1,8 @@
 import { isBrowser } from '@react-hookz/web/cjs/util/const'
 import { useCallback, useMemo } from 'react'
 import { createGlobalState } from 'react-hooks-global-state'
-import type { BookTypes } from './book/types.js'
-import { sortBy } from './util/collection.js'
+import type { BookTypes } from '../core/book/types.js'
+import { sortBy } from '../core/util/collection.js'
 
 const { setGlobalState: setAllVoices, useGlobalState: useAllVoices } =
   createGlobalState<{ voices: SpeechSynthesisVoice[] }>({

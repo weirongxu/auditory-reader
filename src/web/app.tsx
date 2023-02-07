@@ -11,13 +11,13 @@ import {
 import { ConfirmProvider } from 'material-ui-confirm'
 import { useEffect, useState } from 'react'
 import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
-import { globalStyle } from '../core/style.js'
 import { useStyle } from './hooks/useStyle.js'
 import { RootEntry } from './pages/entry.js'
 import { registerAPI } from './service-worker/register.js'
 import { useAppTheme } from './theme.js'
 import { PreviewImage } from './preview-image.js'
 import { useHotkeysRegister } from './hotkey/hotkey-state.js'
+import { globalStyle } from './style.js'
 
 export function App() {
   const theme = useAppTheme()

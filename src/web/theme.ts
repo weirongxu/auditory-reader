@@ -1,6 +1,6 @@
 import { createTheme, useMediaQuery } from '@mui/material'
 import { useMemo } from 'react'
-import { useUserColorScheme } from '../core/store.js'
+import { useUserColorScheme } from './store.js'
 
 export const useAppTheme = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
