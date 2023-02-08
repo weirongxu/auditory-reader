@@ -72,6 +72,9 @@ export const Layout = (props: { children?: React.ReactNode }) => {
       </Stack>
       <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
         {rightItems}
+        <LinkWrap to="/books/add">
+          {(href) => <Button href={href}>{t('add')}</Button>}
+        </LinkWrap>
         <Stack direction="row" alignItems="center">
           <IconButton
             onClick={() => {

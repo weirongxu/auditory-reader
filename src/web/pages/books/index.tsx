@@ -14,7 +14,7 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
@@ -23,7 +23,6 @@ import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
-import { useAppBarSync } from '../layout/use-app-bar.js'
 
 export function BookList() {
   const nav = useNavigate()
@@ -31,18 +30,6 @@ export function BookList() {
   const { data: books, reload } = useAction(booksPageRouter, { page })
   const theme = useTheme()
   const confirm = useConfirm()
-
-  const HeaderRight = useMemo(() => {
-    return (
-      <>
-        <LinkWrap to="/books/add">
-          {(href) => <Button href={href}>{t('add')}</Button>}
-        </LinkWrap>
-      </>
-    )
-  }, [])
-
-  useAppBarSync({ right: HeaderRight })
 
   useEffect(() => {
     if (page) reload()

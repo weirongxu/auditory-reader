@@ -1,5 +1,6 @@
 import { Readability } from '@mozilla/readability'
 import type { LangCode } from '../../lang.js'
+import { parseLangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
 import { fetchDom } from '../../util/http.js'
 
@@ -37,11 +38,11 @@ export const booksFetchUrlInfoRouter = new URouter<
 
   lang ??= doc.activeElement?.getAttribute('lang') ?? undefined
 
-  if (lang && lang.includes('-')) lang = lang.split('-')[0]
+  const langCode = parseLangCode(lang)
 
   const info: BookFetchUrlInfo = {
     title,
-    lang: lang as LangCode | undefined,
+    lang: langCode,
   }
 
   return info

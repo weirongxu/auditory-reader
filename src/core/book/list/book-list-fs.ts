@@ -38,7 +38,7 @@ export class BookListFS extends BookListBase {
 
   protected async writeJson(json: BookTypes.Json) {
     if (!fs.existsSync(this.accountDir))
-      await fs.promises.mkdir(this.accountDir)
+      await fs.promises.mkdir(this.accountDir, { recursive: true })
     await fs.promises.writeFile(this.jsonPath, JSON.stringify(json), 'utf8')
   }
 

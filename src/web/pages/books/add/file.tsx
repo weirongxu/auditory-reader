@@ -1,24 +1,24 @@
 import {
+  Autocomplete,
+  Button,
+  FormControl,
   Stack,
   TextField,
-  Autocomplete,
-  FormControl,
-  Button,
 } from '@mui/material'
 import { t } from 'i18next'
 import path from 'path'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Dropzone } from '../../../components/dropzone.js'
 import { booksCreateRouter } from '../../../../core/api/books/create.js'
 import { BookEpub } from '../../../../core/book/book-epub.js'
 import {
+  parseLangCode,
   useOrderedLangOptions,
   type LangCode,
-  langCodes,
 } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
+import { Dropzone } from '../../../components/dropzone.js'
 
 export function AddFile() {
   const nav = useNavigate()
@@ -100,8 +100,8 @@ export function AddFile() {
                 if (file.name.endsWith('.epub')) {
                   const buf = await file.arrayBuffer()
                   const epub = await BookEpub.read(buf)
-                  const langCode = (epub?.language ?? null) as LangCode | null
-                  if (langCode && langCodes.includes(langCode)) {
+                  const langCode = parseLangCode(epub?.language)
+                  if (langCode) {
                     setLangCode(langCode)
                   }
                 }
