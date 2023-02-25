@@ -18,17 +18,14 @@ import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { GlobalSettings, SettingLine } from './settings.js'
-import { useAppBarState } from './use-app-bar.js'
+import { useAppBarStates } from './use-app-bar.js'
 import styles from './layout.module.scss'
 import { isMobile } from '../../../core/util/browser.js'
 
 const barPos = isMobile ? 'bottom' : 'top'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
-  const [title] = useAppBarState('title')
-  const [leftItems] = useAppBarState('left')
-  const [rightItems] = useAppBarState('right')
-  const [settings] = useAppBarState('settings')
+  const [appBarState] = useAppBarStates()
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
   const theme = useTheme()
@@ -63,15 +60,15 @@ export const Layout = (props: { children?: React.ReactNode }) => {
             <MuiLink href={href}>
               <Typography display="flex">
                 <MenuBook sx={{ marginRight: 1 }}></MenuBook>
-                {title ?? 'Auditory Reader'}
+                {appBarState.title ?? 'Auditory Reader'}
               </Typography>
             </MuiLink>
           )}
         </LinkWrap>
-        {leftItems}
+        {appBarState.left}
       </Stack>
       <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
-        {rightItems}
+        {appBarState.right}
         <LinkWrap to="/books/add">
           {(href) => <Button href={href}>{t('add')}</Button>}
         </LinkWrap>
@@ -101,7 +98,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
               </Box>
               <Stack sx={{ flex: 1 }}>
                 <ThemeProvider theme={settingsTheme}>
-                  {settings}
+                  {appBarState.settings}
                   <GlobalSettings></GlobalSettings>
                 </ThemeProvider>
               </Stack>

@@ -1,7 +1,8 @@
+import { useMountEffect } from '@react-hookz/web'
 import { useEffect } from 'react'
-import { createGlobalState } from 'react-hooks-global-state'
+import { createGlobalState } from '../../hooks/createGlobalState.js'
 
-export const { useGlobalState: useAppBarState } = createGlobalState<{
+export const { useGlobalState: useAppBarStates } = createGlobalState<{
   title: React.ReactNode
   left: React.ReactNode
   right: React.ReactNode
@@ -14,26 +15,29 @@ export const { useGlobalState: useAppBarState } = createGlobalState<{
 })
 
 export const useAppBarSync = (props: {
-  title?: string
+  title?: React.ReactNode
   left?: React.ReactNode
   right?: React.ReactNode
   settings?: React.ReactNode
 }) => {
-  const [, setTitle] = useAppBarState('title')
-  const [, setLeftState] = useAppBarState('left')
-  const [, setRightState] = useAppBarState('right')
-  const [, setSettingsState] = useAppBarState('settings')
+  const [, setAppBarState] = useAppBarStates()
 
-  useEffect(() => {
-    setTitle(props.title)
-    setLeftState(props.left)
-    setRightState(props.right)
-    setSettingsState(props.settings)
+  useMountEffect(() => {
+    setAppBarState({
+      title: null,
+      left: null,
+      right: null,
+      settings: null,
+      ...props,
+    })
+
     return () => {
-      setTitle(null)
-      setLeftState(null)
-      setRightState(null)
-      setSettingsState(null)
+      setAppBarState({
+        title: null,
+        left: null,
+        right: null,
+        settings: null,
+      })
     }
   })
 }

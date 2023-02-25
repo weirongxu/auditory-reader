@@ -1,16 +1,14 @@
 import { isBrowser } from '@react-hookz/web/cjs/util/const'
 import { useCallback, useMemo } from 'react'
-import { createGlobalState } from 'react-hooks-global-state'
 import type { BookTypes } from '../core/book/types.js'
 import { sortBy } from '../core/util/collection.js'
+import { createGlobalState } from './hooks/createGlobalState.js'
 
 const { setGlobalState: setAllVoices, useGlobalState: useAllVoices } =
-  createGlobalState<{ voices: SpeechSynthesisVoice[] }>({
-    voices: [],
-  })
+  createGlobalState<SpeechSynthesisVoice[]>([])
 if (isBrowser) {
   const loadVoices = () => {
-    setAllVoices('voices', speechSynthesis.getVoices())
+    setAllVoices(speechSynthesis.getVoices())
   }
   loadVoices()
   if (window.speechSynthesis.addEventListener) {
@@ -27,11 +25,9 @@ function createStore<T>(options: {
 }): () => [T, (value: T) => void] {
   const { storeKey, read, write } = options
   const getOriginStoredValue = () => localStorage.getItem(storeKey)
-  const { useGlobalState } = createGlobalState<{ value: T }>({
-    value: read(getOriginStoredValue()),
-  })
+  const { useGlobalState } = createGlobalState<T>(read(getOriginStoredValue()))
   return () => {
-    const [inner, setInner] = useGlobalState('value')
+    const [inner, setInner] = useGlobalState()
     const setValue = useCallback(
       (value: T) => {
         setInner(value)
@@ -81,7 +77,7 @@ const useVoiceURLDict = createStore<Record<string, string>>({
 export const useVoice = (book: BookTypes.Entity) => {
   const [dict, setDict] = useVoiceURLDict()
   const [lastVoiceURI, setLastVoiceURI] = useLastVoiceURI(book)
-  const [allVoices] = useAllVoices('voices')
+  const [allVoices] = useAllVoices()
 
   const allSortedVoices = useMemo(() => {
     return sortBy(allVoices, (v) => !v.lang.startsWith(`${book.langCode}-`))

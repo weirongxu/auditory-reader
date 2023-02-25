@@ -1,17 +1,13 @@
-import { createGlobalState } from 'react-hooks-global-state'
 import { PinchZoomPan } from './components/pinch-zoom-pan.js'
+import { createGlobalState } from './hooks/createGlobalState.js'
 
-const { setGlobalState: setPreviewImg, useGlobalState: usePreviewImg } =
-  createGlobalState<{
-    src: string | null
-  }>({ src: null })
+const { setGlobalState: setPreviewImgSrc, useGlobalState: usePreviewImgSrc } =
+  createGlobalState<string | null>(null)
 
-export const setPreviewImgSrc = (src: string | null) => {
-  setPreviewImg('src', src)
-}
+export { setPreviewImgSrc }
 
 export function PreviewImage() {
-  const [src, setSrc] = usePreviewImg('src')
+  const [src, setSrc] = usePreviewImgSrc()
 
   if (!src) return <></>
 

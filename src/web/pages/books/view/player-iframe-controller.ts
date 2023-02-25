@@ -351,7 +351,7 @@ export class PlayerIframeController {
       this.win = win
       this.doc = doc
 
-      setHotkeyIframeWin(win)
+      setHotkeyIframeWin({ win })
 
       this.#isVertical = win
         .getComputedStyle(doc.body)

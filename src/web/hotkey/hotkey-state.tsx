@@ -1,25 +1,15 @@
 import { useCallback, useEffect } from 'react'
-import { createGlobalState } from 'react-hooks-global-state'
 import { isInputElement } from '../../core/util/dom.js'
+import { createGlobalState } from '../hooks/createGlobalState.js'
 
 type HotkeysMap = Map<string, (() => void)[]>
 
 const hotkeysMap: HotkeysMap = new Map()
 
-const { useGlobalState, setGlobalState } = createGlobalState<{
-  iframeWin: Window | null
-}>({ iframeWin: null })
-
-export const useHotkeyIframeWin: () => readonly [
-  Window | null,
-  (u: React.SetStateAction<Window | null>) => void
-] = () => {
-  return useGlobalState('iframeWin')
-}
-
-export const setHotkeyIframeWin = (win: Window) => {
-  setGlobalState('iframeWin', win)
-}
+export const {
+  useGlobalState: useHotkeyIframeWin,
+  setGlobalState: setHotkeyIframeWin,
+} = createGlobalState<{ win: Window | null }>({ win: null })
 
 export function useHotkeys() {
   const addHotkey = useCallback((hotkey: string, callback: () => void) => {
@@ -69,7 +59,7 @@ function getListener() {
 }
 
 export function useHotkeysRegister() {
-  const [win] = useHotkeyIframeWin()
+  const [refWin] = useHotkeyIframeWin()
 
   // global
   useEffect(() => {
@@ -82,11 +72,11 @@ export function useHotkeysRegister() {
 
   // iframe
   useEffect(() => {
-    if (!win) return
+    if (!refWin.win) return
     const listener = getListener()
-    win.addEventListener('keydown', listener, { passive: false })
+    refWin.win.addEventListener('keydown', listener, { passive: false })
     return () => {
-      win.removeEventListener('keydown', listener)
+      refWin.win?.removeEventListener('keydown', listener)
     }
-  }, [win])
+  }, [refWin])
 }

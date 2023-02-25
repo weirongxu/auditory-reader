@@ -1,5 +1,5 @@
 import type { AlertColor } from '@mui/material'
-import { createGlobalState } from 'react-hooks-global-state'
+import { createGlobalState } from '../../hooks/createGlobalState.js'
 
 export type SnackbarItem = {
   severity?: AlertColor
@@ -14,13 +14,9 @@ export const {
   useGlobalState: useSnackbarState,
   getGlobalState: getSnackbarState,
   setGlobalState: setSnackbarState,
-} = createGlobalState<{
-  list: SnackbarItem[]
-}>({
-  list: [],
-})
+} = createGlobalState<SnackbarItem[]>([])
 
 export function pushSnackbar(item: SnackbarItem) {
-  const list = getSnackbarState('list')
-  setSnackbarState('list', [...list, item])
+  const list = getSnackbarState()
+  setSnackbarState([...list, item])
 }

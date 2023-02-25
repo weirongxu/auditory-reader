@@ -4,7 +4,7 @@ import type { SnackbarItem } from './snackbar-hooks.js'
 import { useSnackbarState } from './snackbar-hooks.js'
 
 export function GlobalSnackbar() {
-  const [list, setList] = useSnackbarState('list')
+  const [list, setList] = useSnackbarState()
 
   const removeItem = useCallback(
     (item: SnackbarItem) => {
