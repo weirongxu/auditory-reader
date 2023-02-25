@@ -706,8 +706,8 @@ export class PlayerIframeController {
 
     const parentLeft = scrollContainer.getBoundingClientRect().left
     for (const [paragraph, readablePart] of this.readableParts.entries()) {
-      const scrollLeft =
-        readablePart.elem.getBoundingClientRect().left - parentLeft
+      const rect = readablePart.elem.getBoundingClientRect()
+      const scrollLeft = (rect.left + rect.right) / 2 - parentLeft
       const page = findLast(
         this.splitPageList,
         (page) => page.scrollLeft <= scrollLeft
