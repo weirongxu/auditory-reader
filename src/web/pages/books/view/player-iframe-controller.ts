@@ -7,6 +7,8 @@ import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import {
   COLOR_SCHEME_DARK_CLASS,
   COLUMN_BREAK_CLASS,
+  IMG_MAX_HEIGHT_CLASS,
+  IMG_MAX_WIDTH_CLASS,
   PARA_ACTIVE_CLASS,
   PARA_BLOCK_CLASS,
   PARA_HIGHLIGHT_CLASS,
@@ -367,6 +369,7 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       if (this.isSplitPage) {
+        this.resizeImgs(doc)
         this.splitPageTypeUpdate(doc)
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
@@ -440,9 +443,17 @@ export class PlayerIframeController {
       ${pageStyle}
 
       /* image */
-      img, svg {
+      svg {
         max-width: 90%!important;
-        max-height: 90%!important;
+        max-height: 90vh;
+      }
+      img.${IMG_MAX_WIDTH_CLASS} {
+        max-width: 90%!important;
+        height: auto;
+      }
+      img.${IMG_MAX_HEIGHT_CLASS} {
+        width: auto;
+        max-height: 90vh;
       }
 
       /* scheme */
@@ -717,6 +728,16 @@ export class PlayerIframeController {
           readablePart,
           paragraph,
         }
+    }
+  }
+
+  private resizeImgs(doc: Document) {
+    for (const img of doc.querySelectorAll('img')) {
+      img.classList.add(
+        img.naturalWidth > img.naturalHeight
+          ? IMG_MAX_WIDTH_CLASS
+          : IMG_MAX_HEIGHT_CLASS
+      )
     }
   }
 
