@@ -561,11 +561,6 @@ export class PlayerIframeController {
       }
     }
     this.readableParts.forEach((n) => n.elem.addEventListener('click', click))
-    return () => {
-      this.readableParts.forEach((n) =>
-        n.elem.removeEventListener('click', click)
-      )
-    }
   }
 
   hookPageTouch() {

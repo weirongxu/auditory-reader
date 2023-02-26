@@ -1,4 +1,3 @@
-import { useMountEffect } from '@react-hookz/web'
 import { useEffect } from 'react'
 import { createGlobalState } from '../../hooks/createGlobalState.js'
 
@@ -20,24 +19,24 @@ export const useAppBarSync = (props: {
   right?: React.ReactNode
   settings?: React.ReactNode
 }) => {
-  const [, setAppBarState] = useAppBarStates()
+  const { title, left, right, settings } = props
+  const [, setAppBarStates] = useAppBarStates()
 
-  useMountEffect(() => {
-    setAppBarState({
-      title: null,
-      left: null,
-      right: null,
-      settings: null,
-      ...props,
+  useEffect(() => {
+    setAppBarStates({
+      title,
+      left,
+      right,
+      settings,
     })
 
     return () => {
-      setAppBarState({
+      setAppBarStates({
         title: null,
         left: null,
         right: null,
         settings: null,
       })
     }
-  })
+  }, [title, left, right, settings, setAppBarStates])
 }

@@ -25,7 +25,7 @@ import { isMobile } from '../../../core/util/browser.js'
 const barPos = isMobile ? 'bottom' : 'top'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
-  const [appBarState] = useAppBarStates()
+  const [appBarStates] = useAppBarStates()
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
   const theme = useTheme()
@@ -60,15 +60,15 @@ export const Layout = (props: { children?: React.ReactNode }) => {
             <MuiLink href={href}>
               <Typography display="flex">
                 <MenuBook sx={{ marginRight: 1 }}></MenuBook>
-                {appBarState.title ?? 'Auditory Reader'}
+                {appBarStates.title ?? 'Auditory Reader'}
               </Typography>
             </MuiLink>
           )}
         </LinkWrap>
-        {appBarState.left}
+        {appBarStates.left}
       </Stack>
       <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
-        {appBarState.right}
+        {appBarStates.right}
         <LinkWrap to="/books/add">
           {(href) => <Button href={href}>{t('add')}</Button>}
         </LinkWrap>
@@ -98,7 +98,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
               </Box>
               <Stack sx={{ flex: 1 }}>
                 <ThemeProvider theme={settingsTheme}>
-                  {appBarState.settings}
+                  {appBarStates.settings}
                   <GlobalSettings></GlobalSettings>
                 </ThemeProvider>
               </Stack>

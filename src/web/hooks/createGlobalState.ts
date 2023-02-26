@@ -22,7 +22,7 @@ export function createGlobalState<T>(defaultValue: T) {
       return () => {
         dispose()
       }
-    })
+    }, [])
 
     const setState = useCallback((state: T) => {
       setGlobalState(state)
