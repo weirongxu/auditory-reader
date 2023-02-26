@@ -32,6 +32,9 @@ export function PinchZoomPan({
     <div
       ref={refRoot}
       className={styles.root}
+      onTouchStart={(event) => {
+        if (event.target === refRoot.current) onClose?.()
+      }}
       onClick={(event) => {
         if (event.target === refRoot.current) onClose?.()
       }}
