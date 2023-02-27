@@ -41,7 +41,7 @@ const rainSound = new Howl({
   src: [rainLoopURL],
 })
 rainSound.loop(true)
-rainSound.fade(0, 0.2, 500)
+rainSound.fade(0, 0.5, 500)
 
 export function rainStart() {
   if (!rainSound.playing()) {

@@ -1,4 +1,4 @@
-import { MenuBook, Settings } from '@mui/icons-material'
+import { Add, MenuBook, Settings } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -47,14 +47,13 @@ export const Layout = (props: { children?: React.ReactNode }) => {
   )
 
   const appBar = (
-    <Stack className={[styles.appBar, barPos].join(' ')} direction="row">
-      <Stack
-        direction="row"
-        alignItems="center"
-        flexWrap="wrap"
-        flex="1"
-        spacing={1}
-      >
+    <Stack
+      className={[styles.appBar, barPos].join(' ')}
+      direction="row"
+      flexWrap="wrap"
+      justifyContent="end"
+    >
+      <Stack direction="row" alignItems="center" flex={1} spacing={1}>
         <LinkWrap to="/books">
           {(href) => (
             <MuiLink href={href}>
@@ -67,10 +66,14 @@ export const Layout = (props: { children?: React.ReactNode }) => {
         </LinkWrap>
         {appBarStates.left}
       </Stack>
-      <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
+      <Stack direction="row" alignItems="center" spacing={1}>
         {appBarStates.right}
         <LinkWrap to="/books/add">
-          {(href) => <Button href={href}>{t('add')}</Button>}
+          {(href) => (
+            <IconButton href={href} title={t('add')}>
+              <Add />
+            </IconButton>
+          )}
         </LinkWrap>
         <Stack direction="row" alignItems="center">
           <IconButton
