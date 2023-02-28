@@ -96,7 +96,7 @@ export class PlayerStatesManager {
   }
 
   get canManipulateDOM() {
-    return !this.windowFocused && isMobile
+    return this.windowFocused || !isMobile
   }
 
   syncUIState<K extends keyof PlayerUIStates>(
