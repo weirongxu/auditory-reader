@@ -1,6 +1,7 @@
 import { IGNORE_TAGS, PARA_HIGHLIGHT_CLASS } from '../../../../core/consts.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
+import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart } from './types.js'
 
 const enum FindRangePosType {
@@ -11,7 +12,10 @@ const enum FindRangePosType {
 export class Highlight {
   highlightedElems: HTMLElement[] = []
 
-  constructor(protected iframeCtrl: PlayerIframeController) {}
+  constructor(
+    protected iframeCtrl: PlayerIframeController,
+    protected states: PlayerStatesManager
+  ) {}
 
   #findRangePos(
     node: Node,
@@ -123,6 +127,8 @@ export class Highlight {
   )
 
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
+    if (!this.states.windowFocused) return
+
     this.#highlightChars(node, charIndex, charLength)
   }
 }

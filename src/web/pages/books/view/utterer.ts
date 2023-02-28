@@ -87,7 +87,7 @@ export class Utterer {
     iframeCtrler: PlayerIframeController
   ) {
     this.states = states
-    this.hl = new Highlight(iframeCtrler)
+    this.hl = new Highlight(iframeCtrler, states)
 
     this.utterance = new SpeechSynthesisUtterance()
     this.states.uiEvents.on('voice', (voice) => {

@@ -17,6 +17,21 @@ export function useViewer(props: BookContextProps) {
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
   const { addHotkeys } = useHotkeys()
 
+  // wake lock
+  const windowFocused = useWindowFocus()
+  const refWakeLock = useRef<WakeLockSentinel>()
+  useEffect(() => {
+    if (!('wakeLock' in navigator)) return
+    refWakeLock.current?.release().catch(console.error)
+    if (!windowFocused) return
+
+    async(async () => {
+      if (started) {
+        refWakeLock.current = await navigator.wakeLock.request('screen')
+      }
+    })
+  }, [started, windowFocused])
+
   const player = usePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
     setPos,
@@ -61,23 +76,9 @@ export function useViewer(props: BookContextProps) {
     ...props,
     player,
     started,
+    windowFocused,
     focusedNavs,
   })
-
-  // wake lock
-  const windowFocused = useWindowFocus()
-  const refWakeLock = useRef<WakeLockSentinel>()
-  useEffect(() => {
-    if (!('wakeLock' in navigator)) return
-    if (!windowFocused) return
-
-    async(async () => {
-      await refWakeLock.current?.release()
-      if (started) {
-        refWakeLock.current = await navigator.wakeLock.request('screen')
-      }
-    })
-  }, [started, windowFocused])
 
   // leave
   useUnmountEffect(() => {

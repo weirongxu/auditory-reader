@@ -85,7 +85,7 @@ export class PlayerIframeController {
     return !this.#isVertical
   }
 
-  get splitPageType(): SplitPageType {
+  get splitPageType(): 'none' | 'double' | 'single' {
     if (this.states.splitPage === 'auto') {
       if (this.win) {
         return this.win.innerWidth > 700 ? 'double' : 'single'
@@ -97,9 +97,9 @@ export class PlayerIframeController {
   }
 
   constructor(
-    public player: Player,
-    public states: PlayerStatesManager,
-    public iframeRef: RefObject<HTMLIFrameElement>
+    protected player: Player,
+    protected states: PlayerStatesManager,
+    protected iframeRef: RefObject<HTMLIFrameElement>
   ) {
     this.mainContentRootPath = getBooksRenderPath(this.book.item.uuid, '')
 
@@ -142,6 +142,8 @@ export class PlayerIframeController {
   }
 
   async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
+    if (!this.states.windowFocused) return
+
     if (!this.isSplitPage) {
       element.scrollIntoView({
         behavior: options.animated ?? true ? 'smooth' : 'auto',
@@ -369,7 +371,6 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       if (this.isSplitPage) {
-        this.resizeImgs(doc)
         this.splitPageTypeUpdate(doc)
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
@@ -679,7 +680,6 @@ export class PlayerIframeController {
       if (count % 2 === 1) {
         // add empty page & refresh the scrollWidth
         count += 1
-        scrollWidth += width
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
@@ -698,7 +698,24 @@ export class PlayerIframeController {
     console.debug(`splitPageWidth: ${this.splitPageWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`splitPageCount: ${this.splitPageCount}`)
+
+    this.parseSplitPageResizeImgs(doc)
     this.parseSplitPageTopReadableParts(scrollContainer)
+  }
+
+  private parseSplitPageResizeImgs(doc: Document) {
+    if (this.splitPageType === 'none' || !this.splitPageWidth || !this.win)
+      return
+    const width =
+      this.splitPageWidth / (this.splitPageType === 'double' ? 2 : 1)
+    const pageWHRate = width / this.win.innerHeight
+    for (const img of doc.querySelectorAll('img')) {
+      img.classList.add(
+        img.naturalWidth / img.naturalHeight > pageWHRate
+          ? IMG_MAX_WIDTH_CLASS
+          : IMG_MAX_HEIGHT_CLASS
+      )
+    }
   }
 
   private parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
@@ -727,16 +744,6 @@ export class PlayerIframeController {
     }
   }
 
-  private resizeImgs(doc: Document) {
-    for (const img of doc.querySelectorAll('img')) {
-      img.classList.add(
-        img.naturalWidth > img.naturalHeight
-          ? IMG_MAX_WIDTH_CLASS
-          : IMG_MAX_HEIGHT_CLASS
-      )
-    }
-  }
-
   async load(force = false) {
     const spine = this.book.spines[this.states.pos.section]
     if (spine) {
@@ -757,6 +764,8 @@ export class PlayerIframeController {
 
   #paragraphLastActive?: ReadablePart
   paragraphActive() {
+    if (!this.states.windowFocused) return
+
     const item = this.readableParts[this.states.pos.paragraph]
     if (
       !item ||
