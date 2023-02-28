@@ -152,9 +152,9 @@ export class PlayerIframeController {
 
     if (!this.doc) return
     const body = this.doc.body
+    const bodyLeft = body.getBoundingClientRect().left
     const rect = element.getBoundingClientRect()
-    const endLeft =
-      (rect.left + rect.right) / 2 - body.getBoundingClientRect().left
+    const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
     await this.scrollToLeft(endLeft, options)
   }
 
@@ -713,7 +713,8 @@ export class PlayerIframeController {
     const parentLeft = scrollContainer.getBoundingClientRect().left
     for (const [paragraph, readablePart] of this.readableParts.entries()) {
       const rect = readablePart.elem.getBoundingClientRect()
-      const scrollLeft = (rect.left + rect.right) / 2 - parentLeft
+      const scrollLeft =
+        rect.left + readablePart.elem.offsetWidth / 2 - parentLeft
       const page = findLast(
         this.splitPageList,
         (page) => page.scrollLeft <= scrollLeft
