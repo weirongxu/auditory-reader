@@ -26,7 +26,6 @@ import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
 import { setHotkeyIframeWin } from '../../../hotkey/hotkey-state.js'
 import { setPreviewImgSrc } from '../../../preview-image.js'
-import type { SplitPageType } from '../../../store.js'
 import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
@@ -142,7 +141,7 @@ export class PlayerIframeController {
   }
 
   async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
-    if (!this.states.windowFocused) return
+    if (!this.states.canManipulateDOM) return
 
     if (!this.isSplitPage) {
       element.scrollIntoView({
@@ -764,7 +763,7 @@ export class PlayerIframeController {
 
   #paragraphLastActive?: ReadablePart
   paragraphActive() {
-    if (!this.states.windowFocused) return
+    if (!this.states.canManipulateDOM) return
 
     const item = this.readableParts[this.states.pos.paragraph]
     if (

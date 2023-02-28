@@ -127,7 +127,7 @@ export class Highlight {
   )
 
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
-    if (!this.states.windowFocused) return
+    if (!this.states.canManipulateDOM) return
 
     this.#highlightChars(node, charIndex, charLength)
   }

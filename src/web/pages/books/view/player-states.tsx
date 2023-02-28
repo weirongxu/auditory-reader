@@ -2,6 +2,7 @@ import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
 import type { SplitPageType } from '../../../store.js'
 import type { Player } from './player.js'
@@ -92,6 +93,10 @@ export class PlayerStatesManager {
 
   get windowFocused() {
     return this.#uiStates.windowFocused
+  }
+
+  get canManipulateDOM() {
+    return !this.windowFocused && isMobile
   }
 
   syncUIState<K extends keyof PlayerUIStates>(
