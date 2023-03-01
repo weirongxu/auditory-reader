@@ -94,7 +94,7 @@ export class Player {
         section,
         paragraph: to.paragraph ?? this.states.pos.paragraph,
       }
-      await this.iframeCtrler.scrollToCurPos(to.animated)
+      await this.iframeCtrler.scrollToCurParagraph(to.animated)
     } else {
       // Change section
       const href = this.book.spines[section]?.href
@@ -118,7 +118,7 @@ export class Player {
         section,
         paragraph,
       }
-      await this.iframeCtrler.scrollToCurPos(to.animated)
+      await this.iframeCtrler.scrollToCurParagraph(to.animated)
     }
 
     this.utterer.cancel()
@@ -146,17 +146,18 @@ export class Player {
   }
 
   get isFirstPage() {
-    return this.iframeCtrler.splitPageCurPage === 0
+    return this.iframeCtrler.splitPageCurPageIndex === 0
   }
 
   get isLastPage() {
     if (
-      !this.iframeCtrler.splitPageCurPage ||
+      !this.iframeCtrler.splitPageCurPageIndex ||
       !this.iframeCtrler.splitPageCount
     )
       return true
     return (
-      this.iframeCtrler.splitPageCurPage >= this.iframeCtrler.splitPageCount - 1
+      this.iframeCtrler.splitPageCurPageIndex >=
+      this.iframeCtrler.splitPageCount - 1
     )
   }
 

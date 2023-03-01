@@ -63,8 +63,9 @@ export class PlayerIframeController {
   colorScheme: ColorScheme = 'light'
   splitPageCount?: number
   splitPageWidth?: number
-  splitPageCurPage?: number
   splitPageList?: SplitPageNode[]
+  splitPageCurPageIndex?: number
+  splitPageCurPage?: SplitPageNode
   win?: Window
   doc?: Document
   scrollContainer?: HTMLElement
@@ -140,6 +141,13 @@ export class PlayerIframeController {
     }
   }
 
+  async scrollToCurParagraph(animated = true) {
+    // goto paragraph
+    const item = this.readableParts[this.states.pos.paragraph]
+    if (!item) return
+    await this.scrollToElem(item.elem, { animated })
+  }
+
   async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
     if (!this.states.canManipulateDOM) return
 
@@ -156,10 +164,13 @@ export class PlayerIframeController {
     const bodyLeft = body.getBoundingClientRect().left
     const rect = element.getBoundingClientRect()
     const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
-    await this.scrollToLeft(endLeft, options)
+    await this.scrollToPageByLeft(endLeft, options)
   }
 
-  async scrollToLeft(
+  /**
+   * scroll to page by left offset with animation
+   */
+  private async scrollToPageByLeft(
     left: number,
     {
       iteration = 10,
@@ -196,27 +207,26 @@ export class PlayerIframeController {
     for (const i of range(0, iteration + 1)) {
       await sleep(unitTime)
       if (aborted) break
-      const left = startLeft + i * unit
-      container.scrollLeft = left
+      container.scrollLeft = startLeft + i * unit
     }
   }
 
-  #splitPageLast?: {
+  #pushSplitPageLast?: {
     abortCtrl: AbortController
     page: number
   }
   async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
     if (!this.splitPageWidth) return
     if (offsetPage === 0) return
-    if (this.splitPageCurPage === undefined) return
+    if (this.splitPageCurPageIndex === undefined) return
     if (!this.splitPageCount) return
     if (!this.splitPageList) return
 
     let endPage: number
-    if (this.#splitPageLast) {
-      endPage = this.#splitPageLast.page + offsetPage
+    if (this.#pushSplitPageLast) {
+      endPage = this.#pushSplitPageLast.page + offsetPage
     } else {
-      endPage = this.splitPageCurPage + offsetPage
+      endPage = this.splitPageCurPageIndex + offsetPage
     }
 
     // exceed range
@@ -231,9 +241,9 @@ export class PlayerIframeController {
       else if (endPage >= this.splitPageCount) endPage = this.splitPageCount - 1
     }
 
-    this.#splitPageLast?.abortCtrl.abort()
+    this.#pushSplitPageLast?.abortCtrl.abort()
     const abortCtrl = new AbortController()
-    this.#splitPageLast = {
+    this.#pushSplitPageLast = {
       abortCtrl,
       page: endPage,
     }
@@ -254,17 +264,10 @@ export class PlayerIframeController {
       }
       if (paragraph !== undefined) await this.player.gotoParagraph(paragraph)
     } else {
-      await this.scrollToLeft(endLeft, { abortCtrl })
+      await this.scrollToPageByLeft(endLeft, { abortCtrl })
     }
 
-    this.#splitPageLast = undefined
-  }
-
-  async scrollToCurPos(animated = true) {
-    // goto paragraph
-    const item = this.readableParts[this.states.pos.paragraph]
-    if (!item) return
-    await this.scrollToElem(item.elem, { animated })
+    this.#pushSplitPageLast = undefined
   }
 
   /**
@@ -318,7 +321,7 @@ export class PlayerIframeController {
         section: spineIndex,
         paragraph: 0,
       }
-      await this.scrollToCurPos()
+      await this.scrollToCurParagraph()
       return
     }
 
@@ -333,7 +336,7 @@ export class PlayerIframeController {
       section: spineIndex,
       paragraph: elemIndex,
     }
-    await this.scrollToCurPos()
+    await this.scrollToCurParagraph()
   }
 
   updateColorTheme(colorScheme: ColorScheme) {
@@ -379,7 +382,12 @@ export class PlayerIframeController {
               if (!this.win || !this.scrollContainer) return
               this.splitPageTypeUpdate(doc)
               await this.splitPageCalcuate(win, doc, this.scrollContainer)
-              await this.scrollToLeft(this.scrollContainer.scrollLeft)
+              if (this.splitPageCurPage?.top)
+                await this.scrollToElem(
+                  this.splitPageCurPage.top.readablePart.elem
+                )
+              else
+                await this.scrollToPageByLeft(this.scrollContainer.scrollLeft)
             })
           })
         )
@@ -641,9 +649,10 @@ export class PlayerIframeController {
     const listener = () => {
       if (!this.splitPageWidth) return 0
 
-      this.splitPageCurPage = Math.round(
+      this.splitPageCurPageIndex = Math.round(
         scrollContainer.scrollLeft / this.splitPageWidth
       )
+      this.splitPageCurPage = this.splitPageList?.[this.splitPageCurPageIndex]
     }
     listener()
 
@@ -747,7 +756,7 @@ export class PlayerIframeController {
     const spine = this.book.spines[this.states.pos.section]
     if (spine) {
       await this.loadByPath(spine.href, force)
-      await this.scrollToCurPos(false)
+      await this.scrollToCurParagraph(false)
     } else {
       const spine = this.book.spines[0]
       await this.loadByPath(spine.href, force)
@@ -755,7 +764,7 @@ export class PlayerIframeController {
         section: 0,
         paragraph: 0,
       }
-      await this.scrollToCurPos(false)
+      await this.scrollToCurParagraph(false)
     }
     this.paragraphActive()
     this.updateFocusedNavs()
