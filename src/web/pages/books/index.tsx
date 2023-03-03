@@ -46,6 +46,11 @@ export function BookList() {
     [books, selectedUuids]
   )
 
+  // if books reload, cancel selected
+  useEffect(() => {
+    if (books) setSelectedUuids([])
+  }, [books])
+
   useEffect(() => {
     if (page) reload()
   }, [page, reload])
@@ -64,38 +69,6 @@ export function BookList() {
 
   return (
     <>
-      <ButtonGroup>
-        {!!selectedUuids.length && (
-          <>
-            <Button
-              color="error"
-              onClick={() => {
-                confirm({
-                  title: t('remove'),
-                  description: (
-                    <ul>
-                      {selectedBooks.map((book) => (
-                        <li key={book.uuid}>{book.name}</li>
-                      ))}
-                    </ul>
-                  ),
-                })
-                  .then(async () => {
-                    for (const book of selectedBooks) {
-                      await booksRemoveRouter.action({
-                        uuid: book.uuid,
-                      })
-                    }
-                    reload()
-                  })
-                  .catch(console.error)
-              }}
-            >
-              {t('remove')}
-            </Button>
-          </>
-        )}
-      </ButtonGroup>
       {Pager}
       <TableContainer
         sx={{
@@ -117,7 +90,55 @@ export function BookList() {
                 ></Checkbox>
               </TableCell>
               <TableCell>{t('bookName')}</TableCell>
-              <TableCell></TableCell>
+              <TableCell>
+                {!!selectedUuids.length && (
+                  <ButtonGroup>
+                    <>
+                      <Button
+                        color="error"
+                        onClick={() => {
+                          confirm({
+                            title: t('remove'),
+                            description: (
+                              <ul>
+                                {selectedBooks.map((book) => (
+                                  <li key={book.uuid}>{book.name}</li>
+                                ))}
+                              </ul>
+                            ),
+                          })
+                            .then(async () => {
+                              for (const book of selectedBooks) {
+                                await booksRemoveRouter.action({
+                                  uuid: book.uuid,
+                                })
+                              }
+                              reload()
+                            })
+                            .catch(console.error)
+                        }}
+                      >
+                        {t('remove')}
+                      </Button>
+                      <Button
+                        color="secondary"
+                        onClick={() => {
+                          async(async () => {
+                            for (const book of [...selectedBooks].reverse()) {
+                              await booksMoveTopRouter.action({
+                                uuid: book.uuid,
+                              })
+                            }
+                            reload()
+                          })
+                        }}
+                      >
+                        {t('top')}
+                      </Button>
+                    </>
+                  </ButtonGroup>
+                )}
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -186,19 +207,6 @@ export function BookList() {
                         e.stopPropagation()
                       }}
                     >
-                      <Button
-                        color="secondary"
-                        onClick={() => {
-                          async(async () => {
-                            await booksMoveTopRouter.action({
-                              uuid: book.uuid,
-                            })
-                            reload()
-                          })
-                        }}
-                      >
-                        {t('top')}
-                      </Button>
                       <LinkWrap to={`/books/edit/${book.uuid}`}>
                         {(href) => (
                           <Button color="success" href={href}>
