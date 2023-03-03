@@ -26,7 +26,6 @@ export const langZh = {
     dropzone: '拖动文件到这里或者点击选择文件',
     dropzoneDrag: '拖动文件到这里',
     uploadBook: '支持 .epub 和 .txt',
-    removeBook: '删除本书？',
   },
   error: {
     login: '$t(account)或$t(password)错误',
@@ -53,4 +52,5 @@ export const langZh = {
   system: '系统',
   dark: '暗色',
   light: '亮色',
+  all: '全部',
 }

@@ -26,7 +26,6 @@ export const langEn = {
     dropzone: 'Drag file here or click to select file',
     dropzoneDrag: 'Drag file here',
     uploadBook: 'Support .epub and .txt',
-    removeBook: 'Remove this book？',
   },
   error: {
     login: '$t(account) or $t(password) error',
@@ -53,4 +52,5 @@ export const langEn = {
   system: 'System',
   dark: 'Dark',
   light: 'Light',
+  all: 'All',
 }

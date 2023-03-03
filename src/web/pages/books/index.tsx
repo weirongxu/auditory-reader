@@ -1,5 +1,7 @@
 import {
   Button,
+  ButtonGroup,
+  Checkbox,
   CircularProgress,
   Pagination,
   Paper,
@@ -14,7 +16,7 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
@@ -30,6 +32,19 @@ export function BookList() {
   const { data: books, reload } = useAction(booksPageRouter, { page })
   const theme = useTheme()
   const confirm = useConfirm()
+
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number>()
+  const [selectedUuids, setSelectedUuids] = useState<string[]>([])
+  const selectedBooks = useMemo(
+    () =>
+      books?.items.filter((book) => selectedUuids.includes(book.uuid)) ?? [],
+    [books, selectedUuids]
+  )
+
+  const allSelected = useMemo(
+    () => books?.items.every((book) => selectedUuids.includes(book.uuid)),
+    [books, selectedUuids]
+  )
 
   useEffect(() => {
     if (page) reload()
@@ -49,6 +64,38 @@ export function BookList() {
 
   return (
     <>
+      <ButtonGroup>
+        {!!selectedUuids.length && (
+          <>
+            <Button
+              color="error"
+              onClick={() => {
+                confirm({
+                  title: t('remove'),
+                  description: (
+                    <ul>
+                      {selectedBooks.map((book) => (
+                        <li key={book.uuid}>{book.name}</li>
+                      ))}
+                    </ul>
+                  ),
+                })
+                  .then(async () => {
+                    for (const book of selectedBooks) {
+                      await booksRemoveRouter.action({
+                        uuid: book.uuid,
+                      })
+                    }
+                    reload()
+                  })
+                  .catch(console.error)
+              }}
+            >
+              {t('remove')}
+            </Button>
+          </>
+        )}
+      </ButtonGroup>
       {Pager}
       <TableContainer
         sx={{
@@ -59,12 +106,22 @@ export function BookList() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>
+                <Checkbox
+                  title={t('all')}
+                  checked={allSelected}
+                  onClick={() => {
+                    if (allSelected) setSelectedUuids([])
+                    else setSelectedUuids(books.items.map((book) => book.uuid))
+                  }}
+                ></Checkbox>
+              </TableCell>
               <TableCell>{t('bookName')}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {books.items.map((book) => {
+            {books.items.map((book, index) => {
               return (
                 <TableRow
                   hover
@@ -74,6 +131,51 @@ export function BookList() {
                     nav(`/books/view/${book.uuid}`)
                   }}
                 >
+                  <TableCell
+                    onClick={(e) => {
+                      e.stopPropagation()
+                    }}
+                  >
+                    <Checkbox
+                      checked={selectedUuids.includes(book.uuid)}
+                      onClick={(event) => {
+                        setLastSelectedIndex(index)
+                        let checked = false
+                        let targetUuids: string[]
+                        if (
+                          lastSelectedIndex !== undefined &&
+                          lastSelectedIndex !== index &&
+                          event.shiftKey
+                        ) {
+                          if (lastSelectedIndex < index)
+                            targetUuids = books.items
+                              .slice(lastSelectedIndex, index + 1)
+                              .map((it) => it.uuid)
+                          else
+                            targetUuids = books.items
+                              .slice(index, lastSelectedIndex + 1)
+                              .map((it) => it.uuid)
+                          checked = true
+                        } else {
+                          targetUuids = [book.uuid]
+                          checked = !selectedUuids.includes(book.uuid)
+                        }
+
+                        let tmpUuids = [...selectedUuids]
+                        for (const targetUuid of targetUuids) {
+                          if (checked) {
+                            if (!tmpUuids.includes(targetUuid))
+                              tmpUuids = [...tmpUuids, targetUuid]
+                          } else {
+                            tmpUuids = tmpUuids.filter(
+                              (uuid) => uuid !== targetUuid
+                            )
+                          }
+                          setSelectedUuids(tmpUuids)
+                        }
+                      }}
+                    ></Checkbox>
+                  </TableCell>
                   <TableCell title={book.createdAt.toLocaleString()}>
                     {book.name}
                   </TableCell>
@@ -104,24 +206,6 @@ export function BookList() {
                           </Button>
                         )}
                       </LinkWrap>
-                      <Button
-                        color="error"
-                        onClick={() => {
-                          confirm({
-                            title: t('prompt.removeBook'),
-                            description: book.name,
-                          })
-                            .then(async () => {
-                              await booksRemoveRouter.action({
-                                uuid: book.uuid,
-                              })
-                              reload()
-                            })
-                            .catch(() => {})
-                        }}
-                      >
-                        {t('remove')}
-                      </Button>
                       <Button
                         onClick={() => {
                           window.open(
