@@ -95,6 +95,21 @@ export function BookList() {
                   <ButtonGroup>
                     <>
                       <Button
+                        color="secondary"
+                        onClick={() => {
+                          async(async () => {
+                            for (const book of [...selectedBooks].reverse()) {
+                              await booksMoveTopRouter.action({
+                                uuid: book.uuid,
+                              })
+                            }
+                            reload()
+                          })
+                        }}
+                      >
+                        {t('top')}
+                      </Button>
+                      <Button
                         color="error"
                         onClick={() => {
                           confirm({
@@ -119,21 +134,6 @@ export function BookList() {
                         }}
                       >
                         {t('remove')}
-                      </Button>
-                      <Button
-                        color="secondary"
-                        onClick={() => {
-                          async(async () => {
-                            for (const book of [...selectedBooks].reverse()) {
-                              await booksMoveTopRouter.action({
-                                uuid: book.uuid,
-                              })
-                            }
-                            reload()
-                          })
-                        }}
-                      >
-                        {t('top')}
                       </Button>
                     </>
                   </ButtonGroup>
