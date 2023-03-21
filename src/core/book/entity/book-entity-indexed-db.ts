@@ -4,6 +4,7 @@ import { BookEntityBase } from './book-entity-base.js'
 
 export class BookEntityIndexedDB extends BookEntityBase {
   protected propJson?: BookTypes.PropertyJson
+  protected uid: string
 
   static async create(entity: BookTypes.Entity, file: ArrayBuffer) {
     const bookEntity = new BookEntityIndexedDB(entity)
@@ -13,12 +14,17 @@ export class BookEntityIndexedDB extends BookEntityBase {
 
   constructor(entity: BookTypes.Entity) {
     super(entity)
+    if (this.entity.isTmp) {
+      this.uid = '$tmp'
+    } else {
+      this.uid = entity.uuid
+    }
   }
 
   async readFileBuffer(): Promise<ArrayBuffer> {
     const db = await getDB()
-    const data = await db.get('book-data', this.entity.uuid)
-    if (!data) throw new Error(`book(${this.entity.uuid}) data not found`)
+    const data = await db.get('book-data', this.uid)
+    if (!data) throw new Error(`book(${this.uid}) data not found`)
     return data.data
   }
 
@@ -34,19 +40,19 @@ export class BookEntityIndexedDB extends BookEntityBase {
       {
         data: file,
       },
-      this.entity.uuid
+      this.uid
     )
   }
 
   async delete(): Promise<void> {
     const db = await getDB()
-    await db.delete('book-data', this.entity.uuid)
+    await db.delete('book-data', this.uid)
   }
 
   protected async readProp(): Promise<BookTypes.PropertyJson> {
     if (!this.propJson) {
       const db = await getDB()
-      this.propJson = (await db.get('book-properties', this.entity.uuid)) ?? {}
+      this.propJson = (await db.get('book-properties', this.uid)) ?? {}
     }
     return this.propJson
   }
@@ -54,7 +60,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
   protected async writeProp() {
     const json = await this.readProp()
     const db = await getDB()
-    await db.put('book-properties', json, this.entity.uuid)
+    await db.put('book-properties', json, this.uid)
   }
 
   async posGet(): Promise<BookTypes.PropertyPosition> {
@@ -71,6 +77,6 @@ export class BookEntityIndexedDB extends BookEntityBase {
     const db = await getDB()
     const json = await this.readProp()
     json.position = pos
-    await db.put('book-properties', json, this.entity.uuid)
+    await db.put('book-properties', json, this.uid)
   }
 }

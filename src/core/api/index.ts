@@ -9,6 +9,7 @@ import { booksRemoveRouter } from './books/remove.js'
 import { booksRenderRouter } from './books/render.js'
 import { booksShowRouter } from './books/show.js'
 import { booksSyncPositionRouter } from './books/sync-position.js'
+import { booksTmpStoreRouter } from './books/tmp-store.js'
 import { booksUpdateRouter } from './books/update.js'
 import { booksViewRouter } from './books/view.js'
 import { loginRouter } from './login.js'
@@ -21,6 +22,7 @@ export const ROUTERS = [
   userRouter,
   booksCreateRouter,
   booksFetchUrlInfoRouter,
+  booksTmpStoreRouter,
   booksCreateByUrlRouter,
   booksMoveTopRouter,
   booksPageRouter,

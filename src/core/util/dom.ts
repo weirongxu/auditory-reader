@@ -1,4 +1,4 @@
-import path from 'path'
+import { isUrl } from './url.js'
 
 export function isInputElement(element: any) {
   if (element instanceof Element) {
@@ -9,17 +9,25 @@ export function isInputElement(element: any) {
 }
 
 export async function HTMLImgs2DataURL(
+  urlStr: string,
   element: HTMLElement,
   options: { referrer?: string } = {}
 ) {
+  const url = new URL(urlStr)
   const imgs = [...element.querySelectorAll('img')]
   const headers = new Headers({
     ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
   })
   for (const img of imgs) {
-    const src = img.src || img.getAttribute('data-src')
+    let src = img.src || img.getAttribute('data-src')
+    console.log(src)
     if (!src) continue
     try {
+      if (src.startsWith('//')) {
+        src = `${url.protocol}:${src}`
+      }
+      console.log(src)
+      if (!isUrl(src)) return
       const res = await fetch(src, {
         headers,
       })

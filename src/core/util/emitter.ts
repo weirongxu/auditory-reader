@@ -13,7 +13,7 @@ export class Emitter<T extends Record<string, any>> {
     listeners.push(callback)
     return () => {
       if (!listeners) return
-      const idx = listeners.findIndex(() => callback)
+      const idx = listeners.findIndex(callback as any)
       listeners.splice(idx, 1)
     }
   }

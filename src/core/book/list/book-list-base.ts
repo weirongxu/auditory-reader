@@ -16,6 +16,16 @@ export abstract class BookListBase {
     return data.list
   }
 
+  protected async getTmp(): Promise<BookTypes.EntityJson | undefined> {
+    const data = await this.getJson()
+    return data.tmp
+  }
+
+  protected async setTmp(entity: BookTypes.EntityJson) {
+    const data = await this.getJson()
+    data.tmp = entity
+  }
+
   protected async write() {
     await this.writeJson(await this.getJson())
   }
@@ -72,6 +82,7 @@ export abstract class BookListBase {
       uuid: entityJson.uuid,
       createdAt: new Date(entityJson.createdAt),
       updatedAt: new Date(entityJson.updatedAt),
+      isTmp: entityJson.isTmp,
     }
     return entity
   }
@@ -89,7 +100,6 @@ export abstract class BookListBase {
     entity: BookTypes.Entity,
     file: ArrayBuffer
   ): Promise<BookTypes.EntityJson> {
-    const list = await this.list()
     const entityJson: BookTypes.EntityJson = {
       name: entity.name,
       uuid: entity.uuid,
@@ -97,8 +107,15 @@ export abstract class BookListBase {
       langCode: entity.langCode,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
+      isTmp: entity.isTmp,
     }
-    list.push(entityJson)
+
+    if (entity.isTmp) {
+      await this.setTmp(entityJson)
+    } else {
+      const list = await this.list()
+      list.push(entityJson)
+    }
 
     await this.write()
     await this.bookAdd(entity, file)
@@ -119,6 +136,8 @@ export abstract class BookListBase {
   }
 
   abstract book(uuid: string): Promise<BookEntityBase | undefined>
+
+  abstract bookTmp(): Promise<BookEntityBase | undefined>
 
   abstract bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void>
 

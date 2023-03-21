@@ -76,6 +76,10 @@ export class PlayerIframeController {
     return this.player.book
   }
 
+  get bookType() {
+    return this.book.item.isTmp ? 'tmp' : 'book'
+  }
+
   get iframe() {
     return this.iframeRef.current
   }
@@ -101,7 +105,11 @@ export class PlayerIframeController {
     protected states: PlayerStatesManager,
     protected iframeRef: RefObject<HTMLIFrameElement>
   ) {
-    this.mainContentRootPath = getBooksRenderPath(this.book.item.uuid, '')
+    this.mainContentRootPath = getBooksRenderPath(
+      this.bookType,
+      this.book.item.uuid,
+      ''
+    )
 
     this.mainContentRootUrl = new URL(
       this.mainContentRootPath,
@@ -285,7 +293,7 @@ export class PlayerIframeController {
     if (!force && absPath === this.#curAbsPath) return
     this.#curAbsPath = absPath
 
-    iframe.src = getBooksRenderPath(this.book.item.uuid, absPath)
+    iframe.src = getBooksRenderPath(this.bookType, this.book.item.uuid, absPath)
 
     iframe.style.visibility = 'hidden'
     await new Promise<void>((resolve) => {

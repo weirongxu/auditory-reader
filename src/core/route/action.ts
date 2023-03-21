@@ -1,5 +1,6 @@
 import path from 'path'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import { env } from '../env.js'
 import type { URouter } from './router'
@@ -28,6 +29,15 @@ export function getActionPath(urlPath: string): string {
   return path.join(env.appApiRoot, urlPath)
 }
 
+export function actionCatchError(navigate: NavigateFunction) {
+  return (error: unknown) => {
+    if (error instanceof ActionUnauthorized) {
+      navigate('/login')
+      return false
+    } else throw error
+  }
+}
+
 export function useAction<R, P>(router: URouter<R, P>, arg: R) {
   const [firstLoad, setFirstLoad] = useState(false)
   const [error, setError] = useState<ActionError<any>>()
@@ -42,11 +52,8 @@ export function useAction<R, P>(router: URouter<R, P>, arg: R) {
       .then((json) => {
         setData(json)
       })
+      .catch(actionCatchError(navigate))
       .catch((error) => {
-        if (error instanceof ActionUnauthorized) {
-          navigate('/login')
-          return
-        }
         console.error(error)
         setError(error)
       })

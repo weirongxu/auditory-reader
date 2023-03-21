@@ -79,7 +79,8 @@ export function AddFile() {
           options={langOptions}
           value={langOptions.find((l) => l.value === langCode) ?? null}
           onChange={(_, value) => {
-            if (value?.value) setLangCode(value.value)
+            if (!value?.value) return
+            setLangCode(value.value)
           }}
           renderInput={(params) => (
             <TextField {...params} label={t('language')} required />
@@ -93,13 +94,14 @@ export function AddFile() {
               if (!file) {
                 return
               }
-              const ext = path.extname(file.name)
-              const basename = path.basename(file.name, ext)
-              setName(basename)
               async(async () => {
                 if (file.name.endsWith('.epub')) {
                   const buf = await file.arrayBuffer()
                   const epub = await BookEpub.read(buf)
+                  if (!epub) return
+                  const ext = path.extname(file.name)
+                  const basename = path.basename(file.name, ext)
+                  setName(epub?.title ?? basename)
                   const langCode = parseLangCode(epub?.language)
                   if (langCode) {
                     setLangCode(langCode)

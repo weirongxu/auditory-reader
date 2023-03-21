@@ -4,6 +4,7 @@ import {
   FastRewind,
   Pause,
   PlayArrow,
+  Save,
   SkipNext,
   SkipPrevious,
 } from '@mui/icons-material'
@@ -13,13 +14,18 @@ import {
   Button,
   ButtonGroup,
   Chip,
+  IconButton,
   Popover,
   Stack,
   TextField,
 } from '@mui/material'
+import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { isMobile } from '../../../../core/util/browser.js'
+import { async } from '../../../../core/util/promise.js'
 import {
   useAutoSection,
   useParagraphRepeat,
@@ -154,6 +160,7 @@ export function usePlayerUI(
   }
 ) {
   const { book, player, started, windowFocused, focusedNavs } = props
+  const nav = useNavigate()
   const { NavTreeView, toggleNav } = useBookViewNav(book, player, focusedNavs)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
@@ -196,7 +203,7 @@ export function usePlayerUI(
         </TooltipButton>
         <TooltipButton
           tooltip={<span>↑</span>}
-          disabled={isFirstParagraph}
+          disabled={isFirstSection && isFirstParagraph}
           onClick={() => {
             player.prevParagraph().catch(console.error)
           }}
@@ -214,7 +221,7 @@ export function usePlayerUI(
         </TooltipButton>
         <TooltipButton
           tooltip={<span>↓</span>}
-          disabled={isLastParagraph}
+          disabled={isLastSection && isLastParagraph}
           onClick={() => {
             player.nextParagraph().catch(console.error)
           }}
@@ -279,23 +286,44 @@ export function usePlayerUI(
     )
   }, [setVoiceURI, voiceOptions, voiceURI])
 
-  const headerLeftItems = useMemo(() => {
+  const TmpStoreBtn = useMemo(() => {
     return (
-      <>
-        {PlayerCtrlGroup}
-        {TimerRemainUI}
-      </>
+      <IconButton
+        title={t('tmpStore')}
+        onClick={() => {
+          async(async () => {
+            const entity = await booksTmpStoreRouter.action({})
+            nav(`/books/added-successful/${entity.uuid}`)
+          })
+        }}
+      >
+        <Save />
+      </IconButton>
     )
-  }, [PlayerCtrlGroup, TimerRemainUI])
+  }, [nav])
 
-  const headerSettingItems = useMemo(() => {
+  const topRight = useMemo(() => {
+    return <>{TimerRemainUI}</>
+  }, [TimerRemainUI])
+
+  const bottomLeft = useMemo(() => {
+    return <>{PlayerCtrlGroup}</>
+  }, [PlayerCtrlGroup])
+
+  const bottomRight = useMemo(() => {
+    return <>{book.item.isTmp && TmpStoreBtn}</>
+  }, [TmpStoreBtn, book.item.isTmp])
+
+  const appSettings = useMemo(() => {
     return <>{SelectVoices}</>
   }, [SelectVoices])
 
   useAppBarSync({
-    title: '',
-    left: headerLeftItems,
-    settings: headerSettingItems,
+    title: book.item.name,
+    topRight,
+    bottomLeft,
+    bottomRight,
+    settings: appSettings,
   })
 
   return {

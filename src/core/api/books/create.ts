@@ -10,6 +10,10 @@ export type BookCreate = {
   langCode: LangCode
   type: BookTypes.EntityType
   bufferBase64: string
+  /**
+   * @default false
+   */
+  isTmp?: boolean
 }
 
 export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
@@ -26,6 +30,7 @@ export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
     langCode: body.langCode,
     createdAt: new Date(),
     updatedAt: new Date(),
+    isTmp: body.isTmp ?? false,
   }
 
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)

@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import type { UResponse } from '../../route/response.js'
 import type { BookTypes } from '../types.js'
 import { BookEntityBase } from './book-entity-base.js'
 
@@ -45,8 +44,13 @@ export class BookEntityFS extends BookEntityBase {
     super(entity)
     const prefix = entity.uuid.slice(0, 2)
     const remain = entity.uuid.slice(2)
-    this.bookDir = path.join(this.allBooksDir, prefix)
-    this.bookBaseNamePath = path.join(this.bookDir, remain)
+    if (this.entity.isTmp) {
+      this.bookDir = path.join(this.allBooksDir, '$')
+      this.bookBaseNamePath = path.join(this.bookDir, 'tmp')
+    } else {
+      this.bookDir = path.join(this.allBooksDir, prefix)
+      this.bookBaseNamePath = path.join(this.bookDir, remain)
+    }
     this.bufferPath = `${this.bookBaseNamePath}.data`
     this.propJsonPath = `${this.bookBaseNamePath}.prop.json`
   }

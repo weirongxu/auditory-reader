@@ -14,6 +14,10 @@ export type BookCreateByUrl = {
   name: string
   langCode: LangCode
   url: string
+  /**
+   * @default false
+   */
+  isTmp?: boolean
 }
 
 export const booksCreateByUrlRouter = new URouter<
@@ -32,6 +36,7 @@ export const booksCreateByUrlRouter = new URouter<
     langCode: body.langCode,
     createdAt: date,
     updatedAt: date,
+    isTmp: body.isTmp ?? false,
   }
 
   const jsdom = await fetchDom(body.url)
@@ -43,7 +48,8 @@ export const booksCreateByUrlRouter = new URouter<
   const articleJsdom = new JSDOM(article.content)
   const articleDoc = articleJsdom.window.document
 
-  if (env.appMode === 'server') await HTMLImgs2DataURL(articleDoc.body)
+  if (env.appMode === 'server')
+    await HTMLImgs2DataURL(body.url, articleDoc.body)
 
   const htmlContent = new articleJsdom.window.XMLSerializer().serializeToString(
     articleDoc.body

@@ -3,8 +3,14 @@ import type { LangCode } from '../lang.js'
 export namespace BookTypes {
   export type EntityType = 'epub' | 'text'
 
+  /**
+   * Using tmp content when uuid is '$tmp'
+   */
+  export type EntityUUID = string
+
   export type Json = {
     list: EntityJson[]
+    tmp?: EntityJson
   }
 
   export type EntityJson = {
@@ -14,6 +20,7 @@ export namespace BookTypes {
     langCode: LangCode
     createdAt: string
     updatedAt: string
+    isTmp: boolean
   }
 
   export type Entity = {
@@ -23,6 +30,7 @@ export namespace BookTypes {
     langCode: LangCode
     createdAt: Date
     updatedAt: Date
+    isTmp: boolean
   }
 
   export type EntityUpdate = {

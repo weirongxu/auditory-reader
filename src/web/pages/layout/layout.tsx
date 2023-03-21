@@ -17,12 +17,10 @@ import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { DragFile } from './drag-file.js'
+import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { useAppBarStates } from './use-app-bar.js'
-import styles from './layout.module.scss'
-import { isMobile } from '../../../core/util/browser.js'
-
-const barPos = isMobile ? 'bottom' : 'top'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
   const [appBarStates] = useAppBarStates()
@@ -46,35 +44,56 @@ export const Layout = (props: { children?: React.ReactNode }) => {
     [theme]
   )
 
+  const AddBtn = (
+    <LinkWrap to="/books/add">
+      {(href) => (
+        <IconButton href={href} title={t('add')}>
+          <Add />
+        </IconButton>
+      )}
+    </LinkWrap>
+  )
+
   const appBar = (
     <Stack
-      className={[styles.appBar, barPos].join(' ')}
+      className={[styles.appBar, 'top'].join(' ')}
+      direction="row"
+      justifyContent="end"
+    >
+      <Stack direction="row" overflow="hidden" alignItems="center" spacing={1}>
+        <LinkWrap to="/books">
+          {(href) => (
+            <MuiLink href={href}>
+              <MenuBook sx={{ marginRight: 1 }}></MenuBook>
+            </MuiLink>
+          )}
+        </LinkWrap>
+        <Typography flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
+          {appBarStates.title ?? 'Auditory Reader'}
+        </Typography>
+      </Stack>
+      <Stack direction="row" alignItems="center" flex={1} spacing={1}>
+        {appBarStates.topLeft}
+      </Stack>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        {appBarStates.topRight}
+      </Stack>
+    </Stack>
+  )
+
+  const appBarBottom = (
+    <Stack
+      className={[styles.appBar, 'bottom'].join(' ')}
       direction="row"
       flexWrap="wrap"
       justifyContent="end"
     >
       <Stack direction="row" alignItems="center" flex={1} spacing={1}>
-        <LinkWrap to="/books">
-          {(href) => (
-            <MuiLink href={href}>
-              <Typography display="flex">
-                <MenuBook sx={{ marginRight: 1 }}></MenuBook>
-                {appBarStates.title ?? 'Auditory Reader'}
-              </Typography>
-            </MuiLink>
-          )}
-        </LinkWrap>
-        {appBarStates.left}
+        {appBarStates.bottomLeft}
       </Stack>
       <Stack direction="row" alignItems="center" spacing={1}>
-        {appBarStates.right}
-        <LinkWrap to="/books/add">
-          {(href) => (
-            <IconButton href={href} title={t('add')}>
-              <Add />
-            </IconButton>
-          )}
-        </LinkWrap>
+        {appBarStates.bottomRight}
+        {appBarStates.isIdle && AddBtn}
         <Stack direction="row" alignItems="center">
           <IconButton
             onClick={() => {
@@ -132,27 +151,29 @@ export const Layout = (props: { children?: React.ReactNode }) => {
   )
 
   return (
-    <Stack
-      style={{
-        width: '100%',
-        height: '100%',
-      }}
-      alignContent="space-around"
-      justifyContent="space-around"
-      spacing={1}
-    >
-      {barPos === 'top' && appBar}
-      <div
+    <DragFile>
+      <Stack
         style={{
-          flex: 1,
-          padding: '0 8px',
-          overflow: 'hidden',
-          overflowY: 'auto',
+          width: '100%',
+          height: '100%',
         }}
+        alignContent="space-around"
+        justifyContent="space-around"
+        spacing={1}
       >
-        {props.children}
-      </div>
-      {barPos === 'bottom' && appBar}
-    </Stack>
+        {appBar}
+        <div
+          style={{
+            flex: 1,
+            padding: '0 8px',
+            overflow: 'hidden',
+            overflowY: 'auto',
+          }}
+        >
+          {props.children}
+        </div>
+        {appBarBottom}
+      </Stack>
+    </DragFile>
   )
 }

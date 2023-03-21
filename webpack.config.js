@@ -45,6 +45,7 @@ export default (env, argv) => {
       clean: true,
     },
     devServer: {
+      hot: true,
       allowedHosts: 'all',
       ...(isServer
         ? {

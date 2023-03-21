@@ -87,7 +87,7 @@ export class BookEpub extends BookBase {
     return path.join('/', rootfilePath)
   }
 
-  static async read(buffer: ArrayBuffer) {
+  static async read(buffer: ArrayBuffer): Promise<BookEpub | undefined> {
     const zip = await JSZip.loadAsync(buffer)
     const xml = new XMLDOMLoader(zip)
     const rootPath = await this.getRootPath(xml)
@@ -129,6 +129,15 @@ export class BookEpub extends BookBase {
       this.#version = parseFloat(versionStr) >= 3 ? 3 : 2
     }
     return this.#version
+  }
+
+  #title?: string | null
+  get title() {
+    if (!this.#title) {
+      const titleElem = this.rootDoc.querySelector('metadata dc\\:title')
+      this.#title = titleElem?.textContent?.trim() ?? null
+    }
+    return this.#title
   }
 
   #language?: string | null
