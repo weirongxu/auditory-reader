@@ -10,7 +10,7 @@ import {
   IMG_MAX_HEIGHT_CLASS,
   IMG_MAX_WIDTH_CLASS,
   PARA_ACTIVE_CLASS,
-  PARA_BLOCK_CLASS,
+  PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
 import {
@@ -140,8 +140,8 @@ export class PlayerIframeController {
       const anchorEl = doc.querySelector(`#${anchorId}`)
       if (!anchorEl) return
       return (
-        anchorEl.querySelector(`.${PARA_BLOCK_CLASS}`) ??
-        anchorEl.closest(`.${PARA_BLOCK_CLASS}`) ??
+        anchorEl.querySelector(`.${PARA_BOX_CLASS}`) ??
+        anchorEl.closest(`.${PARA_BOX_CLASS}`) ??
         anchorEl
       )
     } catch {
@@ -487,16 +487,16 @@ export class PlayerIframeController {
       }
 
       /* paragraph */
-      .${PARA_BLOCK_CLASS} {
+      .${PARA_BOX_CLASS} {
         cursor: pointer;
       }
 
-      .${PARA_BLOCK_CLASS}.${PARA_ACTIVE_CLASS} {
+      .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS} {
         background: var(--main-bg-active);
         outline: 5px solid var(--main-bg-active);
       }
 
-      .${PARA_BLOCK_CLASS}:hover {
+      .${PARA_BOX_CLASS}:hover {
         background: var(--main-bg-hover);
         outline: 5px solid var(--main-bg-hover);
       }

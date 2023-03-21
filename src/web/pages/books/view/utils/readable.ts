@@ -1,7 +1,7 @@
 import type { BookNav } from '../../../../../core/book/book-base.js'
 import {
   IGNORE_TAGS,
-  PARA_BLOCK_CLASS,
+  PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../../core/consts.js'
 import { compact } from '../../../../../core/util/collection.js'
@@ -71,7 +71,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
   const readableParts: ReadablePart[] = []
 
   const pushTextPart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BLOCK_CLASS)
+    elem.classList.add(PARA_BOX_CLASS)
     const textContent = getContentText(elem)
     const notEmpty = !!textContent?.trim()
     if (notEmpty) {
@@ -84,7 +84,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
   }
 
   const pushImagePart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BLOCK_CLASS)
+    elem.classList.add(PARA_BOX_CLASS)
     readableParts.push({
       elem,
       type: 'image',
@@ -120,7 +120,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
       pushTextPart(blockElem)
     } else {
       if (!node.parentElement) continue
-      const wrapElem = document.createElement('div')
+      const wrapElem = document.createElement('span')
       node.after(wrapElem)
       wrapElem.appendChild(node)
       blockElemSet.add(wrapElem)
@@ -135,7 +135,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
       navHashes.map((h) => {
         try {
           const hashTarget = doc.querySelector(`#${h}`)
-          const elem = hashTarget?.closest(`.${PARA_BLOCK_CLASS}`)
+          const elem = hashTarget?.closest(`.${PARA_BOX_CLASS}`)
           if (elem) {
             return [elem, h] as const
           }
