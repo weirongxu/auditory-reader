@@ -458,6 +458,11 @@ export class PlayerIframeController {
       ${globalStyle}
       ${pageStyle}
 
+      /* wrap */
+      pre {
+        white-space: pre-wrap;
+      }
+
       /* image */
       svg {
         max-width: 90%!important;
@@ -686,7 +691,7 @@ export class PlayerIframeController {
     scrollContainer.offsetWidth
 
     let scrollWidth = scrollContainer.scrollWidth
-    const width = win.innerWidth
+    let width = win.innerWidth
     let count: number
 
     // fix column double last page
@@ -705,6 +710,7 @@ export class PlayerIframeController {
     } else {
       count = Math.round(scrollContainer.scrollWidth / width)
     }
+    width = scrollWidth / count
 
     this.splitPageWidth = width
     this.splitPageCount = count
