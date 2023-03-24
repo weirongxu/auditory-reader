@@ -27,7 +27,7 @@ import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
-import { async } from '../../../core/util/promise.js'
+import { async, nextTick } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { useCallback } from 'react'
 
@@ -284,6 +284,7 @@ export function BookList() {
         setDragStartUuid(null)
         if (offset === 0) return
         setLoading(true)
+        await nextTick()
         await booksMoveOffsetRouter.action({ uuid: dragStartUuid, offset })
         reload()
         setLoading(false)
@@ -291,97 +292,6 @@ export function BookList() {
     },
     [books, dragStartIndex, dragStartUuid, reload]
   )
-
-  // const [tableBodyElem, setTableBodyElem] =
-  //   useState<HTMLTableSectionElement | null>(null)
-  // // drag drop
-  // useEffect(() => {
-  //   const root = tableBodyElem
-  //   if (!root) return
-  //
-  //   // const sortable = new Sortable(root, {
-  //   //   setData() {},
-  //   //   onMove(event) {
-  //   //     return false
-  //   //   },
-  //   //   onChange(event) {
-  //   //     console.log('change')
-  //   //     if (
-  //   //       !books ||
-  //   //       event.oldIndex === undefined ||
-  //   //       event.newIndex === undefined
-  //   //     )
-  //   //       return
-  //   //     const newBooks = [...books]
-  //   //     const [entityJson] = newBooks.splice(event.oldIndex, 1)
-  //   //     newBooks.splice(event.newIndex, 0, entityJson)
-  //   //     setBooks(newBooks)
-  //   //   },
-  //   //   onEnd(event) {
-  //   //     async(async () => {
-  //   //       if (event.oldIndex === undefined || event.newIndex === undefined)
-  //   //         return
-  //   //       const srcBook = books?.[event.oldIndex]
-  //   //       if (!srcBook) return
-  //   //       const offset = event.newIndex - event.oldIndex
-  //   //       if (offset === 0) return
-  //   //       setLoading(true)
-  //   //       await booksMoveOffsetRouter.action({ uuid: srcBook.uuid, offset })
-  //   //       setLoading(false)
-  //   //       console.log(event.oldIndex)
-  //   //       console.log(event.newIndex)
-  //   //       console.log(srcBook.name)
-  //   //       console.log(offset)
-  //   //     })
-  //   //   },
-  //   // })
-  //
-  //   let fromIndex: number | null = null
-  //   let toIndex: number | null = null
-  //
-  //   root.addEventListener('dragstart', (event) => {
-  //     if (!event.target || !event.dataTransfer) return
-  //
-  //     fromIndex = Array.from(root.children).indexOf(
-  //       event.target as HTMLTableRowElement
-  //     )
-  //     toIndex = null
-  //   })
-  //
-  //   root.addEventListener('dragover', (event) => {
-  //     if (!event.dataTransfer || !books || fromIndex === null) return
-  //     event.preventDefault()
-  //
-  //     toIndex = Array.from(root.children).indexOf(
-  //       event.target as HTMLTableRowElement
-  //     )
-  //     const newBooks = [...books]
-  //     const [entity] = newBooks.splice(fromIndex, 1)
-  //     newBooks.splice(toIndex, 0, entity)
-  //     setBooks(newBooks)
-  //     console.log(fromIndex, toIndex)
-  //     event.dataTransfer.dropEffect = 'move'
-  //   })
-  //
-  //   root.addEventListener('drop', (event) => {
-  //     async(async () => {
-  //       toIndex = Array.from(root.children).indexOf(
-  //         event.target as HTMLTableRowElement
-  //       )
-  //       if (fromIndex === null || toIndex === null) return
-  //
-  //       const srcBook = books?.[fromIndex]
-  //       if (!srcBook) return
-  //       const offset = fromIndex - toIndex
-  //       console.log(srcBook.name, offset)
-  //       if (offset === 0) return
-  //       setLoading(true)
-  //       await booksMoveOffsetRouter.action({ uuid: srcBook.uuid, offset })
-  //       reload()
-  //       setLoading(false)
-  //     })
-  //   })
-  // }, [books, reload, tableBodyElem])
 
   if (loading || !dataBooks || !books) return <CircularProgress />
 

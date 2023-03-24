@@ -18,7 +18,7 @@ import { BookEpub } from '../../../core/book/book-epub.js'
 import type { LangCode } from '../../../core/lang.js'
 import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
-import { async } from '../../../core/util/promise.js'
+import { async, nextTick } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
@@ -74,6 +74,7 @@ export function DragFile(props: { children: React.ReactNode }) {
         return
       }
       setIsLoading(true)
+      await nextTick()
       if (dragItem.type === 'file-epub')
         await booksCreateRouter.action({
           bufferBase64: dragItem.bufferBase64,

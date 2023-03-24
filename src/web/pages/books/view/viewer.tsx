@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material'
+import { CircularProgress, Stack, useTheme } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useWindowFocus from 'use-window-focus'
@@ -15,6 +15,7 @@ export function useViewer(props: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
+  const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
 
   // wake lock
@@ -37,6 +38,7 @@ export function useViewer(props: BookContextProps) {
     setPos,
     setStarted,
     setFocusedNavs,
+    setLoading,
   })
 
   // dark scheme
@@ -63,13 +65,20 @@ export function useViewer(props: BookContextProps) {
 
   const MainContent = useMemo(
     () => (
-      <iframe
-        title="viewer"
-        ref={iframeRef}
-        sandbox="allow-same-origin"
-      ></iframe>
+      <Stack flex={1} position="relative">
+        {loading && (
+          <Stack position="absolute" zIndex={2}>
+            <CircularProgress></CircularProgress>
+          </Stack>
+        )}
+        <iframe
+          title="viewer"
+          ref={iframeRef}
+          sandbox="allow-same-origin"
+        ></iframe>
+      </Stack>
     ),
-    [iframeRef]
+    [loading]
   )
 
   const { NavTreeView } = usePlayerUI({
