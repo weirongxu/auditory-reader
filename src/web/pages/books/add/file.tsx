@@ -18,7 +18,7 @@ import {
 } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
-import { Dropzone } from '../../../components/dropzone.js'
+import { InputFile } from '../../../components/input-file.js'
 
 export function AddFile() {
   const nav = useNavigate()
@@ -88,12 +88,9 @@ export function AddFile() {
         ></Autocomplete>
 
         <FormControl>
-          <Dropzone
-            onDrop={(files) => {
-              const file = files[0]
-              if (!file) {
-                return
-              }
+          <InputFile
+            onChange={([file]) => {
+              if (!file) return
               async(async () => {
                 if (file.name.endsWith('.epub')) {
                   const buf = await file.arrayBuffer()
@@ -111,7 +108,7 @@ export function AddFile() {
               })
             }}
             prompt={t('prompt.uploadBook')}
-          ></Dropzone>
+          ></InputFile>
         </FormControl>
 
         <Button fullWidth type="submit">

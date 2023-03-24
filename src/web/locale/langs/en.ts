@@ -24,8 +24,6 @@ export const langEn = {
     inputAccount: 'Please input your $t(account)',
     inputPassword: 'Please input your $t(password)',
     dropHere: 'drop .epub file、.txt file、text or URL to here',
-    dropzone: 'Drag file here or click to select file',
-    dropzoneDrag: 'Drag file here',
     uploadBook: 'Support .epub and .txt',
   },
   error: {
