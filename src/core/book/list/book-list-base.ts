@@ -37,6 +37,16 @@ export abstract class BookListBase {
     return l.length
   }
 
+  async moveOffset(uuid: string, offset: number): Promise<void> {
+    const list = await this.list()
+    const entityIndex = list.findIndex((it) => it.uuid === uuid)
+    if (entityIndex === -1) return
+    const [entityJson] = list.splice(entityIndex, 1)
+    const targetIndex = entityIndex + offset
+    list.splice(targetIndex, 0, entityJson)
+    await this.write()
+  }
+
   async moveTop(uuid: string): Promise<void> {
     const list = await this.list()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)

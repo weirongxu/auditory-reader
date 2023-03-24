@@ -44,6 +44,20 @@ type DragItemText = {
   bufferBase64: string
 }
 
+function hasFileOrUrl(event: React.DragEvent<HTMLDivElement>) {
+  const items = filterFileOrUrl(event)
+  return !!items.length
+}
+
+function filterFileOrUrl(event: React.DragEvent<HTMLDivElement>) {
+  const items = [...event.dataTransfer.items]
+  return items.filter((it) => {
+    if (it.kind === 'file') return true
+    if (it.kind === 'string' && it.type === 'text/uri-list') return true
+    return false
+  })
+}
+
 export function DragFile(props: { children: React.ReactNode }) {
   const [dragOver, setDragOver] = useState(0)
   const [dragItem, setDragItem] = useState<DragItem | null>(null)
@@ -99,10 +113,12 @@ export function DragFile(props: { children: React.ReactNode }) {
         position: 'relative',
       }}
       spacing={0}
-      onDragEnter={() => {
+      onDragEnter={(event) => {
+        if (!hasFileOrUrl(event)) return
         setDragOver((c) => c + 1)
       }}
-      onDragLeave={() => {
+      onDragLeave={(event) => {
+        if (!hasFileOrUrl(event)) return
         setDragOver((c) => c - 1)
       }}
       onDragOver={(event) => {
@@ -112,7 +128,7 @@ export function DragFile(props: { children: React.ReactNode }) {
         event.preventDefault()
         async(async () => {
           setDragOver(0)
-          for (const item of event.dataTransfer.items) {
+          for (const item of filterFileOrUrl(event)) {
             if (item.kind === 'file') {
               const file = item.getAsFile()
               if (!file) continue
@@ -124,14 +140,14 @@ export function DragFile(props: { children: React.ReactNode }) {
               const basename = path.basename(file.name, ext)
               const bufferBase64 = arrayBufferToBase64(buf)
               if (ext === '.epub')
-                setDragItem({
+                return setDragItem({
                   bufferBase64,
                   title: epub.title ?? basename,
                   type: 'file-epub',
                   langCode,
                 })
               else if (ext === '.txt' || ext === '.text')
-                setDragItem({
+                return setDragItem({
                   bufferBase64,
                   title: basename,
                   type: 'file-text',
@@ -141,11 +157,9 @@ export function DragFile(props: { children: React.ReactNode }) {
               const url = await new Promise<string>((resolve) => {
                 item.getAsString(resolve)
               })
-              if (!isUrl(url)) {
-                return
-              }
+              if (!isUrl(url)) continue
               const info = await booksFetchUrlInfoRouter.action({ url })
-              setDragItem({
+              return setDragItem({
                 type: 'url',
                 url,
                 title: info.title,

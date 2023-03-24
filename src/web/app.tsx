@@ -10,14 +10,16 @@ import {
 } from '@mui/material'
 import { ConfirmProvider } from 'material-ui-confirm'
 import { useEffect, useState } from 'react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { useStyle } from './hooks/useStyle.js'
-import { RootEntry } from './pages/entry.js'
-import { registerAPI } from './service-worker/register.js'
-import { useAppTheme } from './theme.js'
-import { PreviewImage } from './preview-image.js'
 import { useHotkeysRegister } from './hotkey/hotkey-state.js'
+import { RootEntry } from './pages/entry.js'
+import { PreviewImage } from './preview-image.js'
+import { registerAPI } from './service-worker/register.js'
 import { globalStyle } from './style.js'
+import { useAppTheme } from './theme.js'
 
 export function App() {
   const theme = useAppTheme()
@@ -49,16 +51,18 @@ export function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ConfirmProvider>
-        {loadedStatus === true && <RootEntry></RootEntry>}
-        {loadedStatus === false && <CircularProgress></CircularProgress>}
-        {typeof loadedStatus === 'string' && (
-          <Alert title={loadedStatus} severity="error">
-            {loadedStatus}
-          </Alert>
-        )}
-        <PreviewImage></PreviewImage>
-      </ConfirmProvider>
+      <DndProvider backend={HTML5Backend}>
+        <ConfirmProvider>
+          {loadedStatus === true && <RootEntry></RootEntry>}
+          {loadedStatus === false && <CircularProgress></CircularProgress>}
+          {typeof loadedStatus === 'string' && (
+            <Alert title={loadedStatus} severity="error">
+              {loadedStatus}
+            </Alert>
+          )}
+          <PreviewImage></PreviewImage>
+        </ConfirmProvider>
+      </DndProvider>
     </ThemeProvider>
   )
 }
