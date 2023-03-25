@@ -20,13 +20,11 @@ export async function HTMLImgs2DataURL(
   })
   for (const img of imgs) {
     let src = img.src || img.getAttribute('data-src')
-    console.log(src)
     if (!src) continue
     try {
       if (src.startsWith('//')) {
         src = `${url.protocol}:${src}`
       }
-      console.log(src)
       if (!isUrl(src)) return
       const res = await fetch(src, {
         headers,
