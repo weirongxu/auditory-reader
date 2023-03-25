@@ -18,7 +18,7 @@ import { BookEpub } from '../../../core/book/book-epub.js'
 import type { LangCode } from '../../../core/lang.js'
 import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
-import { async, nextTick } from '../../../core/util/promise.js'
+import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
@@ -62,7 +62,7 @@ export function DragFile(props: { children: React.ReactNode }) {
   const [dragOver, setDragOver] = useState(0)
   const [dragItem, setDragItem] = useState<DragItem | null>(null)
   const [isInputLangCode, setIsInputLangCode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const nav = useNavigate()
   const langOptions = useOrderedLangOptions()
 
@@ -73,8 +73,7 @@ export function DragFile(props: { children: React.ReactNode }) {
         setIsInputLangCode(true)
         return
       }
-      setIsLoading(true)
-      await nextTick()
+      setLoading(true)
       if (dragItem.type === 'file-epub')
         await booksCreateRouter.action({
           bufferBase64: dragItem.bufferBase64,
@@ -98,13 +97,13 @@ export function DragFile(props: { children: React.ReactNode }) {
           name: dragItem.title,
           isTmp: true,
         })
-      setIsLoading(false)
+      setLoading(false)
       setDragItem(null)
       nav(`/books/view/$tmp`)
     })
   }, [dragItem, nav])
 
-  if (isLoading) return <CircularProgress></CircularProgress>
+  if (loading) return <CircularProgress></CircularProgress>
 
   return (
     <Stack
@@ -129,44 +128,49 @@ export function DragFile(props: { children: React.ReactNode }) {
         event.preventDefault()
         async(async () => {
           setDragOver(0)
-          for (const item of filterFileOrUrl(event)) {
-            if (item.kind === 'file') {
-              const file = item.getAsFile()
-              if (!file) continue
-              const buf = await file.arrayBuffer()
-              const epub = await BookEpub.read(buf)
-              if (!epub) continue
-              const langCode = parseLangCode(epub.language)
-              const ext = path.extname(file.name)
-              const basename = path.basename(file.name, ext)
-              const bufferBase64 = arrayBufferToBase64(buf)
-              if (ext === '.epub')
-                return setDragItem({
-                  bufferBase64,
-                  title: epub.title ?? basename,
-                  type: 'file-epub',
-                  langCode,
+          setLoading(true)
+          try {
+            for (const item of filterFileOrUrl(event)) {
+              if (item.kind === 'file') {
+                const file = item.getAsFile()
+                if (!file) continue
+                const buf = await file.arrayBuffer()
+                const epub = await BookEpub.read(buf)
+                if (!epub) continue
+                const langCode = parseLangCode(epub.language)
+                const ext = path.extname(file.name)
+                const basename = path.basename(file.name, ext)
+                const bufferBase64 = arrayBufferToBase64(buf)
+                if (ext === '.epub')
+                  return setDragItem({
+                    bufferBase64,
+                    title: epub.title ?? basename,
+                    type: 'file-epub',
+                    langCode,
+                  })
+                else if (ext === '.txt' || ext === '.text')
+                  return setDragItem({
+                    bufferBase64,
+                    title: basename,
+                    type: 'file-text',
+                    langCode,
+                  })
+              } else if (item.kind === 'string') {
+                const url = await new Promise<string>((resolve) => {
+                  item.getAsString(resolve)
                 })
-              else if (ext === '.txt' || ext === '.text')
+                if (!isUrl(url)) continue
+                const info = await booksFetchUrlInfoRouter.action({ url })
                 return setDragItem({
-                  bufferBase64,
-                  title: basename,
-                  type: 'file-text',
-                  langCode,
+                  type: 'url',
+                  url,
+                  title: info.title,
+                  langCode: info.lang,
                 })
-            } else if (item.kind === 'string') {
-              const url = await new Promise<string>((resolve) => {
-                item.getAsString(resolve)
-              })
-              if (!isUrl(url)) continue
-              const info = await booksFetchUrlInfoRouter.action({ url })
-              return setDragItem({
-                type: 'url',
-                url,
-                title: info.title,
-                langCode: info.lang,
-              })
+              }
             }
+          } finally {
+            setLoading(false)
           }
         })
       }}

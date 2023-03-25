@@ -1,4 +1,3 @@
-import type { Identifier, XYCoord } from 'dnd-core'
 import {
   Button,
   ButtonGroup,
@@ -15,9 +14,10 @@ import {
   TableRow,
   useTheme,
 } from '@mui/material'
+import type { Identifier, XYCoord } from 'dnd-core'
 import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
@@ -27,9 +27,8 @@ import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
-import { async, nextTick } from '../../../core/util/promise.js'
+import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
-import { useCallback } from 'react'
 
 const DragType = 'book'
 type DragItem = {
@@ -284,7 +283,6 @@ export function BookList() {
         setDragStartUuid(null)
         if (offset === 0) return
         setLoading(true)
-        await nextTick()
         await booksMoveOffsetRouter.action({ uuid: dragStartUuid, offset })
         reload()
         setLoading(false)
