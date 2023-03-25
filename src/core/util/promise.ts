@@ -11,7 +11,7 @@ export const sleep = (ms: number) => {
 export const nextTick = () => {
   return new Promise<void>((resolve) => {
     setTimeout(() => {
-      resolve
+      resolve()
     })
   })
 }
