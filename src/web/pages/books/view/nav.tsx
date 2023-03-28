@@ -20,21 +20,8 @@ export function useBookViewNav(
     return focusedNavs?.at(-1)
   }, [focusedNavs])
 
-  useEffect(() => {
-    if (!visible || !lastFocusedNav) return
-    const navDiv = refNav.current
-    if (!navDiv) return
-    setTimeout(() => {
-      const lastNavDiv = [...navDiv.querySelectorAll('div.item.active')].at(-1)
-      lastNavDiv?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      })
-    }, 100)
-  }, [visible, lastFocusedNav])
-
-  const NavTreeView = useMemo(() => {
-    const getList = (navs: BookNav[]): JSX.Element => {
+  const getList = useCallback(
+    (navs: BookNav[]): JSX.Element => {
       return (
         <ul>
           {navs.map((nav, idx) => {
@@ -63,14 +50,29 @@ export function useBookViewNav(
           })}
         </ul>
       )
-    }
+    },
+    [focusedNavs, player]
+  )
 
+  const NavTreeView = useMemo(() => {
+    const list = getList(book.navs)
     return visible ? (
       <div ref={refNav} className="book-nav">
-        {getList(book.navs)}
+        {list}
       </div>
     ) : null
-  }, [visible, book.navs, focusedNavs, player])
+  }, [getList, book.navs, visible])
+
+  // scroll to nav
+  useEffect(() => {
+    if (!visible || !lastFocusedNav) return
+    const navDiv = refNav.current
+    if (!navDiv) return
+    const lastNavDiv = [...navDiv.querySelectorAll('div.item.active')].at(-1)
+    lastNavDiv?.scrollIntoView({
+      block: 'center',
+    })
+  }, [visible, lastFocusedNav])
 
   return {
     toggleNav,
