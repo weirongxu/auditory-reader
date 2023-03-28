@@ -121,6 +121,8 @@ export abstract class BookListBase {
     }
 
     if (entity.isTmp) {
+      const tmp = await this.bookTmp()
+      await tmp?.reset()
       await this.setTmp(entityJson)
     } else {
       const list = await this.list()

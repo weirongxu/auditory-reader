@@ -30,6 +30,13 @@ export abstract class BookEntityBase {
     return { contentType, buffer, filename }
   }
 
+  async reset() {
+    await this.posSet({
+      section: 0,
+      paragraph: 0,
+    })
+  }
+
   abstract delete(): Promise<void>
 
   abstract posGet(): Promise<BookTypes.PropertyPosition>
