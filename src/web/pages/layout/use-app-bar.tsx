@@ -10,7 +10,7 @@ export const { useGlobalState: useAppBarStates } = createGlobalState<{
   bottomLeft: React.ReactNode
   bottomRight: React.ReactNode
 }>({
-  isIdle: false,
+  isIdle: true,
   title: null,
   topLeft: null,
   topRight: null,
