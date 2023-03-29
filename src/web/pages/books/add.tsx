@@ -10,12 +10,12 @@ export function BookAdd() {
   return (
     <>
       <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-        <Tab label={t('file')}></Tab>
         <Tab label={t('text')}></Tab>
+        <Tab label={t('file')}></Tab>
         <Tab label={t('url')}></Tab>
       </Tabs>
-      {tab === 0 && <AddFile></AddFile>}
-      {tab === 1 && <AddText></AddText>}
+      {tab === 0 && <AddText></AddText>}
+      {tab === 1 && <AddFile></AddFile>}
       {tab === 2 && <AddUrl></AddUrl>}
     </>
   )

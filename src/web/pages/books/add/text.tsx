@@ -6,6 +6,7 @@ import { booksCreateRouter } from '../../../../core/api/books/create.js'
 import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
+import { splitLines } from '../../../../core/util/text.js'
 
 export function AddText() {
   const nav = useNavigate()
@@ -69,7 +70,14 @@ export function AddText() {
           label={t('bookContent')}
           value={content ?? ''}
           onChange={(e) => {
-            setContent(e.target.value)
+            const content = e.target.value
+            if (!content) return
+            if (!name) {
+              const lines = splitLines(content)
+              const newName = lines.find((line) => !!line.trim())
+              if (newName) setName(newName)
+            }
+            setContent(content)
           }}
         ></TextField>
 

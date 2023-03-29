@@ -1,10 +1,10 @@
+import { splitLines } from '../util/text.js'
 import type { BookNav, BookSpine } from './book-base.js'
 import { BookBase } from './book-base.js'
 
 export class BookText extends BookBase {
   static async read(text: string, title: string) {
-    let html = text
-      .split(/\r?\n\r?\n/)
+    let html = splitLines(text)
       .map((p) => `<p>${p}</p>`)
       .join('\r\n')
     html = `
