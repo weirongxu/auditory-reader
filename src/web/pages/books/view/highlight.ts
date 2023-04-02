@@ -127,8 +127,10 @@ export class Highlight {
   )
 
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
-    if (!this.states.canManipulateDOM) return
-
-    this.#highlightChars(node, charIndex, charLength)
+    this.iframeCtrl
+      .tryManipulateDOM(() => {
+        this.#highlightChars(node, charIndex, charLength)
+      })
+      .catch(console.error)
   }
 }

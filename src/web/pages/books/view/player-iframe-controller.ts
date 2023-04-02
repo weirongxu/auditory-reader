@@ -131,6 +131,14 @@ export class PlayerIframeController {
     })
   }
 
+  async tryManipulateDOM(callback: () => any) {
+    if (this.states.canManipulateDOM) await callback()
+    else
+      setTimeout(() => {
+        Promise.resolve(callback()).catch(console.error)
+      })
+  }
+
   getAnchorIdElem(anchorId: string) {
     if (!anchorId) return
     // goto anchorId
@@ -157,22 +165,22 @@ export class PlayerIframeController {
   }
 
   async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
-    if (!this.states.canManipulateDOM) return
+    await this.tryManipulateDOM(async () => {
+      if (!this.isSplitPage) {
+        element.scrollIntoView({
+          behavior: options.animated ?? true ? 'smooth' : 'auto',
+          block: options.position ?? 'center',
+        })
+        return
+      }
 
-    if (!this.isSplitPage) {
-      element.scrollIntoView({
-        behavior: options.animated ?? true ? 'smooth' : 'auto',
-        block: options.position ?? 'center',
-      })
-      return
-    }
-
-    if (!this.doc) return
-    const body = this.doc.body
-    const bodyLeft = body.getBoundingClientRect().left
-    const rect = element.getBoundingClientRect()
-    const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
-    await this.scrollToPageByLeft(endLeft, options)
+      if (!this.doc) return
+      const body = this.doc.body
+      const bodyLeft = body.getBoundingClientRect().left
+      const rect = element.getBoundingClientRect()
+      const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
+      await this.scrollToPageByLeft(endLeft, options)
+    })
   }
 
   /**
@@ -785,19 +793,19 @@ export class PlayerIframeController {
 
   #paragraphLastActive?: ReadablePart
   paragraphActive() {
-    if (!this.states.canManipulateDOM) return
-
-    const item = this.readableParts[this.states.pos.paragraph]
-    if (
-      !item ||
-      (this.#paragraphLastActive && item === this.#paragraphLastActive)
-    )
-      return
-    this.#paragraphLastActive?.elem.classList.remove(PARA_ACTIVE_CLASS)
-    this.#paragraphLastActive = item
-    if (item.elem instanceof Element) {
-      item.elem.classList.add(PARA_ACTIVE_CLASS)
-    }
+    this.tryManipulateDOM(() => {
+      const item = this.readableParts[this.states.pos.paragraph]
+      if (
+        !item ||
+        (this.#paragraphLastActive && item === this.#paragraphLastActive)
+      )
+        return
+      this.#paragraphLastActive?.elem.classList.remove(PARA_ACTIVE_CLASS)
+      this.#paragraphLastActive = item
+      if (item.elem instanceof Element) {
+        item.elem.classList.add(PARA_ACTIVE_CLASS)
+      }
+    }).catch(console.error)
   }
 
   #flattenedNavs?: BookNav[]
