@@ -833,27 +833,38 @@ export class PlayerIframeController {
       spineIndex: number
     }
 
+    // same spineIndex navs
     const navs = this.flattenedNavs().filter(
       (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section
     )
+    if (navs.length === 0) {
+      const lastNav = findLast(
+        this.flattenedNavs(),
+        (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
+      )
+      this.states.focusedNavs = lastNav ? [lastNav] : []
+      return
+    }
+
     const existsHashSet = new Set(
       navs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
     )
 
     const readableParts = this.readableParts
-    const hash = findLast(
+    // last hash from iframe page
+    const lastHash = findLast(
       readableParts.slice(0, this.states.pos.paragraph + 1),
       (part) => Boolean(part.hash) && existsHashSet.has(part.hash)
     )?.hash
-
-    if (!hash) {
+    if (!lastHash) {
       this.states.focusedNavs = [navs[0]]
       return
     }
 
+    // find nav is equal last hash
     const [matchedNav, matchedNavIndex] = findPair(
       navs,
-      (nav) => nav.hrefHash === hash
+      (nav) => nav.hrefHash === lastHash
     )
     if (!matchedNav) {
       this.states.focusedNavs = [navs[0]]
