@@ -155,11 +155,10 @@ export function usePlayerUI(
   props: BookContextProps & {
     started: boolean
     player: Player
-    windowFocused: boolean
     focusedNavs?: BookNav[]
   }
 ) {
-  const { book, player, started, windowFocused, focusedNavs } = props
+  const { book, player, started, focusedNavs } = props
   const nav = useNavigate()
   const { NavTreeView, toggleNav } = useBookViewNav(book, player, focusedNavs)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
@@ -179,7 +178,6 @@ export function usePlayerUI(
       voice,
       paragraphRepeat,
       splitPage,
-      windowFocused,
     })
 
   const PlayerCtrlGroup = useMemo(() => {

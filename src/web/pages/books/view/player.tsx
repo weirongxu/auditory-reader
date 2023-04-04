@@ -3,6 +3,7 @@ import type { RefObject } from 'react'
 import { useRef } from 'react'
 import type { BookViewRes } from '../../../../core/api/books/view.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { async } from '../../../../core/util/promise.js'
 import {
   PlayerIframeController,
   usePlayerIframe,
@@ -24,6 +25,21 @@ export class Player {
     this.states.pos = initPos
     this.iframeCtrler = new PlayerIframeController(this, this.states, iframeRef)
     this.utterer = new Utterer(this, this.states, this.iframeCtrler)
+
+    const onVisibilityChange = () => {
+      async(async () => {
+        // wakeLock
+        let lock: WakeLockSentinel | undefined
+        await lock?.release().catch(console.error)
+        if (this.states.docVisible) {
+          lock = await navigator.wakeLock.request('screen')
+        }
+      })
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    this.onUnmount(() => {
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    })
   }
 
   #onUnmountCallbacks: (() => void)[] = []

@@ -303,26 +303,31 @@ export class PlayerIframeController {
 
     iframe.src = getBooksRenderPath(this.bookType, this.book.item.uuid, absPath)
 
-    iframe.style.visibility = 'hidden'
-    await new Promise<void>((resolve) => {
-      iframe.addEventListener(
-        'load',
-        () => {
-          resolve()
-        },
-        { once: true }
-      )
-    })
+    try {
+      iframe.style.visibility = 'hidden'
+      this.states.loading = true
+      await new Promise<void>((resolve) => {
+        iframe.addEventListener(
+          'load',
+          () => {
+            resolve()
+          },
+          { once: true }
+        )
+      })
 
-    const doc = iframe.contentDocument
-    if (!doc) return console.error('iframe load failed')
+      const doc = iframe.contentDocument
+      if (!doc) return console.error('iframe load failed')
 
-    // load readableParts
-    this.readableParts = []
-    this.readableParts = getReadableParts(doc, this.book.navs)
+      // load readableParts
+      this.readableParts = []
+      this.readableParts = getReadableParts(doc, this.book.navs)
 
-    await this.onLoaded(iframe)
-    iframe.style.visibility = 'visible'
+      await this.onLoaded(iframe)
+      iframe.style.visibility = 'visible'
+    } finally {
+      this.states.loading = false
+    }
   }
 
   async gotoUrlPathAndScroll(path: string) {

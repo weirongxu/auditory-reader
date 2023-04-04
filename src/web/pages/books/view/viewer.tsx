@@ -1,9 +1,7 @@
 import { CircularProgress, Stack, useTheme } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import useWindowFocus from 'use-window-focus'
 import type { BookNav } from '../../../../core/book/book-base.js'
-import { async } from '../../../../core/util/promise.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
@@ -17,21 +15,6 @@ export function useViewer(props: BookContextProps) {
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
-
-  // wake lock
-  const windowFocused = useWindowFocus()
-  const refWakeLock = useRef<WakeLockSentinel>()
-  useEffect(() => {
-    if (!('wakeLock' in navigator)) return
-    refWakeLock.current?.release().catch(console.error)
-    if (!windowFocused) return
-
-    async(async () => {
-      if (started) {
-        refWakeLock.current = await navigator.wakeLock.request('screen')
-      }
-    })
-  }, [started, windowFocused])
 
   const player = usePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
@@ -85,7 +68,6 @@ export function useViewer(props: BookContextProps) {
     ...props,
     player,
     started,
-    windowFocused,
     focusedNavs,
   })
 

@@ -12,9 +12,7 @@ if (isBrowser) {
   }
   loadVoices()
   if (window.speechSynthesis.addEventListener) {
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices, {
-      once: true,
-    })
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
   }
 }
 

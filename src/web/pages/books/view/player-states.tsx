@@ -21,7 +21,6 @@ type PlayerUIStates = {
   autoNextSection: boolean
   paragraphRepeat: number
   splitPage: SplitPageType
-  windowFocused: boolean
 }
 
 export class PlayerStatesManager {
@@ -73,7 +72,6 @@ export class PlayerStatesManager {
     autoNextSection: false,
     paragraphRepeat: 1,
     splitPage: 'double',
-    windowFocused: false,
   }
 
   uiEvents = new ChangedEmitter<PlayerUIStates>()
@@ -102,12 +100,12 @@ export class PlayerStatesManager {
     return this.#uiStates.splitPage
   }
 
-  get windowFocused() {
-    return this.#uiStates.windowFocused
+  get docVisible() {
+    return document.visibilityState === 'visible'
   }
 
   get canManipulateDOM() {
-    return this.windowFocused || !isMobile
+    return this.docVisible || !isMobile
   }
 
   syncUIState<K extends keyof PlayerUIStates>(
@@ -160,7 +158,6 @@ export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
     autoNextSection,
     paragraphRepeat,
     splitPage,
-    windowFocused,
   } = props
 
   useEffect(() => {
@@ -186,10 +183,6 @@ export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
   useEffect(() => {
     player.states.syncUIState('splitPage', splitPage)
   }, [player, splitPage])
-
-  useEffect(() => {
-    player.states.syncUIState('windowFocused', windowFocused)
-  }, [player, windowFocused])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,
