@@ -29,11 +29,20 @@ import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import styles from './index.module.scss'
 
 const DragType = 'book'
 type DragItem = {
   index: number
   id: string
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <label className={styles.hover} style={{ display: 'block' }}>
+      {children}
+    </label>
+  )
 }
 
 export function BookRow({
@@ -139,20 +148,12 @@ export function BookRow({
   drag(drop(ref))
   return (
     <TableRow
-      hover
       key={book.uuid}
-      sx={{ cursor: 'pointer', opacity }}
+      sx={{ opacity }}
       ref={ref}
       data-handler-id={handlerId}
-      onClick={() => {
-        nav(`/books/view/${book.uuid}`)
-      }}
     >
-      <TableCell
-        onClick={(e) => {
-          e.stopPropagation()
-        }}
-      >
+      <TableCell padding="checkbox">
         <Checkbox
           checked={selectedUuids.includes(book.uuid)}
           onClick={(event) => {
@@ -191,14 +192,17 @@ export function BookRow({
           }}
         ></Checkbox>
       </TableCell>
-      <TableCell title={book.createdAt.toLocaleString()}>{book.name}</TableCell>
+      <TableCell
+        className={styles.hover}
+        title={book.createdAt.toLocaleString()}
+        onClick={() => {
+          nav(`/books/view/${book.uuid}`)
+        }}
+      >
+        {book.name}
+      </TableCell>
       <TableCell>
-        <Stack
-          direction="row"
-          onClick={(e) => {
-            e.stopPropagation()
-          }}
-        >
+        <Stack direction="row">
           <LinkWrap to={`/books/edit/${book.uuid}`}>
             {(href) => (
               <Button color="success" href={href}>
@@ -315,7 +319,7 @@ export function BookList() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>
+              <TableCell padding="checkbox">
                 <Checkbox
                   title={t('all')}
                   checked={allSelected}

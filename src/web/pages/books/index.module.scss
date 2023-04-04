@@ -1,0 +1,6 @@
+.hover {
+  cursor: pointer;
+  &:hover {
+    background-color: var(--main-bg-hover);
+  }
+}
