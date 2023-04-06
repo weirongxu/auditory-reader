@@ -24,6 +24,7 @@ export const langZh = {
     inputAccount: '请输入$t(account)',
     inputPassword: '请输入$t(password)',
     dropHere: '拖动 .epub 文件、.txt 文件、文本或 URL 到这里',
+    dropHereToRemove: '拖放到这里删除',
     uploadBook: '支持 .epub 和 .txt',
   },
   error: {

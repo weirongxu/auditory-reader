@@ -1,7 +1,9 @@
+import { DragIndicator } from '@mui/icons-material'
 import {
   Button,
   ButtonGroup,
   Checkbox,
+  Chip,
   CircularProgress,
   Pagination,
   Paper,
@@ -14,10 +16,9 @@ import {
   TableRow,
   useTheme,
 } from '@mui/material'
-import type { Identifier, XYCoord } from 'dnd-core'
 import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
@@ -29,28 +30,55 @@ import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
 
 const DragType = 'book'
 type DragItem = {
-  index: number
-  id: string
+  name: string
+  uuid: string
+  startIndex: number
+  hoverIndex: number
 }
 
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <label className={styles.hover} style={{ display: 'block' }}>
-      {children}
-    </label>
+function useRemoveBooks(reload: () => void) {
+  const confirm = useConfirm()
+
+  const removeBooks = useCallback(
+    (books: BookTypes.Entity[]) => {
+      confirm({
+        title: t('remove'),
+        description: (
+          <ul>
+            {books.map((book) => (
+              <li key={book.uuid}>{book.name}</li>
+            ))}
+          </ul>
+        ),
+      })
+        .then(async () => {
+          for (const book of books) {
+            await booksRemoveRouter.action({
+              uuid: book.uuid,
+            })
+          }
+          reload()
+        })
+        .catch(console.error)
+    },
+    [confirm, reload]
   )
+
+  return removeBooks
 }
 
-export function BookRow({
+function BookRow({
   index,
   book,
   books,
-  onMove,
+  onHoverMove,
   onDrop,
+  onCancel,
   selectedUuids,
   setSelectedUuids,
   lastSelectedIndex,
@@ -59,8 +87,9 @@ export function BookRow({
   index: number
   book: BookTypes.Entity
   books: BookTypes.Entity[]
-  onMove: (dragIndex: number, hoverIndex: number) => void
-  onDrop: (dropIndex: number) => void
+  onHoverMove: (dragIndex: number, hoverIndex: number) => void
+  onDrop: (item: DragItem) => void
+  onCancel: () => void
   selectedUuids: string[]
   setSelectedUuids: (value: string[]) => void
   lastSelectedIndex: number | undefined
@@ -68,91 +97,57 @@ export function BookRow({
 }) {
   const nav = useNavigate()
 
-  const ref = useRef<HTMLTableRowElement>(null)
-  const [{ handlerId }, drop] = useDrop<
-    DragItem,
-    void,
-    { handlerId: Identifier | null }
-  >({
+  const [, drop] = useDrop<DragItem, void>({
     accept: DragType,
-    collect(monitor) {
-      return {
-        handlerId: monitor.getHandlerId(),
-      }
-    },
-    hover(item, monitor) {
-      if (!ref.current) {
-        return
-      }
-      const dragIndex = books.findIndex((book) => book.uuid === item.id)
+    hover(item) {
+      const dragIndex = books.findIndex((book) => book.uuid === item.uuid)
       if (dragIndex === -1) return
+
       const hoverIndex = index
 
-      // Don't replace items with themselves
       if (dragIndex === hoverIndex) {
         return
       }
 
-      // Determine rectangle on screen
-      const hoverBoundingRect = ref.current?.getBoundingClientRect()
+      onHoverMove(dragIndex, hoverIndex)
 
-      // Get vertical middle
-      const hoverMiddleY =
-        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
-
-      // Determine mouse position
-      const clientOffset = monitor.getClientOffset()
-
-      // Get pixels to the top
-      const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top
-
-      // Only perform the move when the mouse has crossed half of the items height
-      // When dragging downwards, only move when the cursor is below 50%
-      // When dragging upwards, only move when the cursor is above 50%
-
-      // Dragging downwards
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return
-      }
-
-      // Dragging upwards
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return
-      }
-
-      // Time to actually perform the action
-      onMove(dragIndex, hoverIndex)
-
-      // Note: we're mutating the monitor item here!
-      // Generally it's better to avoid mutations,
-      // but it's good here for the sake of performance
-      // to avoid expensive index searches.
-      item.index = hoverIndex
+      item.hoverIndex = hoverIndex
+    },
+    drop(item) {
+      onDrop(item)
     },
   })
 
   const [{ isDragging }, drag] = useDrag({
     type: DragType,
-    item: () => {
-      return { id: book.uuid, index }
+    item: (): DragItem => {
+      return {
+        name: book.name,
+        uuid: book.uuid,
+        startIndex: index,
+        hoverIndex: index,
+      }
     },
-    collect: (monitor: any) => ({
+    collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    end(item) {
-      onDrop(item.index)
+    end(_item, monitor) {
+      if (!monitor.didDrop()) onCancel()
     },
   })
 
-  const opacity = isDragging ? 0 : 1
-  drag(drop(ref))
+  const opacity = isDragging ? 0.2 : 1
   return (
-    <TableRow
-      key={book.uuid}
-      sx={{ opacity }}
-      ref={ref}
-      data-handler-id={handlerId}
-    >
+    <TableRow ref={drop} key={book.uuid} sx={{ opacity }}>
+      <TableCell
+        padding="checkbox"
+        ref={drag}
+        sx={{
+          cursor: 'move',
+        }}
+      >
+        <DragIndicator />
+      </TableCell>
       <TableCell padding="checkbox">
         <Checkbox
           checked={selectedUuids.includes(book.uuid)}
@@ -226,9 +221,32 @@ export function BookRow({
   )
 }
 
+function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
+  const [{ canDrop, isOver }, drop] = useDrop({
+    accept: DragType,
+    drop(item: DragItem) {
+      onRemove(item.uuid)
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  })
+
+  if (!canDrop) return <></>
+
+  return (
+    <Chip
+      ref={drop}
+      color={isOver ? 'error' : 'warning'}
+      size={isOver ? 'medium' : undefined}
+      label={t('prompt.dropHereToRemove')}
+    />
+  )
+}
+
 export function BookList() {
   const theme = useTheme()
-  const confirm = useConfirm()
   const [page, setPage] = useState<number>()
   const { data: dataBooks, reload } = useAction(booksPageRouter, { page })
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number>()
@@ -236,9 +254,12 @@ export function BookList() {
   const [loading, setLoading] = useState<boolean>(false)
 
   const [books, setBooks] = useState<BookTypes.Entity[] | null>(null)
-  useEffect(() => {
+  const resetBooks = useCallback(() => {
     setBooks(dataBooks ? [...dataBooks.items] : null)
   }, [dataBooks])
+  useEffect(() => {
+    resetBooks()
+  }, [resetBooks])
 
   const selectedBooks = useMemo(
     () => books?.filter((book) => selectedUuids.includes(book.uuid)) ?? [],
@@ -250,6 +271,8 @@ export function BookList() {
     [books, selectedUuids]
   )
 
+  const removeBooks = useRemoveBooks(reload)
+
   // if books reload, cancel selected
   useEffect(() => {
     if (books) setSelectedUuids([])
@@ -259,41 +282,93 @@ export function BookList() {
     if (page) reload()
   }, [page, reload])
 
-  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null)
-  const [dragStartUuid, setDragStartUuid] = useState<string | null>(null)
-  const onMove = useCallback(
+  const onHoverMove = useCallback(
     (dragIndex: number, hoverIndex: number) => {
       if (!books) return
-      if (dragStartIndex === null) {
-        setDragStartIndex(dragIndex)
-        setDragStartUuid(books[dragIndex]?.uuid ?? null)
-      }
       const newBooks = [...books]
       const [entityJson] = newBooks.splice(dragIndex, 1)
       newBooks.splice(hoverIndex, 0, entityJson)
       setBooks(newBooks)
     },
-    [books, dragStartIndex]
+    [books]
   )
 
   const onDrop = useCallback(
-    (dropIndex: number) => {
+    (item: DragItem) => {
       async(async () => {
-        if (dragStartIndex === null || dragStartUuid === null) return
-        const srcBook = books?.find((it) => it.uuid === dragStartUuid)
+        const srcBook = books?.find((it) => it.uuid === item.uuid)
         if (!srcBook) return
-        const offset = dropIndex - dragStartIndex
-        setDragStartIndex(null)
-        setDragStartUuid(null)
+        const offset = item.hoverIndex - item.startIndex
         if (offset === 0) return
         setLoading(true)
-        await booksMoveOffsetRouter.action({ uuid: dragStartUuid, offset })
+        await booksMoveOffsetRouter.action({ uuid: item.uuid, offset })
         reload()
         setLoading(false)
       })
     },
-    [books, dragStartIndex, dragStartUuid, reload]
+    [books, reload]
   )
+
+  const onCancel = useCallback(() => {
+    resetBooks()
+  }, [resetBooks])
+
+  const onRemove = useCallback(
+    (uuid: string) => {
+      resetBooks()
+      const book = books?.find((book) => book.uuid === uuid)
+      if (!book) return
+      removeBooks([book])
+    },
+    [books, removeBooks, resetBooks]
+  )
+
+  const OperationBtnGroup = useMemo(() => {
+    return (
+      !!selectedUuids.length && (
+        <ButtonGroup>
+          <>
+            <Button
+              color="secondary"
+              onClick={() => {
+                async(async () => {
+                  for (const book of [...selectedBooks].reverse()) {
+                    await booksMoveTopRouter.action({
+                      uuid: book.uuid,
+                    })
+                  }
+                  reload()
+                })
+              }}
+            >
+              {t('top')}
+            </Button>
+            <Button
+              color="error"
+              onClick={() => {
+                removeBooks(selectedBooks)
+              }}
+            >
+              {t('remove')}
+            </Button>
+          </>
+        </ButtonGroup>
+      )
+    )
+  }, [reload, removeBooks, selectedBooks, selectedUuids.length])
+
+  const TopRightBar = useMemo(() => {
+    return (
+      <>
+        <BookRemoveButton onRemove={onRemove}></BookRemoveButton>
+        {OperationBtnGroup}
+      </>
+    )
+  }, [OperationBtnGroup, onRemove])
+
+  useAppBarSync({
+    topRight: TopRightBar,
+  })
 
   if (loading || !dataBooks || !books) return <CircularProgress />
 
@@ -319,6 +394,7 @@ export function BookList() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell></TableCell>
               <TableCell padding="checkbox">
                 <Checkbox
                   title={t('all')}
@@ -330,55 +406,7 @@ export function BookList() {
                 ></Checkbox>
               </TableCell>
               <TableCell>{t('bookName')}</TableCell>
-              <TableCell>
-                {!!selectedUuids.length && (
-                  <ButtonGroup>
-                    <>
-                      <Button
-                        color="secondary"
-                        onClick={() => {
-                          async(async () => {
-                            for (const book of [...selectedBooks].reverse()) {
-                              await booksMoveTopRouter.action({
-                                uuid: book.uuid,
-                              })
-                            }
-                            reload()
-                          })
-                        }}
-                      >
-                        {t('top')}
-                      </Button>
-                      <Button
-                        color="error"
-                        onClick={() => {
-                          confirm({
-                            title: t('remove'),
-                            description: (
-                              <ul>
-                                {selectedBooks.map((book) => (
-                                  <li key={book.uuid}>{book.name}</li>
-                                ))}
-                              </ul>
-                            ),
-                          })
-                            .then(async () => {
-                              for (const book of selectedBooks) {
-                                await booksRemoveRouter.action({
-                                  uuid: book.uuid,
-                                })
-                              }
-                              reload()
-                            })
-                            .catch(console.error)
-                        }}
-                      >
-                        {t('remove')}
-                      </Button>
-                    </>
-                  </ButtonGroup>
-                )}
-              </TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -388,8 +416,9 @@ export function BookList() {
                   book={book}
                   books={books}
                   index={index}
-                  onMove={onMove}
+                  onHoverMove={onHoverMove}
                   onDrop={onDrop}
+                  onCancel={onCancel}
                   lastSelectedIndex={lastSelectedIndex}
                   setLastSelectedIndex={setLastSelectedIndex}
                   selectedUuids={selectedUuids}
