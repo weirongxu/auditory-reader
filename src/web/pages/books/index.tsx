@@ -1,10 +1,11 @@
-import { DragIndicator } from '@mui/icons-material'
+import { Add, DragIndicator } from '@mui/icons-material'
 import {
   Button,
   ButtonGroup,
   Checkbox,
   Chip,
   CircularProgress,
+  IconButton,
   Pagination,
   Paper,
   Stack,
@@ -366,8 +367,22 @@ export function BookList() {
     )
   }, [OperationBtnGroup, onRemove])
 
+  const AddBtn = useMemo(
+    () => (
+      <LinkWrap to="/books/add">
+        {(href) => (
+          <IconButton href={href} title={t('add')}>
+            <Add />
+          </IconButton>
+        )}
+      </LinkWrap>
+    ),
+    []
+  )
+
   useAppBarSync({
     topRight: TopRightBar,
+    bottomRight: AddBtn,
   })
 
   if (loading || !dataBooks || !books) return <CircularProgress />

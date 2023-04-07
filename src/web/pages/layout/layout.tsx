@@ -1,4 +1,4 @@
-import { Add, MenuBook, Settings } from '@mui/icons-material'
+import { MenuBook, Settings } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -44,16 +44,6 @@ export const Layout = (props: { children?: React.ReactNode }) => {
     [theme]
   )
 
-  const AddBtn = (
-    <LinkWrap to="/books/add">
-      {(href) => (
-        <IconButton href={href} title={t('add')}>
-          <Add />
-        </IconButton>
-      )}
-    </LinkWrap>
-  )
-
   const appBar = (
     <Stack
       className={[styles.appBar, 'top'].join(' ')}
@@ -93,7 +83,6 @@ export const Layout = (props: { children?: React.ReactNode }) => {
       </Stack>
       <Stack direction="row" alignItems="center" spacing={1}>
         {appBarStates.bottomRight}
-        {appBarStates.isIdle && AddBtn}
         <Stack direction="row" alignItems="center">
           <IconButton
             onClick={() => {
