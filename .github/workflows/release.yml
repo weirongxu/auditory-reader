@@ -1,4 +1,4 @@
-name: auditory-reader CI deploy
+name: auditory-reader CI release
 
 on:
   push:
