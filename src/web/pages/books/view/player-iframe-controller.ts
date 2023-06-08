@@ -134,7 +134,7 @@ export class PlayerIframeController {
   async tryManipulateDOM(callback: () => any) {
     setTimeout(() => {
       Promise.resolve(callback()).catch(console.error)
-    })
+    }, 100)
   }
 
   getReadablePartIndexByAnchorId(anchorId: string): number | null {
@@ -297,12 +297,10 @@ export class PlayerIframeController {
     if (!force && absPath === this.#curAbsPath) return
     this.#curAbsPath = absPath
 
-    iframe.src = getBooksRenderPath(this.bookType, this.book.item.uuid, absPath)
-
     try {
       iframe.style.visibility = 'hidden'
       this.states.loading = true
-      await new Promise<void>((resolve) => {
+      const loaded = new Promise<void>((resolve) => {
         iframe.addEventListener(
           'load',
           () => {
@@ -311,6 +309,12 @@ export class PlayerIframeController {
           { once: true }
         )
       })
+      iframe.src = getBooksRenderPath(
+        this.bookType,
+        this.book.item.uuid,
+        absPath
+      )
+      await loaded
 
       const doc = iframe.contentDocument
       if (!doc) return console.error('iframe load failed')
