@@ -66,6 +66,10 @@ export class PlayerIframeController {
   splitPageList?: SplitPageNode[]
   splitPageCurPageIndex?: number
   splitPageCurPage?: SplitPageNode
+  splitPageFocusedNode?: {
+    paragraph: number
+    readablePart: ReadablePart
+  }
   win?: Window
   doc?: Document
   scrollContainer?: HTMLElement
@@ -89,17 +93,6 @@ export class PlayerIframeController {
     return !this.#isVertical
   }
 
-  get splitPageType(): 'none' | 'double' | 'single' {
-    if (this.states.splitPage === 'auto') {
-      if (this.win) {
-        return this.win.innerWidth > 700 ? 'double' : 'single'
-      } else {
-        return 'single'
-      }
-    }
-    return this.states.splitPage
-  }
-
   constructor(
     protected player: Player,
     protected states: PlayerStatesManager,
@@ -119,6 +112,7 @@ export class PlayerIframeController {
     this.states.events.on('pos', () => {
       this.paragraphActive()
       this.updateFocusedNavs()
+      this.updateSplitPageFocusedNode()
     })
 
     let firstSplitPageChanged = true
@@ -129,6 +123,35 @@ export class PlayerIframeController {
       }
       if (this.iframe) await this.load(true)
     })
+  }
+
+  splitPageType(): 'none' | 'double' | 'single' {
+    if (this.states.splitPage === 'auto') {
+      if (this.win) {
+        return this.win.innerWidth > 700 ? 'double' : 'single'
+      } else {
+        return 'single'
+      }
+    }
+    return this.states.splitPage
+  }
+
+  updateSplitPageFocusedNode() {
+    if (this.splitPageList) {
+      const paragraph = this.states.pos.paragraph
+      const [curSplitPage, curSplitPageIndex] = findLastPair(
+        this.splitPageList,
+        (page) => !!page.top && page.top.paragraph <= paragraph
+      )
+      if (curSplitPageIndex === this.splitPageCurPageIndex) {
+        this.splitPageFocusedNode = {
+          paragraph,
+          readablePart: this.readableParts[paragraph],
+        }
+      } else if (curSplitPage?.top) {
+        this.splitPageFocusedNode = curSplitPage.top
+      }
+    }
   }
 
   async tryManipulateDOM(callback: () => any) {
@@ -234,50 +257,53 @@ export class PlayerIframeController {
     if (!this.splitPageCount) return
     if (!this.splitPageList) return
 
-    let endPage: number
+    let goalPage: number
     if (this.#pushSplitPageLast) {
-      endPage = this.#pushSplitPageLast.page + offsetPage
+      goalPage = this.#pushSplitPageLast.page + offsetPage
     } else {
-      endPage = this.splitPageCurPageIndex + offsetPage
+      goalPage = this.splitPageCurPageIndex + offsetPage
     }
 
-    // exceed range
+    // exceed section range
     if (jump) {
-      if (endPage < 0) {
+      if (goalPage < 0) {
         return await this.player.prevSection(-1)
-      } else if (endPage >= this.splitPageCount) {
+      } else if (goalPage >= this.splitPageCount) {
         return await this.player.nextSection(0)
       }
     } else {
-      if (endPage < 0) endPage = 0
-      else if (endPage >= this.splitPageCount) endPage = this.splitPageCount - 1
+      if (goalPage < 0) goalPage = 0
+      else if (goalPage >= this.splitPageCount)
+        goalPage = this.splitPageCount - 1
     }
 
     this.#pushSplitPageLast?.abortCtrl.abort()
     const abortCtrl = new AbortController()
     this.#pushSplitPageLast = {
       abortCtrl,
-      page: endPage,
+      page: goalPage,
     }
 
-    const endLeft = endPage * this.splitPageWidth
+    const goalLeft = goalPage * this.splitPageWidth
     if (jump) {
       let paragraph: number | undefined = undefined
       if (offsetPage < 0) {
         paragraph = findLast(
           this.splitPageList,
-          (page) => !!page.top && page.scrollLeft <= endLeft
+          (page) => !!page.top && page.scrollLeft <= goalLeft
         )?.top?.paragraph
       } else {
         paragraph = find(
           this.splitPageList,
-          (page) => !!page.top && page.scrollLeft >= endLeft
+          (page) => !!page.top && page.scrollLeft >= goalLeft
         )?.top?.paragraph
       }
       if (paragraph !== undefined) await this.player.gotoParagraph(paragraph)
     } else {
-      await this.scrollToPageByLeft(endLeft, { abortCtrl })
+      await this.scrollToPageByLeft(goalLeft, { abortCtrl })
     }
+
+    this.updateSplitPageFocusedNode()
 
     this.#pushSplitPageLast = undefined
   }
@@ -396,10 +422,10 @@ export class PlayerIframeController {
               if (!this.win || !this.scrollContainer) return
               this.splitPageTypeUpdate(doc)
               await this.splitPageCalcuate(win, doc, this.scrollContainer)
-              if (this.splitPageCurPage?.top)
-                await this.scrollToElem(
-                  this.splitPageCurPage.top.readablePart.elem
-                )
+              const focusedNode =
+                this.splitPageFocusedNode ?? this.splitPageCurPage?.top
+              if (focusedNode)
+                await this.scrollToElem(focusedNode.readablePart.elem)
               else
                 await this.scrollToPageByLeft(this.scrollContainer.scrollLeft)
             })
@@ -408,7 +434,7 @@ export class PlayerIframeController {
 
         this.hookPageTouch()
         this.hookPageWheel()
-        this.hookPageEvents()
+        this.hookPageScroll()
       } else {
         this.parsePageResizeImgs(doc)
       }
@@ -660,7 +686,7 @@ export class PlayerIframeController {
     })
   }
 
-  hookPageEvents() {
+  hookPageScroll() {
     const win = this.win
     const scrollContainer = this.scrollContainer
     if (!win || !scrollContainer) return
@@ -685,7 +711,7 @@ export class PlayerIframeController {
 
   splitPageTypeUpdate(doc: Document) {
     // column count
-    const columnCount = this.splitPageType === 'single' ? 1 : 2
+    const columnCount = this.splitPageType() === 'single' ? 1 : 2
     const html = doc.documentElement
     html.style.setProperty('--main-column-count', columnCount.toString())
   }
@@ -704,7 +730,7 @@ export class PlayerIframeController {
 
     // fix column double last page
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
-    if (this.splitPageType === 'double') {
+    if (this.splitPageType() === 'double') {
       count = Math.round((2 * scrollWidth) / width)
       if (count % 2 === 1) {
         // add empty page & refresh the scrollWidth
@@ -733,14 +759,14 @@ export class PlayerIframeController {
   }
 
   private parsePageResizeImgs(doc: Document) {
-    if (this.splitPageType === 'none') {
+    if (this.splitPageType() === 'none') {
       for (const img of doc.querySelectorAll('img')) {
         img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     } else {
       if (!this.splitPageWidth || !this.win) return
       const width =
-        this.splitPageWidth / (this.splitPageType === 'double' ? 2 : 1)
+        this.splitPageWidth / (this.splitPageType() === 'double' ? 2 : 1)
       const pageWHRate = width / this.win.innerHeight
       for (const img of doc.querySelectorAll('img')) {
         img.classList.add(
@@ -794,6 +820,7 @@ export class PlayerIframeController {
     }
     this.paragraphActive()
     this.updateFocusedNavs()
+    this.updateSplitPageFocusedNode()
   }
 
   #paragraphLastActive?: ReadablePart
