@@ -1,4 +1,4 @@
-name: auditory-reader CI
+name: auditory-reader CI deploy
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
           node-version: 16
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 7
       - run: pnpm install
       - run: pnpm predeploy
       - name: Deploy
