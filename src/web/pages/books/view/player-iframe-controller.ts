@@ -16,6 +16,7 @@ import {
 import {
   find,
   findLast,
+  findLastIndex,
   findLastPair,
   findPair,
   range,
@@ -139,17 +140,20 @@ export class PlayerIframeController {
   updateSplitPageFocusedNode() {
     if (this.splitPageList) {
       const paragraph = this.states.pos.paragraph
-      const [curSplitPage, curSplitPageIndex] = findLastPair(
+      const curSplitPageIndex = findLastIndex(
         this.splitPageList,
         (page) => !!page.top && page.top.paragraph <= paragraph
       )
-      if (curSplitPageIndex === this.splitPageCurPageIndex) {
+      if (
+        !this.splitPageCurPageIndex ||
+        curSplitPageIndex === this.splitPageCurPageIndex
+      ) {
         this.splitPageFocusedNode = {
           paragraph,
           readablePart: this.readableParts[paragraph],
         }
-      } else if (curSplitPage?.top) {
-        this.splitPageFocusedNode = curSplitPage.top
+      } else if (this.splitPageCurPage?.top) {
+        this.splitPageFocusedNode = this.splitPageCurPage?.top
       }
     }
   }
