@@ -763,8 +763,10 @@ export class PlayerIframeController {
   }
 
   private parsePageResizeImgs(doc: Document) {
+    const img_classes = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
     if (this.splitPageType() === 'none') {
       for (const img of doc.querySelectorAll('img')) {
+        img.classList.remove(...img_classes)
         img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     } else {
@@ -773,6 +775,7 @@ export class PlayerIframeController {
         this.splitPageWidth / (this.splitPageType() === 'double' ? 2 : 1)
       const pageWHRate = width / this.win.innerHeight
       for (const img of doc.querySelectorAll('img')) {
+        img.classList.remove(...img_classes)
         img.classList.add(
           img.naturalWidth / img.naturalHeight > pageWHRate
             ? IMG_MAX_WIDTH_CLASS
