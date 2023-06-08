@@ -8,6 +8,8 @@ import {
 } from 'react-router-dom'
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
+import { useHotkeys } from '../hotkey/hotkey-state.js'
+import { useSpeechSpeed } from '../store.js'
 import { BooksEntry } from './books/entry.js'
 import { Layout } from './layout/layout.js'
 import { GlobalSnackbar } from './layout/snackbar.js'
@@ -31,6 +33,32 @@ function Books() {
 }
 
 function Main() {
+  const [, setSpeechSpeed] = useSpeechSpeed()
+  const { addHotkeys } = useHotkeys()
+  const nav = useNavigate()
+
+  // hotkey
+  useEffect(() => {
+    const dispose = addHotkeys([
+      // TODO display
+      ['[', () => setSpeechSpeed((v) => (v * 10 - 1) / 10)],
+      [']', () => setSpeechSpeed((v) => (v * 10 + 1) / 10)],
+      [
+        'u',
+        () => {
+          nav(-1)
+        },
+      ],
+      [
+        'r',
+        () => {
+          location.reload()
+        },
+      ],
+    ])
+    return dispose
+  })
+
   return (
     <Routes>
       <Route path="/login" element={<Login />}></Route>

@@ -32,7 +32,7 @@ function replaceScan(
 
 function replacePersonText(text: string): string {
   for (const [key, value] of Object.entries(ZH_PERSON_RULES)) {
-    text = replaceScan(text, key, value)
+    text = replaceScan(text, key, value.word)
   }
   return text
 }

@@ -34,8 +34,8 @@ export function useViewer(props: BookContextProps) {
   useEffect(() => {
     const dispose = addHotkeys([
       [' ', () => player.toggle()],
-      ['shift+arrowleft', () => player.prevSection()],
-      ['shift+arrowright', () => player.nextSection()],
+      [{ shift: true, key: 'arrowleft' }, () => player.prevSection()],
+      [{ shift: true, key: 'arrowright' }, () => player.nextSection()],
       ['arrowleft', () => player.prevPage(1, true)],
       ['arrowright', () => player.nextPage(1, true)],
       ['pageup', () => player.prevPage(1, false)],

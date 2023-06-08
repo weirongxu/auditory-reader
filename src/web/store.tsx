@@ -1,5 +1,5 @@
 import { isBrowser } from '@react-hookz/web/cjs/util/const'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, SetStateAction, Dispatch } from 'react'
 import type { BookTypes } from '../core/book/types.js'
 import { sortBy } from '../core/util/collection.js'
 import { createGlobalState } from './hooks/createGlobalState.js'
@@ -20,20 +20,26 @@ function createStore<T>(options: {
   storeKey: string
   read: (value: string | null) => T
   write: (value: T) => string | null
-}): () => [T, (value: T) => void] {
+}): () => [T, Dispatch<SetStateAction<T>>] {
   const { storeKey, read, write } = options
   const getOriginStoredValue = () => localStorage.getItem(storeKey)
   const { useGlobalState } = createGlobalState<T>(read(getOriginStoredValue()))
   return () => {
     const [inner, setInner] = useGlobalState()
-    const setValue = useCallback(
-      (value: T) => {
+    const setValue: Dispatch<SetStateAction<T>> = useCallback(
+      (getValue: SetStateAction<T>): void => {
+        let value: T
+        if (typeof getValue === 'function') {
+          value = (getValue as any)(inner)
+        } else {
+          value = getValue
+        }
         setInner(value)
         const writeValue = write(value)
         if (writeValue) localStorage.setItem(storeKey, writeValue)
         else localStorage.removeItem(storeKey)
       },
-      [setInner]
+      [inner, setInner]
     )
     return [inner, setValue]
   }

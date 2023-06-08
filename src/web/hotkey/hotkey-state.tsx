@@ -2,33 +2,69 @@ import { useCallback, useEffect } from 'react'
 import { isInputElement } from '../../core/util/dom.js'
 import { createGlobalState } from '../hooks/createGlobalState.js'
 
-type HotkeysMap = Map<string, (() => void)[]>
+type Hotkey =
+  | string
+  | {
+      ctrl?: boolean
+      shift?: boolean
+      alt?: boolean
+      key: string
+    }
+  | Hotkey[]
 
-const hotkeysMap: HotkeysMap = new Map()
+type HotkeyCallback = () => void
+type HotkeysList = [key: string, callbacks: HotkeyCallback[]][]
+
+const sequenceSymbol = ' '
+const hotkeysList: HotkeysList = []
+let curKeySeq = ''
+const seqTimeout = 1000
 
 export const {
   useGlobalState: useHotkeyIframeWin,
   setGlobalState: setHotkeyIframeWin,
 } = createGlobalState<{ win: Window | null }>({ win: null })
 
+function getHotkeyKey(hotkey: Hotkey): string {
+  if (Array.isArray(hotkey)) {
+    return hotkey.map(getHotkeyKey).join(sequenceSymbol)
+  } else if (typeof hotkey === 'string') {
+    return hotkey.toLowerCase()
+  } else {
+    let s = ''
+    if (hotkey.shift) s += 'shift+'
+    if (hotkey.ctrl) s += 'ctrl+'
+    if (hotkey.alt) s += 'alt+'
+    s += hotkey.key.toLowerCase()
+    return s
+  }
+}
+
 export function useHotkeys() {
-  const addHotkey = useCallback((hotkey: string, callback: () => void) => {
-    let callbacks = hotkeysMap.get(hotkey)
-    if (!callbacks) {
-      callbacks = []
-      hotkeysMap.set(hotkey, callbacks)
+  const addHotkey = useCallback((hotkeys: Hotkey, callback: () => void) => {
+    const key = getHotkeyKey(hotkeys)
+    let callbacks: HotkeyCallback[]
+
+    let itemOrNil = hotkeysList.find(([k]) => k === key)
+    if (!itemOrNil) {
+      callbacks = [callback]
+      itemOrNil = [key, callbacks]
+      hotkeysList.push(itemOrNil)
+    } else {
+      itemOrNil[1].push(callback)
     }
-    callbacks.push(callback)
+    const item = itemOrNil
     return function dispose() {
-      if (callbacks) {
-        callbacks = callbacks.filter((c) => c !== callback)
-        if (!callbacks.length) hotkeysMap.delete(hotkey)
+      item[1] = item[1].filter((c) => c !== callback)
+      if (!item[1].length) {
+        const i = hotkeysList.findIndex((it) => it === itemOrNil)
+        if (i !== -1) hotkeysList.splice(i, 1)
       }
     }
   }, [])
 
   const addHotkeys = useCallback(
-    (hotkeys: [hotkey: string, callback: () => void][]) => {
+    (hotkeys: [hotkey: Hotkey, callback: () => void][]) => {
       const disposes: (() => void)[] = []
       for (const [hotkey, callback] of hotkeys) {
         disposes.push(addHotkey(hotkey, callback))
@@ -43,15 +79,35 @@ export function useHotkeys() {
   return { addHotkey, addHotkeys }
 }
 
+let sequenceTimer: ReturnType<typeof setTimeout> | undefined = undefined
+
 function getListener() {
   return (e: KeyboardEvent) => {
     if (isInputElement(e.target)) return
-    if (e.altKey || e.ctrlKey) return
-    const key = `${e.shiftKey ? 'shift+' : ''}${e.key.toLowerCase()}`
-    const cbs = hotkeysMap.get(key)
-    if (cbs) {
-      e.preventDefault()
-      for (const cb of cbs) {
+    const hotkey: Hotkey = {
+      shift: e.shiftKey,
+      ctrl: e.ctrlKey,
+      alt: e.altKey,
+      key: e.key.toLowerCase(),
+    }
+    const triggeredKey = getHotkeyKey(hotkey)
+    // eslint-disable-next-line no-console
+    console.log('triggered-key:', triggeredKey)
+    const fullKey = curKeySeq + triggeredKey
+    const fullSubKey = fullKey + sequenceSymbol
+    const targetRet = hotkeysList.find(([key]) => key === fullKey)
+    const hasSubRet = hotkeysList.find(([key]) => key.startsWith(fullSubKey))
+    if (!targetRet && !hasSubRet) return
+    e.preventDefault()
+    curKeySeq = ''
+    clearTimeout(sequenceTimer)
+    if (hasSubRet) {
+      curKeySeq = fullSubKey
+      sequenceTimer = setTimeout(() => {
+        curKeySeq = ''
+      }, seqTimeout)
+    } else if (targetRet) {
+      for (const cb of targetRet[1]) {
         cb()
       }
     }

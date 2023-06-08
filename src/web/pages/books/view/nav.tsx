@@ -37,6 +37,8 @@ export function useBookViewNav(
             return (
               <li
                 key={idx}
+                data-href={nav.href}
+                data-spine-index={nav.spineIndex}
                 onClick={(event) => {
                   event.stopPropagation()
                   if (nav.href)

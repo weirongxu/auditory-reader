@@ -16,7 +16,16 @@ export const IGNORE_TAGS = [
 ]
 
 export const ZH_PERSON_RULES = {
-  妳: '乃', // nai
-  她: '伊', // yi
-  它: '牠', // tuo
+  妳: {
+    word: '乃',
+    pinyin: 'naǐ',
+  },
+  她: {
+    word: '伊',
+    pinyin: 'yī',
+  },
+  它: {
+    word: '牠',
+    pinyin: 'tuó',
+  },
 }

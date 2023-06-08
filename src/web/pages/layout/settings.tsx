@@ -153,7 +153,7 @@ function PersonReplaceCheckBox(props: {
             {Object.entries(ZH_PERSON_RULES).map(([from, to], idx) => {
               return (
                 <ListItem key={idx}>
-                  {from} <ArrowRight /> {to}
+                  {from} <ArrowRight /> {to.word} {to.pinyin}
                 </ListItem>
               )
             })}
@@ -196,7 +196,7 @@ const PlaySpeed = () => {
         ></Slider>
         <TextField
           type="number"
-          defaultValue={speechSpeed}
+          value={speechSpeed}
           onChange={(e) => {
             const f = parseFloat(e.target.value)
             if (!isNaN(f)) setSpeechSpeed(f)

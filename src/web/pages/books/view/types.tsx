@@ -12,7 +12,7 @@ export type BookContextProps = {
 
 interface ReadablePartBase {
   elem: HTMLElement
-  hash?: string
+  hashes?: string[]
 }
 
 export interface ReadablePartText extends ReadablePartBase {

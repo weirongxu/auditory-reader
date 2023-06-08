@@ -132,29 +132,25 @@ export class PlayerIframeController {
   }
 
   async tryManipulateDOM(callback: () => any) {
-    if (this.states.canManipulateDOM) await callback()
-    else
-      setTimeout(() => {
-        Promise.resolve(callback()).catch(console.error)
-      })
+    setTimeout(() => {
+      Promise.resolve(callback()).catch(console.error)
+    })
   }
 
-  getAnchorIdElem(anchorId: string) {
-    if (!anchorId) return
+  getReadablePartIndexByAnchorId(anchorId: string): number | null {
+    if (!anchorId) return null
     // goto anchorId
     const doc = this.doc
-    if (!doc) return
+    if (!doc) return null
     try {
-      const anchorEl = doc.querySelector(`#${anchorId}`)
-      if (!anchorEl) return
-      return (
-        anchorEl.querySelector(`.${PARA_BOX_CLASS}`) ??
-        anchorEl.closest(`.${PARA_BOX_CLASS}`) ??
-        anchorEl
-      )
+      const index = this.readableParts.findIndex((part) => {
+        if (part.hashes?.includes(anchorId)) return true
+      })
+      return index === -1 ? null : index
     } catch {
       // ignore selector syntax error
     }
+    return null
   }
 
   async scrollToCurParagraph(animated = true) {
@@ -336,20 +332,13 @@ export class PlayerIframeController {
     if (spineIndex === -1) return
     await this.loadByPath(urlMain)
 
-    const targetElem = this.getAnchorIdElem(anchorId)
-    if (!targetElem) {
+    const elemIndex = this.getReadablePartIndexByAnchorId(anchorId)
+    if (elemIndex == null) {
       this.states.pos = {
         section: spineIndex,
         paragraph: 0,
       }
       await this.scrollToCurParagraph()
-      return
-    }
-
-    const elemIndex = this.readableParts.findIndex(
-      (el) => el.elem === targetElem
-    )
-    if (elemIndex === -1) {
       return
     }
 
@@ -846,22 +835,22 @@ export class PlayerIframeController {
       return
     }
 
-    const existsHashSet = new Set(
-      navs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
-    )
-
     const readableParts = this.readableParts
     // last hash from iframe page
-    const lastHash = findLast(
+    const lastHashes = findLast(
       readableParts.slice(0, this.states.pos.paragraph + 1),
-      (part) => Boolean(part.hash) && existsHashSet.has(part.hash)
-    )?.hash
+      (part) => !!part.hashes
+    )?.hashes
+    const lastHash =
+      lastHashes && lastHashes.length > 0
+        ? lastHashes[lastHashes.length - 1]
+        : null
     if (!lastHash) {
       this.states.focusedNavs = [navs[0]]
       return
     }
 
-    // find nav is equal last hash
+    // find nav and index is equal last hash
     const [matchedNav, matchedNavIndex] = findPair(
       navs,
       (nav) => nav.hrefHash === lastHash
@@ -871,6 +860,7 @@ export class PlayerIframeController {
       return
     }
 
+    // find all parent navs
     const matchedNavs: BookNav[] = [matchedNav]
     let index = matchedNavIndex - 1
     let level = matchedNav.level - 1

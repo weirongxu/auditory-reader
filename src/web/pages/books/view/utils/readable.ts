@@ -19,7 +19,7 @@ export function* walkerNode(root: HTMLElement) {
 
 const isBlockElem = (elem: HTMLElement) => {
   const display = getComputedStyle(elem).getPropertyValue('display')
-  return display !== 'inline'
+  return !['inline', 'inline-block'].includes(display)
 }
 
 const getParentBlockElem = (
@@ -69,6 +69,16 @@ function getNavHashes(navs: BookNav[]): string[] {
 export const getReadableParts = (doc: Document, navs: BookNav[]) => {
   const blockElemSet = new Set<HTMLElement>()
   const readableParts: ReadablePart[] = []
+  const navExistHashSet = new Set(
+    navs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
+  )
+  let curHashes: undefined | string[]
+
+  const popCurHashes = () => {
+    const popHashes = curHashes
+    curHashes = undefined
+    return popHashes
+  }
 
   const pushTextPart = (elem: HTMLElement) => {
     elem.classList.add(PARA_BOX_CLASS)
@@ -79,6 +89,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
         elem,
         type: 'text',
         text: textContent,
+        hashes: popCurHashes(),
       })
     }
   }
@@ -88,19 +99,34 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
     readableParts.push({
       elem,
       type: 'image',
+      hashes: popCurHashes(),
     })
   }
 
   // walk
   for (const node of walkerNode(doc.body)) {
+    // hashes
+    if (node instanceof HTMLElement) {
+      if (node.id && navExistHashSet.has(node.id)) {
+        curHashes ??= []
+        curHashes.push(node.id)
+      }
+    }
+
+    // image
     if (node instanceof HTMLImageElement) {
       pushImagePart(node)
       continue
     }
+
+    // not text
     if (!(node instanceof Text)) continue
 
+    // no content
     const content = node.textContent?.trim()
     if (!content) continue
+
+    // no parent
     const blockElem = getParentBlockElem(node.parentElement)
     if (!blockElem) continue
 
@@ -110,6 +136,7 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
       continue
     }
 
+    // ignore class
     if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
 
     // avoid duplicated
@@ -128,25 +155,25 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
     }
   }
 
-  // nav hash
-  const navHashes = getNavHashes(navs)
-  const navHashMap = new Map(
-    compact(
-      navHashes.map((h) => {
-        try {
-          const hashTarget = doc.querySelector(`#${h}`)
-          const elem = hashTarget?.closest(`.${PARA_BOX_CLASS}`)
-          if (elem) {
-            return [elem, h] as const
-          }
-        } catch {
-          // ignore valid selector
-        }
-      })
-    )
-  )
-  for (const readablePart of readableParts) {
-    readablePart.hash = navHashMap.get(readablePart.elem)
-  }
+  // // nav hash
+  // const navHashes = getNavHashes(navs)
+  // const navHashMap = new Map(
+  //   compact(
+  //     navHashes.map((h) => {
+  //       try {
+  //         const hashTarget = doc.querySelector(`#${h}`)
+  //         const elem = hashTarget?.closest(`.${PARA_BOX_CLASS}`)
+  //         if (elem) {
+  //           return [elem, h] as const
+  //         }
+  //       } catch {
+  //         // ignore valid selector
+  //       }
+  //     })
+  //   )
+  // )
+  // for (const readablePart of readableParts) {
+  //   readablePart.hashes = navHashMap.get(readablePart.elem)
+  // }
   return readableParts
 }

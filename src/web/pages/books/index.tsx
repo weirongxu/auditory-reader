@@ -19,18 +19,21 @@ import {
 } from '@mui/material'
 import { t } from 'i18next'
 import { useConfirm } from 'material-ui-confirm'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveOffsetRouter } from '../../../core/api/books/move-offset.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
+import type { BookPage } from '../../../core/api/books/page.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
 
@@ -40,6 +43,14 @@ type DragItem = {
   uuid: string
   startIndex: number
   hoverIndex: number
+}
+
+function viewPath(uuid: string) {
+  return `/books/view/${uuid}`
+}
+
+function editPath(uuid: string) {
+  return `/books/edit/${uuid}`
 }
 
 function useRemoveBooks(reload: () => void) {
@@ -73,30 +84,249 @@ function useRemoveBooks(reload: () => void) {
   return removeBooks
 }
 
+function useSelector(books: BookTypes.Entity[] | null) {
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number>()
+  const [selectedUuids, setSelectedUuids] = useState<string[]>([])
+
+  const selectedBooks = useMemo(
+    () => books?.filter((book) => selectedUuids.includes(book.uuid)) ?? [],
+    [books, selectedUuids]
+  )
+
+  const allSelected = useMemo(
+    () => books?.every((book) => selectedUuids.includes(book.uuid)),
+    [books, selectedUuids]
+  )
+
+  // if books reload, cancel selected
+  useEffect(() => {
+    if (books) setSelectedUuids([])
+  }, [books])
+
+  const selectTo = useCallback(
+    (index: number, shift: boolean) => {
+      const book = books?.[index]
+      if (!book) return
+      setLastSelectedIndex(index)
+      let checked = false
+      let targetUuids: string[]
+      if (
+        lastSelectedIndex !== undefined &&
+        lastSelectedIndex !== index &&
+        shift
+      ) {
+        if (lastSelectedIndex < index)
+          targetUuids = books
+            .slice(lastSelectedIndex, index + 1)
+            .map((it) => it.uuid)
+        else
+          targetUuids = books
+            .slice(index, lastSelectedIndex + 1)
+            .map((it) => it.uuid)
+        checked = true
+      } else {
+        targetUuids = [book.uuid]
+        checked = !selectedUuids.includes(book.uuid)
+      }
+
+      let tmpUuids = [...selectedUuids]
+      for (const targetUuid of targetUuids) {
+        if (checked) {
+          if (!tmpUuids.includes(targetUuid))
+            tmpUuids = [...tmpUuids, targetUuid]
+        } else {
+          tmpUuids = tmpUuids.filter((uuid) => uuid !== targetUuid)
+        }
+        setSelectedUuids(tmpUuids)
+      }
+    },
+    [books, lastSelectedIndex, selectedUuids]
+  )
+
+  const selectAll = useCallback(() => {
+    if (allSelected) setSelectedUuids([])
+    else setSelectedUuids(books?.map((book) => book.uuid) ?? [])
+  }, [allSelected, books])
+
+  return {
+    selectedBooks,
+    allSelected,
+    selectedUuids,
+    selectTo,
+    selectAll,
+  }
+}
+
+function useHomeHotKeys({
+  setPage,
+  dataBooks,
+  selectTo,
+  selectAll,
+  setLoading,
+  reload,
+  removeBooks,
+}: {
+  setPage: Dispatch<SetStateAction<number | undefined>>
+  dataBooks: BookPage | null
+  selectTo: (index: number, shift: boolean) => void
+  selectAll: () => void
+  setLoading: Dispatch<SetStateAction<boolean>>
+  reload: () => void
+  removeBooks: (books: BookTypes.Entity[]) => void
+}) {
+  const [activedIndex, setActivedIndex] = useState(0)
+  const { addHotkeys } = useHotkeys()
+  const nav = useNavigate()
+
+  const currentBook = useMemo(
+    () => dataBooks?.items[activedIndex],
+    [activedIndex, dataBooks]
+  )
+
+  useEffect(() => {
+    const count = dataBooks?.items.length ?? 0
+
+    const goUp = () => {
+      setActivedIndex((activedIndex) =>
+        activedIndex > 0 ? activedIndex - 1 : 0
+      )
+    }
+
+    const goTop = () => {
+      setActivedIndex(0)
+    }
+
+    const goDown = () => {
+      setActivedIndex((activedIndex) =>
+        activedIndex < count - 1 ? activedIndex + 1 : activedIndex
+      )
+    }
+
+    const goBottom = () => {
+      setActivedIndex(count - 1)
+    }
+
+    const pagePrev = () => {
+      setPage((page) => (page && page > 1 ? page - 1 : 1))
+    }
+
+    const pageNext = () => {
+      if (dataBooks)
+        setPage((page) =>
+          page
+            ? page < dataBooks.pageCount
+              ? page + 1
+              : dataBooks.pageCount
+            : 2
+        )
+    }
+
+    const moveUp = async () => {
+      if (!currentBook) return
+      goUp()
+      // TODO flash and support selected
+      setLoading(true)
+      await booksMoveOffsetRouter.action({
+        uuid: currentBook.uuid,
+        offset: -1,
+      })
+      reload()
+      setLoading(false)
+    }
+
+    const moveDown = async () => {
+      if (!currentBook) return
+      goDown()
+      // TODO flash and support selected
+      setLoading(true)
+      await booksMoveOffsetRouter.action({
+        uuid: currentBook.uuid,
+        offset: 1,
+      })
+      reload()
+      setLoading(false)
+    }
+
+    const select = (shift: boolean) => {
+      selectTo(activedIndex, shift)
+    }
+
+    const removeBook = () => {
+      if (currentBook) removeBooks([currentBook])
+    }
+
+    const dispose = addHotkeys([
+      ['j', goDown],
+      ['k', goUp],
+      ['arrowdown', goDown],
+      ['arrowup', goUp],
+      ['h', pagePrev],
+      ['l', pageNext],
+      ['arrowleft', pagePrev],
+      ['arrowright', pageNext],
+      [{ shift: true, key: 'j' }, moveDown],
+      [{ shift: true, key: 'k' }, moveUp],
+      [{ shift: true, key: 'arrowdown' }, moveDown],
+      [{ shift: true, key: 'arrowup' }, moveUp],
+      ['e', () => currentBook && nav(editPath(currentBook.uuid))],
+      ['x', () => select(false)],
+      ['v', () => select(false)],
+      [{ shift: true, key: 'x' }, () => select(true)],
+      [{ shift: true, key: 'v' }, () => select(true)],
+      [{ shift: true, key: 'a' }, () => selectAll()],
+      [
+        'Enter',
+        () => {
+          if (!currentBook) return
+          nav(viewPath(currentBook.uuid))
+        },
+      ],
+      [{ shift: true, key: '#' }, removeBook],
+      [['d', 'd'], removeBook],
+      [['g', 'g'], goTop],
+      [{ shift: true, key: 'g' }, goBottom],
+    ])
+    return dispose
+  }, [
+    activedIndex,
+    addHotkeys,
+    currentBook,
+    dataBooks,
+    nav,
+    reload,
+    removeBooks,
+    selectAll,
+    selectTo,
+    setLoading,
+    setPage,
+  ])
+
+  return { activedIndex }
+}
+
 function BookRow({
   index,
+  actived,
   book,
   books,
   onHoverMove,
   onDrop,
   onCancel,
   selectedUuids,
-  setSelectedUuids,
-  lastSelectedIndex,
-  setLastSelectedIndex,
+  selectTo,
 }: {
   index: number
+  actived: boolean
   book: BookTypes.Entity
   books: BookTypes.Entity[]
   onHoverMove: (dragIndex: number, hoverIndex: number) => void
   onDrop: (item: DragItem) => void
   onCancel: () => void
   selectedUuids: string[]
-  setSelectedUuids: (value: string[]) => void
-  lastSelectedIndex: number | undefined
-  setLastSelectedIndex: (value: number) => void
+  selectTo: (index: number, shift: boolean) => void
 }) {
   const nav = useNavigate()
+  const refEl = useRef<HTMLTableRowElement>(null)
 
   const [, drop] = useDrop<DragItem, void>({
     accept: DragType,
@@ -137,9 +367,17 @@ function BookRow({
     },
   })
 
+  useEffect(() => {
+    if (actived)
+      refEl.current?.scrollIntoView({
+        block: 'center',
+      })
+  }, [actived, drop])
+
   const opacity = isDragging ? 0.2 : 1
+  drop(refEl)
   return (
-    <TableRow ref={drop} key={book.uuid} sx={{ opacity }}>
+    <TableRow ref={refEl} key={book.uuid} sx={{ opacity }} selected={actived}>
       <TableCell
         padding="checkbox"
         ref={drag}
@@ -153,38 +391,7 @@ function BookRow({
         <Checkbox
           checked={selectedUuids.includes(book.uuid)}
           onClick={(event) => {
-            setLastSelectedIndex(index)
-            let checked = false
-            let targetUuids: string[]
-            if (
-              lastSelectedIndex !== undefined &&
-              lastSelectedIndex !== index &&
-              event.shiftKey
-            ) {
-              if (lastSelectedIndex < index)
-                targetUuids = books
-                  .slice(lastSelectedIndex, index + 1)
-                  .map((it) => it.uuid)
-              else
-                targetUuids = books
-                  .slice(index, lastSelectedIndex + 1)
-                  .map((it) => it.uuid)
-              checked = true
-            } else {
-              targetUuids = [book.uuid]
-              checked = !selectedUuids.includes(book.uuid)
-            }
-
-            let tmpUuids = [...selectedUuids]
-            for (const targetUuid of targetUuids) {
-              if (checked) {
-                if (!tmpUuids.includes(targetUuid))
-                  tmpUuids = [...tmpUuids, targetUuid]
-              } else {
-                tmpUuids = tmpUuids.filter((uuid) => uuid !== targetUuid)
-              }
-              setSelectedUuids(tmpUuids)
-            }
+            selectTo(index, event.shiftKey)
           }}
         ></Checkbox>
       </TableCell>
@@ -192,14 +399,14 @@ function BookRow({
         className={styles.hover}
         title={book.createdAt.toLocaleString()}
         onClick={() => {
-          nav(`/books/view/${book.uuid}`)
+          nav(viewPath(book.uuid))
         }}
       >
         {book.name}
       </TableCell>
       <TableCell>
         <Stack direction="row">
-          <LinkWrap to={`/books/edit/${book.uuid}`}>
+          <LinkWrap to={editPath(book.uuid)}>
             {(href) => (
               <Button color="success" href={href}>
                 {t('edit')}
@@ -250,8 +457,6 @@ export function BookList() {
   const theme = useTheme()
   const [page, setPage] = useState<number>()
   const { data: dataBooks, reload } = useAction(booksPageRouter, { page })
-  const [lastSelectedIndex, setLastSelectedIndex] = useState<number>()
-  const [selectedUuids, setSelectedUuids] = useState<string[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
   const [books, setBooks] = useState<BookTypes.Entity[] | null>(null)
@@ -262,22 +467,20 @@ export function BookList() {
     resetBooks()
   }, [resetBooks])
 
-  const selectedBooks = useMemo(
-    () => books?.filter((book) => selectedUuids.includes(book.uuid)) ?? [],
-    [books, selectedUuids]
-  )
-
-  const allSelected = useMemo(
-    () => books?.every((book) => selectedUuids.includes(book.uuid)),
-    [books, selectedUuids]
-  )
+  const { selectedBooks, allSelected, selectedUuids, selectTo, selectAll } =
+    useSelector(books)
 
   const removeBooks = useRemoveBooks(reload)
 
-  // if books reload, cancel selected
-  useEffect(() => {
-    if (books) setSelectedUuids([])
-  }, [books])
+  const { activedIndex } = useHomeHotKeys({
+    setPage,
+    dataBooks,
+    setLoading,
+    reload,
+    selectTo,
+    selectAll,
+    removeBooks,
+  })
 
   useEffect(() => {
     if (page) reload()
@@ -415,8 +618,7 @@ export function BookList() {
                   title={t('all')}
                   checked={allSelected}
                   onClick={() => {
-                    if (allSelected) setSelectedUuids([])
-                    else setSelectedUuids(books.map((book) => book.uuid))
+                    selectAll()
                   }}
                 ></Checkbox>
               </TableCell>
@@ -431,13 +633,12 @@ export function BookList() {
                   book={book}
                   books={books}
                   index={index}
+                  actived={activedIndex === index}
                   onHoverMove={onHoverMove}
                   onDrop={onDrop}
                   onCancel={onCancel}
-                  lastSelectedIndex={lastSelectedIndex}
-                  setLastSelectedIndex={setLastSelectedIndex}
+                  selectTo={selectTo}
                   selectedUuids={selectedUuids}
-                  setSelectedUuids={setSelectedUuids}
                   key={book.uuid}
                 ></BookRow>
               )
