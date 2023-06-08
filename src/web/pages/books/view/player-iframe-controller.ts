@@ -405,6 +405,8 @@ export class PlayerIframeController {
         this.hookPageTouch()
         this.hookPageWheel()
         this.hookPageEvents()
+      } else {
+        this.parsePageResizeImgs(doc)
       }
       this.hookALinks(doc)
       this.hookImgs(doc)
@@ -722,22 +724,27 @@ export class PlayerIframeController {
     // eslint-disable-next-line no-console
     console.debug(`splitPageCount: ${this.splitPageCount}`)
 
-    this.parseSplitPageResizeImgs(doc)
+    this.parsePageResizeImgs(doc)
     this.parseSplitPageTopReadableParts(scrollContainer)
   }
 
-  private parseSplitPageResizeImgs(doc: Document) {
-    if (this.splitPageType === 'none' || !this.splitPageWidth || !this.win)
-      return
-    const width =
-      this.splitPageWidth / (this.splitPageType === 'double' ? 2 : 1)
-    const pageWHRate = width / this.win.innerHeight
-    for (const img of doc.querySelectorAll('img')) {
-      img.classList.add(
-        img.naturalWidth / img.naturalHeight > pageWHRate
-          ? IMG_MAX_WIDTH_CLASS
-          : IMG_MAX_HEIGHT_CLASS
-      )
+  private parsePageResizeImgs(doc: Document) {
+    if (this.splitPageType === 'none') {
+      for (const img of doc.querySelectorAll('img')) {
+        img.classList.add(IMG_MAX_WIDTH_CLASS)
+      }
+    } else {
+      if (!this.splitPageWidth || !this.win) return
+      const width =
+        this.splitPageWidth / (this.splitPageType === 'double' ? 2 : 1)
+      const pageWHRate = width / this.win.innerHeight
+      for (const img of doc.querySelectorAll('img')) {
+        img.classList.add(
+          img.naturalWidth / img.naturalHeight > pageWHRate
+            ? IMG_MAX_WIDTH_CLASS
+            : IMG_MAX_HEIGHT_CLASS
+        )
+      }
     }
   }
 
