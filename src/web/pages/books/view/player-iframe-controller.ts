@@ -768,22 +768,26 @@ export class PlayerIframeController {
     for (const img of imgs) {
       img.classList.remove(...img_classes)
     }
+    if (!this.splitPageWidth) return
 
     if (this.splitPageType() === 'none') {
+      const width = this.splitPageWidth
       for (const img of imgs) {
-        img.classList.add(IMG_MAX_WIDTH_CLASS)
+        if (img.width > width) img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     } else {
-      if (!this.splitPageWidth || !this.win) return
+      if (!this.win) return
       const width =
         this.splitPageWidth / (this.splitPageType() === 'double' ? 2 : 1)
-      const pageWHRate = width / this.win.innerHeight
+      const height = this.win.innerHeight
+      const pageWHRate = width / height
       for (const img of imgs) {
-        img.classList.add(
-          img.naturalWidth / img.naturalHeight > pageWHRate
-            ? IMG_MAX_WIDTH_CLASS
-            : IMG_MAX_HEIGHT_CLASS
-        )
+        if (img.width > width || img.height > height)
+          img.classList.add(
+            img.naturalWidth / img.naturalHeight > pageWHRate
+              ? IMG_MAX_WIDTH_CLASS
+              : IMG_MAX_HEIGHT_CLASS
+          )
       }
     }
   }
