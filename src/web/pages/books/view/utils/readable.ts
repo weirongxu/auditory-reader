@@ -66,11 +66,11 @@ function getNavHashes(navs: BookNav[]): string[] {
     .flat()
 }
 
-export const getReadableParts = (doc: Document, navs: BookNav[]) => {
+export const getReadableParts = (doc: Document, flattenedNavs: BookNav[]) => {
   const blockElemSet = new Set<HTMLElement>()
   const readableParts: ReadablePart[] = []
   const navExistHashSet = new Set(
-    navs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
+    flattenedNavs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
   )
   let curHashes: undefined | string[]
 
@@ -155,25 +155,5 @@ export const getReadableParts = (doc: Document, navs: BookNav[]) => {
     }
   }
 
-  // // nav hash
-  // const navHashes = getNavHashes(navs)
-  // const navHashMap = new Map(
-  //   compact(
-  //     navHashes.map((h) => {
-  //       try {
-  //         const hashTarget = doc.querySelector(`#${h}`)
-  //         const elem = hashTarget?.closest(`.${PARA_BOX_CLASS}`)
-  //         if (elem) {
-  //           return [elem, h] as const
-  //         }
-  //       } catch {
-  //         // ignore valid selector
-  //       }
-  //     })
-  //   )
-  // )
-  // for (const readablePart of readableParts) {
-  //   readablePart.hashes = navHashMap.get(readablePart.elem)
-  // }
   return readableParts
 }

@@ -351,7 +351,7 @@ export class PlayerIframeController {
 
       // load readableParts
       this.readableParts = []
-      this.readableParts = getReadableParts(doc, this.book.navs)
+      this.readableParts = getReadableParts(doc, this.flattenedNavs())
 
       await this.onLoaded(iframe)
       iframe.style.visibility = 'visible'
