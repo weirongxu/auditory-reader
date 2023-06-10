@@ -167,7 +167,7 @@ function useHomeHotKeys({
   removeBooks,
 }: {
   setPage: Dispatch<SetStateAction<number | undefined>>
-  dataBooks: BookPage | null
+  dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
   selectAll: () => void
   setLoading: Dispatch<SetStateAction<boolean>>
