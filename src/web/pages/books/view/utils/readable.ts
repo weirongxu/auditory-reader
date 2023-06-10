@@ -58,14 +58,6 @@ function getContentText(elem: HTMLElement) {
   return contentText
 }
 
-function getNavHashes(navs: BookNav[]): string[] {
-  return navs
-    .map((nav) => {
-      return compact([nav.hrefHash, ...getNavHashes(nav.children)])
-    })
-    .flat()
-}
-
 export const getReadableParts = (doc: Document, flattenedNavs: BookNav[]) => {
   const blockElemSet = new Set<HTMLElement>()
   const readableParts: ReadablePart[] = []

@@ -25,8 +25,9 @@ import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitHash } from '../../../../core/util/url.js'
-import { setHotkeyIframeWin } from '../../../hotkey/hotkey-state.js'
-import { setPreviewImgSrc } from '../../../preview-image.js'
+import { hotkeyIframeWinAtom } from '../../../hotkey/hotkey-state.js'
+import { previewImgSrcAtom } from '../../../preview-image.js'
+import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
@@ -401,7 +402,7 @@ export class PlayerIframeController {
       this.win = win
       this.doc = doc
 
-      setHotkeyIframeWin({ win })
+      globalStore.set(hotkeyIframeWinAtom, { win })
 
       this.#isVertical = win
         .getComputedStyle(doc.body)
@@ -596,7 +597,7 @@ export class PlayerIframeController {
         const src = img.src
         if (!src) return
         event.stopPropagation()
-        setPreviewImgSrc(src)
+        globalStore.set(previewImgSrcAtom, src)
       })
     }
 
@@ -605,7 +606,7 @@ export class PlayerIframeController {
         event.stopPropagation()
         async(async () => {
           const dataURL = await svgToDataUri(svg, doc.URL)
-          setPreviewImgSrc(dataURL)
+          globalStore.set(previewImgSrcAtom, dataURL)
         })
       })
     }

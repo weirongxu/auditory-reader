@@ -1,6 +1,6 @@
+import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 import { isInputElement } from '../../core/util/dom.js'
-import { createGlobalState } from '../hooks/createGlobalState.js'
 
 type Hotkey =
   | string
@@ -20,10 +20,7 @@ const hotkeysList: HotkeysList = []
 let curKeySeq = ''
 const seqTimeout = 1000
 
-export const {
-  useGlobalState: useHotkeyIframeWin,
-  setGlobalState: setHotkeyIframeWin,
-} = createGlobalState<{ win: Window | null }>({ win: null })
+export const hotkeyIframeWinAtom = atom<{ win: Window | null }>({ win: null })
 
 function getHotkeyKey(hotkey: Hotkey): string {
   if (Array.isArray(hotkey)) {
@@ -115,7 +112,7 @@ function getListener() {
 }
 
 export function useHotkeysRegister() {
-  const [refWin] = useHotkeyIframeWin()
+  const [refWin] = useAtom(hotkeyIframeWinAtom)
 
   // global
   useEffect(() => {

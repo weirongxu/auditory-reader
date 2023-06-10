@@ -20,8 +20,10 @@ import { PreviewImage } from './preview-image.js'
 import { registerAPI } from './service-worker/register.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
+import { Provider } from 'jotai'
+import { globalStore } from './store/global.js'
 
-export function App() {
+function AppRegistrar() {
   const theme = useAppTheme()
   const [loadedStatus, setLoadedStatus] = useState<boolean | string>(false)
 
@@ -49,20 +51,31 @@ export function App() {
   useHotkeysRegister()
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <DndProvider backend={HTML5Backend}>
-        <ConfirmProvider>
-          {loadedStatus === true && <RootEntry></RootEntry>}
-          {loadedStatus === false && <CircularProgress></CircularProgress>}
-          {typeof loadedStatus === 'string' && (
-            <Alert title={loadedStatus} severity="error">
-              {loadedStatus}
-            </Alert>
-          )}
-          <PreviewImage></PreviewImage>
-        </ConfirmProvider>
-      </DndProvider>
-    </ThemeProvider>
+    <>
+      {loadedStatus === true && <RootEntry></RootEntry>}
+      {loadedStatus === false && <CircularProgress></CircularProgress>}
+      {typeof loadedStatus === 'string' && (
+        <Alert title={loadedStatus} severity="error">
+          {loadedStatus}
+        </Alert>
+      )}
+      <PreviewImage></PreviewImage>
+    </>
+  )
+}
+
+export function App() {
+  const theme = useAppTheme()
+  return (
+    <Provider store={globalStore}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <DndProvider backend={HTML5Backend}>
+          <ConfirmProvider>
+            <AppRegistrar></AppRegistrar>
+          </ConfirmProvider>
+        </DndProvider>
+      </ThemeProvider>
+    </Provider>
   )
 }

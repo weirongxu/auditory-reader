@@ -1,13 +1,10 @@
+import { atom, useAtom } from 'jotai'
 import { PinchZoomPan } from './components/pinch-zoom-pan.js'
-import { createGlobalState } from './hooks/createGlobalState.js'
 
-const { setGlobalState: setPreviewImgSrc, useGlobalState: usePreviewImgSrc } =
-  createGlobalState<string | null>(null)
-
-export { setPreviewImgSrc }
+export const previewImgSrcAtom = atom<string | null>(null)
 
 export function PreviewImage() {
-  const [src, setSrc] = usePreviewImgSrc()
+  const [src, setSrc] = useAtom(previewImgSrcAtom)
 
   if (!src) return <></>
 

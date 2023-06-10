@@ -12,6 +12,7 @@ import {
   useTheme,
 } from '@mui/material'
 import { t } from 'i18next'
+import { useAtom } from 'jotai'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
@@ -20,10 +21,10 @@ import { LinkWrap } from '../../components/link-wrap.js'
 import { DragFile } from './drag-file.js'
 import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
-import { useAppBarStates } from './use-app-bar.js'
+import { appBarStatesAtom } from './use-app-bar.js'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
-  const [appBarStates] = useAppBarStates()
+  const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
   const theme = useTheme()

@@ -1,5 +1,6 @@
 import type { AlertColor } from '@mui/material'
-import { createGlobalState } from '../../hooks/createGlobalState.js'
+import { atom } from 'jotai'
+import { globalStore } from '../../store/global.js'
 
 export type SnackbarItem = {
   severity?: AlertColor
@@ -10,13 +11,9 @@ export type SnackbarItem = {
   message: string
 }
 
-export const {
-  useGlobalState: useSnackbarState,
-  getGlobalState: getSnackbarState,
-  setGlobalState: setSnackbarState,
-} = createGlobalState<SnackbarItem[]>([])
+export const snackbarAtom = atom<SnackbarItem[]>([])
 
 export function pushSnackbar(item: SnackbarItem) {
-  const list = getSnackbarState()
-  setSnackbarState([...list, item])
+  const list = globalStore.get(snackbarAtom)
+  globalStore.set(snackbarAtom, [...list, item])
 }

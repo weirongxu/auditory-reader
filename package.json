@@ -35,6 +35,7 @@
     "howler": "^2.2.3",
     "i18next": "^22.4.7",
     "is-plain-obj": "^4.1.0",
+    "jotai": "^2.1.1",
     "jsdom": "^20.0.3",
     "jszip": "^3.10.1",
     "material-ui-confirm": "^3.0.7",

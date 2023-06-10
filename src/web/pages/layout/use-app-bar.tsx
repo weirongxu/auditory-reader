@@ -1,8 +1,8 @@
 import { useUnmountEffect } from '@react-hookz/web'
+import { atom, useAtom } from 'jotai'
 import { useEffect } from 'react'
-import { createGlobalState } from '../../hooks/createGlobalState.js'
 
-export const { useGlobalState: useAppBarStates } = createGlobalState<{
+export const appBarStatesAtom = atom<{
   title: React.ReactNode
   topLeft: React.ReactNode
   topRight: React.ReactNode
@@ -27,7 +27,7 @@ export const useAppBarSync = (props: {
   bottomRight?: React.ReactNode
 }) => {
   const { title, topLeft, topRight, settings, bottomLeft, bottomRight } = props
-  const [, setAppBarStates] = useAppBarStates()
+  const [, setAppBarStates] = useAtom(appBarStatesAtom)
 
   useEffect(() => {
     setAppBarStates({

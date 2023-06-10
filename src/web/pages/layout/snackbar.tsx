@@ -1,10 +1,11 @@
 import { Alert, Snackbar } from '@mui/material'
+import { useAtom } from 'jotai'
 import { useCallback } from 'react'
 import type { SnackbarItem } from './snackbar-hooks.js'
-import { useSnackbarState } from './snackbar-hooks.js'
+import { snackbarAtom } from './snackbar-hooks.js'
 
 export function GlobalSnackbar() {
-  const [list, setList] = useSnackbarState()
+  const [list, setList] = useAtom(snackbarAtom)
 
   const removeItem = useCallback(
     (item: SnackbarItem) => {
