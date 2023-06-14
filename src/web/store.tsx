@@ -155,7 +155,7 @@ export const useSpeechSpeed = createStore<number>({
 })
 
 export const COLOR_SCHEMES = ['system', 'dark', 'light'] as const
-export type ColorScheme = typeof COLOR_SCHEMES[number]
+export type ColorScheme = (typeof COLOR_SCHEMES)[number]
 
 export const useUserColorScheme = createStore<ColorScheme>({
   storeKey: 'userColorScheme',
@@ -170,7 +170,7 @@ export const useParagraphRepeat = createStore<number>({
 })
 
 export const SPLIT_PAGE_TYPES = ['none', 'auto', 'single', 'double'] as const
-export type SplitPageType = typeof SPLIT_PAGE_TYPES[number]
+export type SplitPageType = (typeof SPLIT_PAGE_TYPES)[number]
 
 export const useSplitPage = createStore<SplitPageType>({
   storeKey: 'splitPage',

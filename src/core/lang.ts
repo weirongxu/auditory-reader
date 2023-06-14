@@ -195,8 +195,8 @@ const langSet = [
   { code: 'zu', name: 'Zulu' },
 ] as const
 
-type LangItem = typeof langSet[number]
-export type LangCode = typeof langSet[number]['code']
+type LangItem = (typeof langSet)[number]
+export type LangCode = (typeof langSet)[number]['code']
 
 export const langList = langSet as unknown as LangItem[]
 
