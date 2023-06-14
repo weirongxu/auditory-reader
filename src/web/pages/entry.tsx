@@ -40,7 +40,7 @@ function Main() {
   // hotkey
   useEffect(() => {
     const dispose = addHotkeys([
-      // TODO display
+      // TODO display label
       ['[', () => setSpeechSpeed((v) => (v * 10 - 1) / 10)],
       [']', () => setSpeechSpeed((v) => (v * 10 + 1) / 10)],
       [
