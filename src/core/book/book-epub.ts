@@ -1,8 +1,8 @@
-import type { DOMWindow } from 'jsdom'
 import JSZip from 'jszip'
 import path from 'path'
 import { compact } from '../util/collection.js'
 import { arrayBufferToBuffer } from '../util/converter.js'
+import type { XMLElem } from '../util/xml-dom.js'
 import { XMLDOMLoader } from '../util/xml-dom.js'
 import type { BookNav, BookSpine } from './book-base.js'
 import { BookBase } from './book-base.js'
@@ -72,7 +72,7 @@ function scopeQuerySelector(
 
 export class BookEpub extends BookBase {
   protected static async getRootPath(xml: XMLDOMLoader) {
-    const containerRoot = await xml.dom('META-INF/container.xml')
+    const containerRoot = await xml.htmlDom('META-INF/container.xml')
     if (!containerRoot) {
       console.error('Parse META-INF/container.xml error')
       return
@@ -95,37 +95,27 @@ export class BookEpub extends BookBase {
       console.error(`epub root-path(${rootPath}) not found`)
       return
     }
-    const rootDoc = await xml.dom(rootPath)
+    const rootDoc = await xml.xmlDom(rootPath)
     if (!rootDoc) {
       console.error(`epub root document not found`)
       return
     }
-    return new BookEpub(zip, xml, xml.win(), rootDoc, path.dirname(rootPath))
+    return new BookEpub(zip, xml, rootDoc, path.dirname(rootPath))
   }
 
   protected constructor(
     protected zip: JSZip,
     protected xmlLoader: XMLDOMLoader,
-    protected win: DOMWindow,
-    protected rootDoc: Document,
+    protected rootPkg: XMLElem,
     protected rootDir: string
   ) {
     super()
   }
 
-  #pkg?: Element
-  protected get pkg(): Element {
-    if (!this.#pkg) {
-      this.#pkg = this.rootDoc.querySelector('package') ?? undefined
-      if (!this.#pkg) throw new Error('package tag not found')
-    }
-    return this.#pkg
-  }
-
   #version?: 2 | 3
   get version(): 2 | 3 {
     if (!this.#version) {
-      const versionStr = this.pkg.getAttribute('version') ?? '2.0'
+      const versionStr = this.rootPkg.getAttribute('version') ?? '2.0'
       this.#version = parseFloat(versionStr) >= 3 ? 3 : 2
     }
     return this.#version
@@ -134,8 +124,10 @@ export class BookEpub extends BookBase {
   #title?: string | null
   get title() {
     if (!this.#title) {
-      const titleElem = this.rootDoc.querySelector('metadata dc\\:title')
-      this.#title = titleElem?.textContent?.trim() ?? null
+      const titleElem = this.rootPkg
+        .findDescendant('metadata')
+        ?.findDescendant('dc:title')
+      this.#title = titleElem?.text()?.trim() ?? null
     }
     return this.#title
   }
@@ -143,8 +135,10 @@ export class BookEpub extends BookBase {
   #language?: string | null
   get language() {
     if (!this.#language) {
-      const langElem = this.rootDoc.querySelector('metadata dc\\:language')
-      this.#language = langElem?.textContent?.trim() ?? null
+      const langElem = this.rootPkg
+        .findDescendant('metadata')
+        ?.findDescendant('dc:language')
+      this.#language = langElem?.text()?.trim() ?? null
     }
     return this.#language
   }
@@ -152,9 +146,9 @@ export class BookEpub extends BookBase {
   #manifestItems?: ManifestItem[]
   get manifestItems(): ManifestItem[] {
     if (!this.#manifestItems) {
-      this.#manifestItems = [
-        ...this.rootDoc.querySelectorAll('manifest>item'),
-      ].map((item) => {
+      const items =
+        this.rootPkg.findDescendant('manifest')?.childrenFilter('item') ?? []
+      this.#manifestItems = items.map((item) => {
         return {
           id: item.getAttribute('id')!,
           href: path.join(this.rootDir, item.getAttribute('href')!),
@@ -166,11 +160,11 @@ export class BookEpub extends BookBase {
     return this.#manifestItems
   }
 
-  #spine?: Element
-  get spine(): Element {
+  #spine?: XMLElem
+  get spine(): XMLElem {
     if (!this.#spine) {
       // spine
-      this.#spine = this.rootDoc.querySelector('spine') ?? undefined
+      this.#spine = this.rootPkg.findDescendant('spine') ?? undefined
       if (!this.#spine) throw new Error('spine not found')
     }
     return this.#spine
@@ -180,7 +174,7 @@ export class BookEpub extends BookBase {
   get spineItems(): SpineItem[] {
     if (!this.#spineItems) {
       this.#spineItems = compact(
-        [...this.rootDoc.querySelectorAll('spine>itemref')].map((item) => {
+        [...this.spine.childrenFilter('itemref')].map((item) => {
           const idref = item.getAttribute('idref')!
           const manifest = this.manifestItems.find((m) => m.id === idref)
           if (!manifest) return
@@ -213,12 +207,16 @@ export class BookEpub extends BookBase {
     return arrayBufferToBuffer(arrBuf)
   }
 
-  async xml(href: string) {
-    return this.xmlLoader.xml(href)
+  async content(href: string) {
+    return this.xmlLoader.content(href)
   }
 
-  async dom(href: string) {
-    return this.xmlLoader.dom(href)
+  async xmlDom(href: string) {
+    return this.xmlLoader.xmlDom(href)
+  }
+
+  async htmlDom(href: string) {
+    return this.xmlLoader.htmlDom(href)
   }
 
   dirBySpineIndex(spineIndex: number) {
@@ -236,7 +234,7 @@ export class BookEpub extends BookBase {
   protected async loadNav3() {
     const navManifest = this.manifestItems.find((it) => it.properties === 'nav')
     if (!navManifest) return this.loadNav2()
-    const navDom = await this.dom(navManifest.href)
+    const navDom = await this.htmlDom(navManifest.href)
     const navDir = path.dirname(navManifest.href)
     if (!navDom) return []
     const navRoot = navDom.querySelector(`${NAV_TOC_SELECTOR}>ol`)
@@ -286,44 +284,39 @@ export class BookEpub extends BookBase {
     const tocId = this.spine.getAttribute('toc') ?? 'ncx'
     const ncxManifest = this.manifestItems.find((it) => it.id === tocId)
     if (!ncxManifest) return []
-    const navDom = await this.dom(ncxManifest.href)
+    const navDom = await this.xmlDom(ncxManifest.href)
     const navDir = path.dirname(ncxManifest.href)
     if (!navDom) return []
-    const navRoot = navDom.querySelector('navMap')
+    const navRoot = navDom.findDescendant('navMap')
     if (!navRoot) return []
     return this.parseNav2(navRoot, navDir)
   }
 
-  protected parseNav2(dom: Element, dir: string, level = 1): BookNav[] {
+  protected parseNav2(dom: XMLElem, dir: string, level = 1): BookNav[] {
     const nav: BookNav[] = compact(
-      Array.from(scopeQuerySelectorAll(dom, ['navPoint'])).map(
-        (el): BookNav | undefined => {
-          const label = scopeQuerySelector(el, [
-            'navLabel',
-            'text',
-          ])?.textContent
-          if (!label) return
-          let href: string | undefined
-          let hrefBase: string | undefined
-          let hrefHash: string | undefined
-          let spineIndex: number | undefined
-          const src = scopeQuerySelector(el, ['content'])?.getAttribute('src')
-          if (src) {
-            href = path.join(dir, src)
-            ;[hrefBase, hrefHash] = href.split('#', 2)
-            spineIndex = this.getSpineIndexByHref(hrefBase)
-          }
-          return {
-            level,
-            label,
-            href,
-            hrefBase,
-            hrefHash,
-            spineIndex,
-            children: this.parseNav2(el, dir, level + 1),
-          }
+      dom.childrenFilter('navPoint').map((el): BookNav | undefined => {
+        const label = el.findChild('navLabel')?.findChild('text')?.text()
+        if (!label) return
+        let href: string | undefined
+        let hrefBase: string | undefined
+        let hrefHash: string | undefined
+        let spineIndex: number | undefined
+        const src = el.findChild('content')?.getAttribute('src')
+        if (src) {
+          href = path.join(dir, src)
+          ;[hrefBase, hrefHash] = href.split('#', 2)
+          spineIndex = this.getSpineIndexByHref(hrefBase)
         }
-      )
+        return {
+          level,
+          label,
+          href,
+          hrefBase,
+          hrefHash,
+          spineIndex,
+          children: this.parseNav2(el, dir, level + 1),
+        }
+      })
     )
 
     return nav
