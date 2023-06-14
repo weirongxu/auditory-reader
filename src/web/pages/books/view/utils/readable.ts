@@ -4,7 +4,6 @@ import {
   PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../../core/consts.js'
-import { compact } from '../../../../../core/util/collection.js'
 import type { ReadablePart } from '../types.js'
 
 export function* walkerNode(root: HTMLElement) {
