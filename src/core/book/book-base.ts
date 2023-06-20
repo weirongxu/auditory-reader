@@ -14,10 +14,17 @@ export type BookSpine = {
   href: string
 }
 
+export type BookFile = {
+  buffer: Buffer
+  mediaType?: string
+}
+
 export abstract class BookBase {
   abstract readonly spines: BookSpine[]
 
   abstract navs(): Promise<BookNav[]>
 
-  abstract file(href: string): Promise<Buffer | undefined>
+  abstract file(href: string): Promise<BookFile | undefined>
+
+  abstract cover(): Promise<BookFile | undefined>
 }

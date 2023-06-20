@@ -44,6 +44,7 @@ export const langZh = {
   update: '更新',
   export: '导出',
   bookName: '书名',
+  cover: '封面',
   url: 'URL',
   extractUrlInfo: '提取URL信息',
   bookContent: '文本内容',

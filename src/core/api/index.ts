@@ -1,3 +1,4 @@
+import { booksCoverRouter } from './books/cover.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
 import { booksDownloadRouter } from './books/download.js'
@@ -35,5 +36,6 @@ export const ROUTERS = [
   booksSyncPositionRouter,
   booksUpdateRouter,
   booksViewRouter,
+  booksCoverRouter,
   booksRenderRouter,
 ]

@@ -4,7 +4,7 @@ import { compact } from '../util/collection.js'
 import { arrayBufferToBuffer } from '../util/converter.js'
 import type { XMLElem } from '../util/xml-dom.js'
 import { XMLDOMLoader } from '../util/xml-dom.js'
-import type { BookNav, BookSpine } from './book-base.js'
+import type { BookFile, BookNav, BookSpine } from './book-base.js'
 import { BookBase } from './book-base.js'
 
 type ManifestItem = {
@@ -200,11 +200,32 @@ export class BookEpub extends BookBase {
     return this.#spines
   }
 
-  async file(href: string) {
+  async file(href: string): Promise<BookFile | undefined> {
     const file = await this.xmlLoader.file(href)
     if (!file) return
     const arrBuf = await file.arrayBuffer()
-    return arrayBufferToBuffer(arrBuf)
+    const buffer = arrayBufferToBuffer(arrBuf)
+    const manifest = this.manifestItems.find((item) => item.href == href)
+    return { buffer, mediaType: manifest?.mediaType }
+  }
+
+  async cover(): Promise<BookFile | undefined> {
+    const coverElem = this.rootPkg
+      .findDescendant('metadata')
+      ?.findDescendants('meta')
+      .find((node) => node.getAttribute('name') === 'cover')
+    if (!coverElem) return
+    const coverId = coverElem.getAttribute('content')
+    if (!coverId) return
+    const manifest = this.manifestItems.find((item) => item.id === coverId)
+    if (!manifest?.href) return
+    const file = await this.xmlLoader.file(manifest.href)
+    if (!file) return
+    const buffer = arrayBufferToBuffer(await file.arrayBuffer())
+    return {
+      buffer,
+      mediaType: manifest.mediaType,
+    }
   }
 
   async content(href: string) {

@@ -1,5 +1,5 @@
 import { splitParagraph } from '../util/text.js'
-import type { BookNav, BookSpine } from './book-base.js'
+import type { BookFile, BookNav, BookSpine } from './book-base.js'
 import { BookBase } from './book-base.js'
 
 export class BookText extends BookBase {
@@ -37,7 +37,13 @@ export class BookText extends BookBase {
     return []
   }
 
-  async file(): Promise<Buffer | undefined> {
-    return Buffer.from(this.html, 'utf8')
+  async file(): Promise<BookFile | undefined> {
+    return {
+      buffer: Buffer.from(this.html, 'utf8'),
+    }
+  }
+
+  async cover() {
+    return undefined
   }
 }

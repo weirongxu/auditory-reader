@@ -36,6 +36,9 @@ import { LinkWrap } from '../../components/link-wrap.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
+import { getBooksCoverPath } from '../../../core/api/books/cover.js'
+import { globalStore } from '../../store/global.js'
+import { previewImgSrcAtom } from '../../preview-image.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -374,6 +377,8 @@ function BookRow({
       })
   }, [actived, drop])
 
+  const coverUrl = `${getBooksCoverPath(book.uuid)}`
+
   const opacity = isDragging ? 0.2 : 1
   drop(refEl)
   return (
@@ -403,6 +408,16 @@ function BookRow({
         }}
       >
         {book.name}
+      </TableCell>
+      <TableCell>
+        <img
+          onClick={() => {
+            globalStore.set(previewImgSrcAtom, coverUrl)
+          }}
+          style={{ maxHeight: '30px' }}
+          src={coverUrl}
+          alt={`${book.name} ${t('cover')}`}
+        />
       </TableCell>
       <TableCell>
         <Stack direction="row">
@@ -623,6 +638,7 @@ export function BookList() {
                 ></Checkbox>
               </TableCell>
               <TableCell>{t('bookName')}</TableCell>
+              <TableCell>{t('cover')}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
