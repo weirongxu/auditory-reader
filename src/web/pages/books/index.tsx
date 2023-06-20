@@ -377,6 +377,8 @@ function BookRow({
       })
   }, [actived, drop])
 
+  const [coverLoaded, setCoverLoaded] = useState(false)
+
   const coverUrl = `${getBooksCoverPath(book.uuid)}`
 
   const opacity = isDragging ? 0.2 : 1
@@ -409,12 +411,15 @@ function BookRow({
       >
         {book.name}
       </TableCell>
-      <TableCell>
+      <TableCell padding="none">
         <img
           onClick={() => {
             globalStore.set(previewImgSrcAtom, coverUrl)
           }}
-          style={{ maxHeight: '30px' }}
+          onLoad={() => {
+            setCoverLoaded(true)
+          }}
+          style={{ maxHeight: '40px', display: coverLoaded ? 'block' : 'none' }}
           src={coverUrl}
           alt={`${book.name} ${t('cover')}`}
         />
@@ -638,7 +643,7 @@ export function BookList() {
                 ></Checkbox>
               </TableCell>
               <TableCell>{t('bookName')}</TableCell>
-              <TableCell>{t('cover')}</TableCell>
+              <TableCell padding="none">{t('cover')}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
