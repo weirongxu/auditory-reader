@@ -15,12 +15,12 @@ export const booksDownloadRouter = new URouter<
 }).routeLogined(async ({ req, res, userInfo }) => {
   const searchParams = req.searchParams
   const uuid = searchParams.get('uuid')
-  if (!uuid) throw new ErrorRequestResponse('book uuid not found')
+  if (!uuid) throw new ErrorRequestResponse('uuid parameter required')
   const bookEntity: BookEntityBase = await bookManager.entity(
     userInfo.account,
     uuid
   )
-  if (!bookEntity) throw new ErrorRequestResponse('book item not found')
+  if (!bookEntity) throw new ErrorRequestResponse('book not found')
   const { contentType, buffer, filename } = await bookEntity.download()
   res.header('Content-Type', contentType)
   res.header(

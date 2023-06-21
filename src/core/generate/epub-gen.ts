@@ -43,8 +43,8 @@ export class EpubGen {
             xmlns:dcterms="http://purl.org/dc/terms/"
             xmlns:opf="http://www.idpf.org/2007/opf"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <dc:title id="id">${this.options.title}</dc:title>
-            <dc:creator id="id-1">unknown</dc:creator>
+            <dc:title>${this.options.title}</dc:title>
+            <dc:creator>unknown</dc:creator>
             <dc:language>${this.options.lang}</dc:language>
             <dc:date>${this.options.date.toISOString()}</dc:date>
             <dc:publisher>${this.options.publisher}</dc:publisher>
@@ -52,10 +52,10 @@ export class EpubGen {
           <manifest>
             <item href="page-styles.css" id="page-styles" media-type="text/css"/>
             <item href="stylesheet.css" id="stylesheet" media-type="text/css"/>
-            <item href="text/content.html" id="html_content" media-type="application/xhtml+xml"/>
+            <item href="text/content.html" id="html-content" media-type="application/xhtml+xml"/>
           </manifest>
           <spine>
-            <itemref idref="html_content"/>
+            <itemref idref="html-content"/>
           </spine>
         </package>
       `

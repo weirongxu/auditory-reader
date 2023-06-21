@@ -402,15 +402,6 @@ function BookRow({
           }}
         ></Checkbox>
       </TableCell>
-      <TableCell
-        className={styles.hover}
-        title={book.createdAt.toLocaleString()}
-        onClick={() => {
-          nav(viewPath(book.uuid))
-        }}
-      >
-        {book.name}
-      </TableCell>
       <TableCell padding="none">
         <img
           onClick={() => {
@@ -423,6 +414,15 @@ function BookRow({
           src={coverUrl}
           alt={`${book.name} ${t('cover')}`}
         />
+      </TableCell>
+      <TableCell
+        className={styles.hover}
+        title={book.createdAt.toLocaleString()}
+        onClick={() => {
+          nav(viewPath(book.uuid))
+        }}
+      >
+        {book.name}
       </TableCell>
       <TableCell>
         <Stack direction="row">
@@ -642,8 +642,8 @@ export function BookList() {
                   }}
                 ></Checkbox>
               </TableCell>
-              <TableCell>{t('bookName')}</TableCell>
               <TableCell padding="none">{t('cover')}</TableCell>
+              <TableCell>{t('bookName')}</TableCell>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>
