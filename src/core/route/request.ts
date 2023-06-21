@@ -29,7 +29,7 @@ export class URequest<Body> {
 
   static fromBrowser<Body>(req: Request, dynamicPaths: string[]) {
     return new this<Body>({
-      searchParams: () => new URLSearchParams(req.url),
+      searchParams: () => new URLSearchParams(req.url.split('?')[1]),
       body: async () => await req.json(),
       url: () => req.url,
       session: () => USession.fromBrowser(),
