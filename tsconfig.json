@@ -11,7 +11,7 @@
     "outDir": "lib",
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": false,
+    "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "incremental": true,
     "module": "ES2020"

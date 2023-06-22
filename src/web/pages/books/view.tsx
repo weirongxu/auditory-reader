@@ -1,5 +1,5 @@
 import { CircularProgress, Stack } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type SetStateAction } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
@@ -17,11 +17,17 @@ export const useBookView = (uuid: string) => {
   const { data: posData, error: posError } = useAction(booksPositionRouter, {
     uuid,
   })
-  const [pos, setPos] = useState<BookTypes.PropertyPosition>()
+  const [pos, setPosOrigin] = useState<BookTypes.PropertyPosition>()
+  const setPos = useCallback(
+    (pos: SetStateAction<BookTypes.PropertyPosition | undefined>) => {
+      setPosOrigin(pos)
+    },
+    []
+  )
 
   // get pos
   useEffect(() => {
-    if (posData) setPos(posData)
+    if (posData) setPosOrigin(posData)
   }, [posData])
 
   // sync pos
