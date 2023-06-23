@@ -167,6 +167,7 @@ function useHomeHotKeys({
   selectAll,
   setLoading,
   reload,
+  moveBooksTop,
   removeBooks,
 }: {
   setPage: Dispatch<SetStateAction<number | undefined>>
@@ -175,6 +176,7 @@ function useHomeHotKeys({
   selectAll: () => void
   setLoading: Dispatch<SetStateAction<boolean>>
   reload: () => void
+  moveBooksTop: (books: BookTypes.Entity[]) => Promise<void>
   removeBooks: (books: BookTypes.Entity[]) => void
 }) {
   const [activedIndex, setActivedIndex] = useState(0)
@@ -258,6 +260,10 @@ function useHomeHotKeys({
       if (currentBook) removeBooks([currentBook])
     }
 
+    const moveBookTop = () => {
+      if (currentBook) void moveBooksTop([currentBook])
+    }
+
     const dispose = addHotkeys([
       ['j', goDown],
       ['k', goUp],
@@ -271,6 +277,7 @@ function useHomeHotKeys({
       [{ shift: true, key: 'k' }, moveUp],
       [{ shift: true, key: 'arrowdown' }, moveDown],
       [{ shift: true, key: 'arrowup' }, moveUp],
+      ['t', moveBookTop],
       ['e', () => currentBook && nav(editPath(currentBook.uuid))],
       ['x', () => select(false)],
       ['v', () => select(false)],
@@ -295,6 +302,7 @@ function useHomeHotKeys({
     addHotkeys,
     currentBook,
     dataBooks,
+    moveBooksTop,
     nav,
     reload,
     removeBooks,
@@ -492,6 +500,19 @@ export function BookList() {
 
   const removeBooks = useRemoveBooks(reload)
 
+  const moveBooksTop = useCallback(
+    async (books: BookTypes.Entity[]) => {
+      for (const book of [...books.reverse()]) {
+        await booksMoveTopRouter.action({
+          uuid: book.uuid,
+        })
+      }
+      setPage(1)
+      reload()
+    },
+    [reload]
+  )
+
   const { activedIndex } = useHomeHotKeys({
     setPage,
     dataBooks,
@@ -499,6 +520,7 @@ export function BookList() {
     reload,
     selectTo,
     selectAll,
+    moveBooksTop,
     removeBooks,
   })
 
@@ -556,11 +578,7 @@ export function BookList() {
               color="secondary"
               onClick={() => {
                 async(async () => {
-                  for (const book of [...selectedBooks].reverse()) {
-                    await booksMoveTopRouter.action({
-                      uuid: book.uuid,
-                    })
-                  }
+                  await moveBooksTop(selectedBooks)
                   reload()
                 })
               }}
@@ -579,7 +597,7 @@ export function BookList() {
         </ButtonGroup>
       )
     )
-  }, [reload, removeBooks, selectedBooks, selectedUuids.length])
+  }, [moveBooksTop, reload, removeBooks, selectedBooks, selectedUuids.length])
 
   const TopRightBar = useMemo(() => {
     return (

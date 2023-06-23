@@ -35,7 +35,6 @@ function Books() {
 function Main() {
   const [, setSpeechSpeed] = useSpeechSpeed()
   const { addHotkeys } = useHotkeys()
-  const nav = useNavigate()
 
   // hotkey
   useEffect(() => {
@@ -43,12 +42,6 @@ function Main() {
       // TODO display label
       ['[', () => setSpeechSpeed((v) => (v * 10 - 1) / 10)],
       [']', () => setSpeechSpeed((v) => (v * 10 + 1) / 10)],
-      [
-        'u',
-        () => {
-          nav(-1)
-        },
-      ],
       [
         'r',
         () => {

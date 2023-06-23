@@ -7,6 +7,7 @@ import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
+import { useNavigate } from 'react-router-dom'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -15,6 +16,7 @@ export function useViewer(props: BookContextProps) {
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
+  const nav = useNavigate()
 
   const player = usePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
@@ -36,6 +38,7 @@ export function useViewer(props: BookContextProps) {
       [' ', () => player.toggle()],
       [{ shift: true, key: 'arrowleft' }, () => player.prevSection()],
       [{ shift: true, key: 'arrowright' }, () => player.nextSection()],
+      ['u', () => nav('../../')],
       ['arrowleft', () => player.prevPage(1, true)],
       ['arrowright', () => player.nextPage(1, true)],
       ['pageup', () => player.prevPage(1, false)],

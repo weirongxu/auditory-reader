@@ -6,7 +6,7 @@ import {
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { booksShowRouter } from '../../../core/api/books/show.js'
 import { booksUpdateRouter } from '../../../core/api/books/update.js'
@@ -14,6 +14,7 @@ import type { BookTypes } from '../../../core/book/types.js'
 import { useOrderedLangOptions, type LangCode } from '../../../core/lang.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
+import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { NotFound } from '../not-found.js'
 
 function UpdateForm(props: { book: BookTypes.Entity }) {
@@ -22,21 +23,13 @@ function UpdateForm(props: { book: BookTypes.Entity }) {
   const langOptions = useOrderedLangOptions()
   const [name, setName] = useState<string>(book.name)
   const [langCode, setLangCode] = useState<LangCode>(book.langCode)
+  const { addHotkeys } = useHotkeys()
 
-  // const form = useForm<{
-  //   name: string
-  //   langCode: LangCode | null
-  // }>({
-  //   initialValues: {
-  //     name: book.name,
-  //     langCode: book.langCode,
-  //   },
-  //   validate: {
-  //     name: (value) => (value.length > 0 ? null : 'Invalid name'),
-  //     langCode: (value: LangCode | null) =>
-  //       langCodes.includes(value as any) ? null : 'Invalid language',
-  //   },
-  // })
+  // hotkey
+  useEffect(() => {
+    const dispose = addHotkeys([['u', () => nav('../../')]])
+    return dispose
+  })
 
   return (
     <form
