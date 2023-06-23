@@ -1,11 +1,31 @@
+import type { ClassType } from 'react'
 import { isUrl } from './url.js'
 
-export function isInputElement(element: any) {
+export function isInputElement(element: any): element is Element {
   if (element instanceof Element) {
     const elemName = element.tagName.toLowerCase()
     if (['textarea', 'input'].includes(elemName)) return true
   }
   return false
+}
+
+function getDomView(node: any): (Window & typeof globalThis) | undefined {
+  return node?.ownerDocument?.defaultView
+}
+
+export function isTextNode(node: any): node is Text {
+  const view = getDomView(node)
+  return !!view && node instanceof view.Text
+}
+
+export function isElement(node: any): node is HTMLElement {
+  const view = getDomView(node)
+  return !!view && node instanceof view.HTMLElement
+}
+
+export function isImageElement(node: any): node is HTMLImageElement {
+  const view = getDomView(node)
+  return !!view && node instanceof view.HTMLImageElement
 }
 
 export async function HTMLImgs2DataURL(

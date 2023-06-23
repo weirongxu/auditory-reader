@@ -32,7 +32,7 @@ import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart } from './types.js'
-import { getReadableParts } from './utils/readable.js'
+import { ReadableExtractor } from './utils/readable.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -352,7 +352,10 @@ export class PlayerIframeController {
 
       // load readableParts
       this.readableParts = []
-      this.readableParts = getReadableParts(doc, this.flattenedNavs())
+      this.readableParts = new ReadableExtractor(
+        doc,
+        this.flattenedNavs()
+      ).toReadableParts()
 
       await this.onLoaded(iframe)
       iframe.style.visibility = 'visible'
@@ -849,9 +852,7 @@ export class PlayerIframeController {
         return
       this.#paragraphLastActive?.elem.classList.remove(PARA_ACTIVE_CLASS)
       this.#paragraphLastActive = item
-      if (item.elem instanceof Element) {
-        item.elem.classList.add(PARA_ACTIVE_CLASS)
-      }
+      item.elem.classList.add(PARA_ACTIVE_CLASS)
     }).catch(console.error)
   }
 

@@ -2,6 +2,7 @@ import {
   PARA_HIGHLIGHT_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../core/consts.js'
+import { isElement } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
@@ -48,9 +49,8 @@ export class Highlight {
         continue
       }
 
-      // ignore tags
-      if (child instanceof Element && child.closest(`.${PARA_IGNORE_CLASS}`))
-        continue
+      // ignore class
+      if (isElement(child) && child.closest(`.${PARA_IGNORE_CLASS}`)) continue
 
       // recursion
       const result = this.#findRangePos(child, remainIndex)
