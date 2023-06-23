@@ -1,4 +1,7 @@
-import { IGNORE_TAGS, PARA_HIGHLIGHT_CLASS } from '../../../../core/consts.js'
+import {
+  PARA_HIGHLIGHT_CLASS,
+  PARA_IGNORE_CLASS,
+} from '../../../../core/consts.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
@@ -46,10 +49,7 @@ export class Highlight {
       }
 
       // ignore tags
-      if (
-        child instanceof Element &&
-        IGNORE_TAGS.includes(child.tagName.toLowerCase())
-      )
+      if (child instanceof Element && child.closest(`.${PARA_IGNORE_CLASS}`))
         continue
 
       // recursion

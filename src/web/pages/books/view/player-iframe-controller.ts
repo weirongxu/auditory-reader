@@ -172,7 +172,7 @@ export class PlayerIframeController {
     if (!doc) return null
     try {
       const index = this.readableParts.findIndex((part) => {
-        if (part.hashes?.includes(anchorId)) return true
+        if (part.anchorIds?.includes(anchorId)) return true
       })
       return index === -1 ? null : index
     } catch {
@@ -892,8 +892,8 @@ export class PlayerIframeController {
     // last hash from iframe page
     const lastHashes = findLast(
       readableParts.slice(0, this.states.pos.paragraph + 1),
-      (part) => !!part.hashes
-    )?.hashes
+      (part) => !!part.anchorIds
+    )?.anchorIds
     const lastHash =
       lastHashes && lastHashes.length > 0
         ? lastHashes[lastHashes.length - 1]

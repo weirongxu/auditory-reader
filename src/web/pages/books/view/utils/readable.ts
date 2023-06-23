@@ -1,6 +1,5 @@
 import type { BookNav } from '../../../../../core/book/book-base.js'
 import {
-  IGNORE_TAGS,
   PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../../core/consts.js'
@@ -21,6 +20,12 @@ const isBlockElem = (elem: HTMLElement) => {
   return !['inline', 'inline-block'].includes(display)
 }
 
+const isIgnoreVerticalAlign = (elem: HTMLElement) => {
+  const verticalAlign =
+    getComputedStyle(elem).getPropertyValue('vertical-align')
+  return ['super'].includes(verticalAlign)
+}
+
 const getParentBlockElem = (
   elem: HTMLElement | null
 ): HTMLElement | undefined => {
@@ -37,7 +42,11 @@ const isAllInlineChild = (elem: HTMLElement) => {
     return elem.dataset.isAllInlineChild === '1'
   }
   for (const node of elem.childNodes) {
-    if (node instanceof HTMLElement && isBlockElem(node)) {
+    if (
+      node instanceof HTMLElement &&
+      !node.classList.contains(PARA_IGNORE_CLASS) &&
+      (isBlockElem(node) || !isAllInlineChild(node))
+    ) {
       elem.dataset.isAllInlineChild = '0'
       return false
     }
@@ -51,63 +60,143 @@ function getContentText(elem: HTMLElement) {
   for (const node of walkerNode(elem)) {
     if (!(node instanceof Text)) continue
     if (!node.parentElement) continue
-    if (IGNORE_TAGS.includes(node.parentElement.tagName.toLowerCase())) continue
+    if (node.parentElement.closest(`.${PARA_IGNORE_CLASS}`)) continue
     contentText += node.textContent
   }
   return contentText
 }
 
+class ReadableManager {
+  private parts: (
+    | {
+        type: 'image'
+        elem: HTMLImageElement
+        anchors: string[] | undefined
+      }
+    | {
+        type: 'text'
+        elem: Text
+        anchors: string[] | undefined
+      }
+  )[] = []
+  private accAnchors?: string[]
+
+  constructor(private doc: Document) {}
+
+  popAccAnchors() {
+    const acc = this.accAnchors
+    this.accAnchors = undefined
+    return acc
+  }
+
+  addAnchor(id: string) {
+    this.accAnchors ??= []
+    this.accAnchors.push(id)
+  }
+
+  addImage(elem: HTMLImageElement) {
+    this.parts.push({ type: 'image', elem, anchors: this.popAccAnchors() })
+  }
+
+  addText(text: Text) {
+    this.parts.push({
+      type: 'text',
+      elem: text,
+      anchors: this.popAccAnchors(),
+    })
+  }
+
+  toReadableParts() {
+    const blockSet = new Set<HTMLElement>()
+
+    function addText(blockElem: HTMLElement, anchors: string[] | undefined) {
+      blockSet.add(blockElem)
+      blockElem.classList.add(PARA_BOX_CLASS)
+      const textContent = getContentText(blockElem)
+      const notEmpty = !!textContent?.trim()
+      if (notEmpty) {
+        readableParts.push({
+          elem: blockElem,
+          type: 'text',
+          text: textContent,
+          anchorIds: anchors,
+        })
+      }
+    }
+
+    const readableParts: ReadablePart[] = []
+    for (const { type, elem, anchors } of this.parts) {
+      if (type === 'image') {
+        // image
+        elem.classList.add(PARA_BOX_CLASS)
+        readableParts.push({
+          elem,
+          type: 'image',
+          anchorIds: anchors,
+        })
+      } else if (type === 'text') {
+        // text
+
+        // no parent
+        const blockElem = getParentBlockElem(elem.parentElement)
+        if (!blockElem) continue
+
+        // ignore class
+        if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
+
+        // avoid duplicated
+        if (blockSet.has(blockElem)) continue
+
+        if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
+          addText(blockElem, anchors)
+        } else {
+          // split block
+          if (!elem.parentElement) continue
+          const wrapElem = document.createElement('span')
+          elem.after(wrapElem)
+          wrapElem.appendChild(elem)
+          addText(wrapElem, anchors)
+        }
+      }
+    }
+    return readableParts
+  }
+}
+
 export const getReadableParts = (doc: Document, flattenedNavs: BookNav[]) => {
-  const blockElemSet = new Set<HTMLElement>()
-  const readableParts: ReadablePart[] = []
+  const readableManager = new ReadableManager(doc)
   const navExistHashSet = new Set(
     flattenedNavs.filter((nav) => nav.hrefHash).map((nav) => nav.hrefHash)
   )
-  let curHashes: undefined | string[]
-
-  const popCurHashes = () => {
-    const popHashes = curHashes
-    curHashes = undefined
-    return popHashes
-  }
-
-  const pushTextPart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BOX_CLASS)
-    const textContent = getContentText(elem)
-    const notEmpty = !!textContent?.trim()
-    if (notEmpty) {
-      readableParts.push({
-        elem,
-        type: 'text',
-        text: textContent,
-        hashes: popCurHashes(),
-      })
-    }
-  }
-
-  const pushImagePart = (elem: HTMLElement) => {
-    elem.classList.add(PARA_BOX_CLASS)
-    readableParts.push({
-      elem,
-      type: 'image',
-      hashes: popCurHashes(),
-    })
-  }
 
   // walk
   for (const node of walkerNode(doc.body)) {
     // hashes
     if (node instanceof HTMLElement) {
       if (node.id && navExistHashSet.has(node.id)) {
-        curHashes ??= []
-        curHashes.push(node.id)
+        readableManager.addAnchor(node.id)
       }
     }
 
     // image
     if (node instanceof HTMLImageElement) {
-      pushImagePart(node)
+      readableManager.addImage(node)
       continue
+    }
+
+    if (node instanceof HTMLElement) {
+      // skip tag like: ruby > rt
+      const tagName = node.tagName.toLowerCase()
+      if (tagName === 'rt') {
+        node.classList.add(PARA_IGNORE_CLASS)
+        continue
+      }
+
+      // skip ignored vertical-align
+      if (isIgnoreVerticalAlign(node)) {
+        node.classList.add(PARA_IGNORE_CLASS)
+        continue
+      }
     }
 
     // not text
@@ -117,34 +206,8 @@ export const getReadableParts = (doc: Document, flattenedNavs: BookNav[]) => {
     const content = node.textContent?.trim()
     if (!content) continue
 
-    // no parent
-    const blockElem = getParentBlockElem(node.parentElement)
-    if (!blockElem) continue
-
-    // skip tag like: ruby > rt
-    if (IGNORE_TAGS.includes(blockElem.tagName.toLowerCase())) {
-      blockElem.classList.add(PARA_IGNORE_CLASS)
-      continue
-    }
-
-    // ignore class
-    if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
-
-    // avoid duplicated
-    if (blockElemSet.has(blockElem)) continue
-
-    if (isAllInlineChild(blockElem) && blockElem !== doc.body) {
-      blockElemSet.add(blockElem)
-      pushTextPart(blockElem)
-    } else {
-      if (!node.parentElement) continue
-      const wrapElem = document.createElement('span')
-      node.after(wrapElem)
-      wrapElem.appendChild(node)
-      blockElemSet.add(wrapElem)
-      pushTextPart(wrapElem)
-    }
+    readableManager.addText(node)
   }
 
-  return readableParts
+  return readableManager.toReadableParts()
 }

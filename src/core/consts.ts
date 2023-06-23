@@ -10,11 +10,6 @@ export const COLOR_SCHEME_DARK_CLASS = '__color_scheme_dark__'
 
 export const COLUMN_BREAK_CLASS = '__column_break__'
 
-export const IGNORE_TAGS = [
-  // ruby > rt
-  'rt',
-]
-
 export const ZH_PERSON_RULES = {
   妳: {
     word: '乃',
