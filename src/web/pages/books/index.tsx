@@ -229,27 +229,21 @@ function useHomeHotKeys({
     const moveUp = async () => {
       if (!currentBook) return
       goUp()
-      // TODO flash and support selected
-      setLoading(true)
       await booksMoveOffsetRouter.action({
         uuid: currentBook.uuid,
         offset: -1,
       })
       reload()
-      setLoading(false)
     }
 
     const moveDown = async () => {
       if (!currentBook) return
       goDown()
-      // TODO flash and support selected
-      setLoading(true)
       await booksMoveOffsetRouter.action({
         uuid: currentBook.uuid,
         offset: 1,
       })
       reload()
-      setLoading(false)
     }
 
     const select = (shift: boolean) => {
