@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { sortBy } from './util/collection.js'
+import { orderBy } from './util/collection.js'
 
 const langSet = [
   { code: 'ab', name: 'Abkhazian' },
@@ -225,7 +225,7 @@ export const useOrderedLangs = () => {
   const userLanguages = useUserLanguages()
 
   const langs = useMemo(() => {
-    return sortBy(langList, (l) => {
+    return orderBy(langList, 'asc', (l) => {
       const idx = userLanguages.indexOf(l.code)
       return idx === -1 ? userLanguages.length : idx
     })

@@ -31,7 +31,7 @@ import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
-import type { ReadablePart } from './types.js'
+import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
 
 type ColorScheme = 'light' | 'dark'
@@ -60,6 +60,7 @@ type ScrollOptions = {
 
 export class PlayerIframeController {
   readableParts: ReadablePart[] = []
+  alias: TextAlias[] = []
   mainContentRootPath: string
   mainContentRootUrl: string
   colorScheme: ColorScheme = 'light'
@@ -350,12 +351,10 @@ export class PlayerIframeController {
       const doc = iframe.contentDocument
       if (!doc) return console.error('iframe load failed')
 
-      // load readableParts
-      this.readableParts = []
-      this.readableParts = new ReadableExtractor(
-        doc,
-        this.flattenedNavs()
-      ).toReadableParts()
+      // load readableParts & alias
+      const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs())
+      this.readableParts = readableExtractor.toReadableParts()
+      this.alias = readableExtractor.alias()
 
       await this.onLoaded(iframe)
       iframe.style.visibility = 'visible'

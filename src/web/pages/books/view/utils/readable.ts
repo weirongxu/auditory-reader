@@ -3,12 +3,13 @@ import {
   PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../../core/consts.js'
+import { orderBy } from '../../../../../core/util/collection.js'
 import {
   isElement,
   isImageElement,
   isTextNode,
 } from '../../../../../core/util/dom.js'
-import type { ReadablePart } from '../types.js'
+import type { ReadablePart, TextAlias } from '../types.js'
 
 export function* walkerNode(doc: Document, root: HTMLElement) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ALL)
@@ -60,19 +61,8 @@ function isAllInlineChild(elem: HTMLElement) {
   return true
 }
 
-function getContentText(elem: HTMLElement) {
-  let contentText = ''
-  for (const node of walkerNode(elem.ownerDocument, elem)) {
-    if (!isTextNode(node)) continue
-    if (!node.parentElement) continue
-    if (node.parentElement.closest(`.${PARA_IGNORE_CLASS}`)) continue
-    contentText += node.textContent
-  }
-  return contentText
-}
-
 export class ReadableExtractor {
-  private parts: (
+  #parts: (
     | {
         type: 'image'
         elem: HTMLImageElement
@@ -84,7 +74,8 @@ export class ReadableExtractor {
         anchors: string[] | undefined
       }
   )[] = []
-  private accAnchors?: string[]
+  #accAnchors?: string[]
+  #alias: TextAlias[] = []
 
   constructor(private doc: Document, private flattenedNavs: BookNav[]) {
     this.walk()
@@ -103,6 +94,10 @@ export class ReadableExtractor {
       if (isElement(node)) {
         if (node.id && navExistHashSet.has(node.id)) {
           this.addAnchor(node.id)
+        }
+
+        if (node.tagName.toLowerCase() === 'ruby') {
+          this.addRuby(node)
         }
       }
 
@@ -139,26 +134,56 @@ export class ReadableExtractor {
   }
 
   private popAccAnchors() {
-    const acc = this.accAnchors
-    this.accAnchors = undefined
+    const acc = this.#accAnchors
+    this.#accAnchors = undefined
     return acc
   }
 
   addAnchor(id: string) {
-    this.accAnchors ??= []
-    this.accAnchors.push(id)
+    this.#accAnchors ??= []
+    this.#accAnchors.push(id)
+  }
+
+  addRuby(elem: HTMLElement) {
+    let source = ''
+    let target = ''
+    for (const node of walkerNode(this.doc, elem)) {
+      if (isElement(node) && node.tagName.toLowerCase() === 'rt') {
+        target += node.textContent
+      } else if (isTextNode(node) && !node.parentElement?.closest('rt')) {
+        source += node.textContent
+      }
+    }
+    if (source && target) {
+      elem.dataset.isAlias = '1'
+      this.#alias.push({
+        source,
+        target,
+      })
+    }
   }
 
   addImage(elem: HTMLImageElement) {
-    this.parts.push({ type: 'image', elem, anchors: this.popAccAnchors() })
+    this.#parts.push({ type: 'image', elem, anchors: this.popAccAnchors() })
   }
 
   addText(text: Text) {
-    this.parts.push({
+    this.#parts.push({
       type: 'text',
       elem: text,
       anchors: this.popAccAnchors(),
     })
+  }
+
+  private getContentText(elem: HTMLElement) {
+    let contentText = ''
+    for (const node of walkerNode(elem.ownerDocument, elem)) {
+      if (!isTextNode(node)) continue
+      if (!node.parentElement) continue
+      if (node.parentElement.closest(`.${PARA_IGNORE_CLASS}`)) continue
+      contentText += node.textContent
+    }
+    return contentText
   }
 
   toReadableParts() {
@@ -167,7 +192,7 @@ export class ReadableExtractor {
     const addText = (blockElem: HTMLElement, anchors: string[] | undefined) => {
       blockSet.add(blockElem)
       blockElem.classList.add(PARA_BOX_CLASS)
-      const textContent = getContentText(blockElem)
+      const textContent = this.getContentText(blockElem)
       const notEmpty = !!textContent?.trim()
       if (notEmpty) {
         readableParts.push({
@@ -180,7 +205,7 @@ export class ReadableExtractor {
     }
 
     const readableParts: ReadablePart[] = []
-    for (const { type, elem, anchors } of this.parts) {
+    for (const { type, elem, anchors } of this.#parts) {
       if (type === 'image') {
         // image
         elem.classList.add(PARA_BOX_CLASS)
@@ -207,7 +232,7 @@ export class ReadableExtractor {
         } else {
           // split block
           if (!elem.parentElement) continue
-          const wrapElem = document.createElement('span')
+          const wrapElem = this.doc.createElement('span')
           elem.after(wrapElem)
           wrapElem.appendChild(elem)
           addText(wrapElem, anchors)
@@ -215,5 +240,9 @@ export class ReadableExtractor {
       }
     }
     return readableParts
+  }
+
+  alias() {
+    return orderBy(this.#alias, 'desc', (a) => a.source.length)
   }
 }

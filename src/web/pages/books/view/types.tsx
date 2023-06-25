@@ -25,3 +25,8 @@ export interface ReadablePartImage extends ReadablePartBase {
 }
 
 export type ReadablePart = ReadablePartText | ReadablePartImage
+
+export interface TextAlias {
+  source: string
+  target: string
+}

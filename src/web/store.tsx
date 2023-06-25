@@ -3,7 +3,7 @@ import { atom, useAtom } from 'jotai'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useMemo } from 'react'
 import type { BookTypes } from '../core/book/types.js'
-import { sortBy } from '../core/util/collection.js'
+import { orderBy } from '../core/util/collection.js'
 import { globalStore } from './store/global.js'
 
 const allVoicesAtom = atom<SpeechSynthesisVoice[]>([])
@@ -86,7 +86,11 @@ export const useVoice = (book: BookTypes.Entity) => {
   const [allVoices] = useAtom(allVoicesAtom)
 
   const allSortedVoices = useMemo(() => {
-    return sortBy(allVoices, (v) => !v.lang.startsWith(`${book.langCode}-`))
+    return orderBy(
+      allVoices,
+      'asc',
+      (v) => !v.lang.startsWith(`${book.langCode}-`)
+    )
   }, [allVoices, book.langCode])
 
   const voiceURI = useMemo((): string | null => {

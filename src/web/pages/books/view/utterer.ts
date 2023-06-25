@@ -1,5 +1,10 @@
 import { ZH_PERSON_RULES } from '../../../../core/consts.js'
-import { findLastIndex } from '../../../../core/util/collection.js'
+import {
+  findLast,
+  findLastIndex,
+  orderBy,
+  range,
+} from '../../../../core/util/collection.js'
 import { Highlight } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
@@ -12,27 +17,11 @@ import {
   rewindPlay,
   shutterPlay,
 } from './sound.js'
-import type { ReadablePartText } from './types.js'
-
-function replaceScan(
-  text: string,
-  match: string | RegExp,
-  replace: string | ((source: string, index: number) => string)
-): string {
-  if (match instanceof RegExp && !match.global) {
-    match = new RegExp(match.source, `${match.flags}g`)
-  }
-  if (replace instanceof Function) {
-    let i = 0
-    return text.toString().replaceAll(match, (source) => replace(source, i++))
-  } else {
-    return text.toString().replaceAll(match, replace)
-  }
-}
+import type { ReadablePartText, TextAlias } from './types.js'
 
 function replacePersonText(text: string): string {
   for (const [key, value] of Object.entries(ZH_PERSON_RULES)) {
-    text = replaceScan(text, key, value.word)
+    text = text.replaceAll(key, value.word)
   }
   return text
 }
@@ -68,7 +57,7 @@ function getQoutePostions(text: string): QoutePostion[] {
       charIndex: m.index,
     })
   }
-  return pos.sort((a, b) => a.charIndex - b.charIndex)
+  return orderBy(pos, 'asc', (p) => p.charIndex)
 }
 
 type SpeakResult = 'cancel' | 'done'
@@ -103,18 +92,96 @@ export class Utterer {
     if (speechSynthesis.speaking) speechSynthesis.cancel()
   }
 
+  private aliasReplace(text: string) {
+    if (!this.player.iframeCtrler.alias.length)
+      return {
+        text,
+        highlightOffsets: [],
+      }
+
+    const highlightOffsets: [index: number, accOffset: number][] = []
+    const indexMap = new Map<number, TextAlias>()
+    for (const alias of this.player.iframeCtrler.alias) {
+      let i = -1
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        i = text.indexOf(alias.source, i + 1)
+        if (i === -1) break
+        else if (!indexMap.has(i)) {
+          indexMap.set(i, alias)
+        }
+      }
+    }
+    const orderedIndexes = orderBy([...indexMap.entries()], 'asc', ([i]) => i)
+    let accOffset = 0
+    for (const [i, { source, target }] of orderedIndexes) {
+      text = text.replace(source, target)
+      const unitOffset = source.length - target.length
+      if (unitOffset === 0) continue
+      const afterI = i - accOffset
+      highlightOffsets.push([afterI, accOffset])
+      for (const j of range(1, target.length)) {
+        highlightOffsets.push([
+          afterI + j,
+          accOffset + Math.floor(unitOffset * (j / target.length)),
+        ])
+      }
+      accOffset = accOffset + unitOffset
+    }
+    return { text, highlightOffsets }
+  }
+
   async speak(node: ReadablePartText): Promise<SpeakResult> {
     const isPersonReplace = this.states.isPersonReplace
 
     this.state = 'speaking'
     let text = node.text
     text = isPersonReplace ? replacePersonText(text) : text
+
+    // alias
+    const aliasResult = this.aliasReplace(text)
+    text = aliasResult.text
+    // alias offset
+    type HighlightEvent = {
+      charIndex: number
+      charLength: number
+    }
+    const highlightOffsetTable = aliasResult.highlightOffsets
+    const highlightOffsetFn: (event: HighlightEvent) => HighlightEvent =
+      highlightOffsetTable.length
+        ? (event) => {
+            const startOffset = findLast(
+              highlightOffsetTable,
+              ([i]) => i <= event.charIndex
+            )
+            if (!startOffset) return event
+            const charEndIndex = event.charIndex + event.charLength
+            const endOffset = findLast(
+              highlightOffsetTable,
+              ([i]) => i <= charEndIndex
+            )
+            if (!endOffset) return event
+            const charIndex = event.charIndex + (startOffset[1] ?? 0)
+            const charLength = charEndIndex + (endOffset[1] ?? 0) - charIndex
+            return {
+              charIndex,
+              charLength,
+            }
+          }
+        : (event) => event
+
     const quotePostions = getQoutePostions(text)
+
     this.utterance.text = text
     speechSynthesis.speak(this.utterance)
+
+    // boundary
     const boundaryListener = (event: SpeechSynthesisEvent) => {
+      const { charIndex: highlightIndex, charLength: highlightLength } =
+        highlightOffsetFn(event)
+
       // range highlight
-      this.hl.highlight(node, event.charIndex, event.charLength)
+      this.hl.highlight(node, highlightIndex, highlightLength)
 
       // quote & rain
       const quotePosIndex = findLastIndex(
@@ -132,6 +199,7 @@ export class Utterer {
       }
     }
     this.utterance.addEventListener('boundary', boundaryListener)
+
     const result = await new Promise<SpeakResult>((resolve, reject) => {
       this.utterance.addEventListener(
         'end',

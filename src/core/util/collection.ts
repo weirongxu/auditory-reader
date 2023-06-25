@@ -153,9 +153,12 @@ export function uniq<T>(list: T[]): T[] {
   return uniqBy(list, (it) => it)
 }
 
-export function sortBy<T>(
+type OrderTypes = number | string | boolean
+
+export function orderBy<T>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => unknown
+  order: 'asc' | 'desc',
+  getValue: (value: T, index: number, list: T[]) => OrderTypes
 ): T[] {
   const listEntries = [...list.entries()]
   listEntries.sort(([ai, a], [bi, b]) => {
@@ -166,8 +169,12 @@ export function sortBy<T>(
     else if (typeof va === 'number' && typeof vb === 'number') return va - vb
     else if (typeof va === 'boolean' && typeof vb === 'boolean')
       return Number(va) - Number(vb)
-    return 0
+    else
+      throw new Error(`no support order by type(${typeof va} vs ${typeof vb})`)
   })
+  if (order === 'desc') {
+    listEntries.reverse()
+  }
   return listEntries.map((it) => it[1])
 }
 
@@ -186,4 +193,8 @@ export function groupToMap<T, A>(
     group.push(item)
   }
   return map
+}
+
+export function sum(list: number[]) {
+  return list.reduce((ret, cur) => ret + cur, 0)
 }

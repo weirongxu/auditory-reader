@@ -2,7 +2,7 @@ import {
   PARA_HIGHLIGHT_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../core/consts.js'
-import { isElement } from '../../../../core/util/dom.js'
+import { isElement, isTextNode } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
@@ -21,6 +21,10 @@ export class Highlight {
     protected states: PlayerStatesManager
   ) {}
 
+  get doc() {
+    return this.iframeCtrl.doc
+  }
+
   #findRangePos(
     node: Node,
     index: number
@@ -34,8 +38,8 @@ export class Highlight {
       }
     let remainIndex = index
     for (const child of node.childNodes) {
-      // text
-      if (child.nodeType === Node.TEXT_NODE) {
+      if (isTextNode(child)) {
+        // text
         if (!child.textContent) continue
         if (remainIndex < child.textContent.length) {
           return {
@@ -49,8 +53,9 @@ export class Highlight {
         continue
       }
 
-      // ignore class
-      if (isElement(child) && child.closest(`.${PARA_IGNORE_CLASS}`)) continue
+      if (isElement(child) && child.closest(`.${PARA_IGNORE_CLASS}`))
+        // ignore class
+        continue
 
       // recursion
       const result = this.#findRangePos(child, remainIndex)
@@ -94,9 +99,12 @@ export class Highlight {
   #highlightChars = throttleFn(
     300,
     (node: ReadablePart, charIndex: number, charLength: number) => {
+      if (!this.doc) return
+
       // remove last class
       this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
 
+      // get range
       const range = document.createRange()
       const start = this.#getChildAndIndex(node.elem, charIndex)
       if (!start) return
@@ -110,11 +118,21 @@ export class Highlight {
         // skip range index error
         return
       }
-      const span = document.createElement('span')
+
+      // create span
+      const span = this.doc.createElement('span')
       span.classList.add(PARA_HIGHLIGHT_CLASS)
       this.highlightedElems.push(span)
-      span.appendChild(range.extractContents())
-      range.insertNode(span)
+      const parentRuby = start.node.parentElement?.closest('ruby')
+      if (parentRuby) {
+        // wrap ruby
+        parentRuby.after(span)
+        span.appendChild(parentRuby)
+      } else {
+        // wrap range
+        span.appendChild(range.extractContents())
+        range.insertNode(span)
+      }
 
       // Note: use previous span, because latest span rect is incorrect
       const span0 = this.highlightedElems.at(-2)
