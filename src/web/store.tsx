@@ -47,6 +47,12 @@ function createStore<T>(options: {
   }
 }
 
+export const useVisibleNav = createStore<boolean>({
+  storeKey: 'visibleNav',
+  read: (v) => (v ? v === '1' : false),
+  write: (v) => (v ? '1' : '0'),
+})
+
 const useLastVoiceURIDict = createStore<Record<string, string>>({
   storeKey: 'voiceURILastDict',
   read: (uriDictStr) => (uriDictStr ? JSON.parse(uriDictStr) : {}),

@@ -8,6 +8,7 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 import { useNavigate } from 'react-router-dom'
+import { useVisibleNav } from '../../../store.js'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -16,6 +17,7 @@ export function useViewer(props: BookContextProps) {
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
+  const [, setVisibleNav] = useVisibleNav()
   const nav = useNavigate()
 
   const player = usePlayer(book, pos, iframeRef)
@@ -34,17 +36,33 @@ export function useViewer(props: BookContextProps) {
 
   // hotkey
   useEffect(() => {
+    const jumpPrevPage = () => player.prevPage(1, true)
+    const jumpNextPage = () => player.nextPage(1, true)
+    const prevPage = () => player.prevPage(1, false)
+    const nextPage = () => player.nextPage(1, false)
+    const prevSection = () => player.prevSection()
+    const nextSection = () => player.nextSection()
+    const prevParagraph = () => player.prevParagraph()
+    const nextParagraph = () => player.nextParagraph()
+
     const dispose = addHotkeys([
       [' ', () => player.toggle()],
-      [{ shift: true, key: 'arrowleft' }, () => player.prevSection()],
-      [{ shift: true, key: 'arrowright' }, () => player.nextSection()],
+      ['n', () => setVisibleNav((v) => !v)],
       ['u', () => nav('../../')],
-      ['arrowleft', () => player.prevPage(1, true)],
-      ['arrowright', () => player.nextPage(1, true)],
-      ['pageup', () => player.prevPage(1, false)],
-      ['pagedown', () => player.nextPage(1, false)],
-      ['arrowup', () => player.prevParagraph()],
-      ['arrowdown', () => player.nextParagraph()],
+      [{ shift: true, key: 'h' }, prevSection],
+      [{ shift: true, key: 'l' }, nextSection],
+      [{ shift: true, key: 'arrowleft' }, prevSection],
+      [{ shift: true, key: 'arrowright' }, nextSection],
+      ['h', jumpPrevPage],
+      ['l', jumpNextPage],
+      ['arrowleft', jumpPrevPage],
+      ['arrowright', jumpNextPage],
+      ['pageup', prevPage],
+      ['pagedown', nextPage],
+      ['k', prevParagraph],
+      ['j', nextParagraph],
+      ['arrowup', prevParagraph],
+      ['arrowdown', nextParagraph],
     ])
     return dispose
   })

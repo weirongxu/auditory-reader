@@ -1,20 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { BookViewRes } from '../../../../core/api/books/view.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { compact } from '../../../../core/util/collection.js'
 import type { Player } from './player.js'
+import { useVisibleNav } from '../../../store.js'
 
 export function useBookViewNav(
   book: BookViewRes,
   player: Player,
   focusedNavs?: BookNav[]
 ) {
-  const [visible, setVisible] = useState<boolean>(false)
+  const [visibleNav, setVisibleNav] = useVisibleNav()
   const refNav = useRef<HTMLDivElement>(null)
 
   const toggleNav = useCallback(() => {
-    setVisible((v) => !v)
-  }, [])
+    setVisibleNav((v) => !v)
+  }, [setVisibleNav])
 
   const lastFocusedNav = useMemo(() => {
     return focusedNavs?.at(-1)
@@ -58,23 +59,23 @@ export function useBookViewNav(
 
   const NavTreeView = useMemo(() => {
     const list = getList(book.navs)
-    return visible ? (
+    return visibleNav ? (
       <div ref={refNav} className="book-nav">
         {list}
       </div>
     ) : null
-  }, [getList, book.navs, visible])
+  }, [getList, book.navs, visibleNav])
 
   // scroll to nav
   useEffect(() => {
-    if (!visible || !lastFocusedNav) return
+    if (!visibleNav || !lastFocusedNav) return
     const navDiv = refNav.current
     if (!navDiv) return
     const lastNavDiv = [...navDiv.querySelectorAll('div.item.active')].at(-1)
     lastNavDiv?.scrollIntoView({
       block: 'center',
     })
-  }, [visible, lastFocusedNav])
+  }, [visibleNav, lastFocusedNav])
 
   return {
     toggleNav,

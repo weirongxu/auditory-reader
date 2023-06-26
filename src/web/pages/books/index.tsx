@@ -212,13 +212,17 @@ function useHomeHotKeys({
     }
 
     const pagePrev = () => {
-      if (dataBooks)
+      if (dataBooks) {
         setPage((page) => (page > 1 ? page - 1 : dataBooks.pageCount))
+        goTop()
+      }
     }
 
     const pageNext = () => {
-      if (dataBooks)
+      if (dataBooks) {
         setPage((page) => (page < dataBooks.pageCount ? page + 1 : 1))
+        goTop()
+      }
     }
 
     const moveUp = async () => {
@@ -254,18 +258,18 @@ function useHomeHotKeys({
     }
 
     const dispose = addHotkeys([
-      ['j', goDown],
       ['k', goUp],
-      ['arrowdown', goDown],
+      ['j', goDown],
       ['arrowup', goUp],
+      ['arrowdown', goDown],
       ['h', pagePrev],
       ['l', pageNext],
       ['arrowleft', pagePrev],
       ['arrowright', pageNext],
-      [{ shift: true, key: 'j' }, moveDown],
       [{ shift: true, key: 'k' }, moveUp],
-      [{ shift: true, key: 'arrowdown' }, moveDown],
+      [{ shift: true, key: 'j' }, moveDown],
       [{ shift: true, key: 'arrowup' }, moveUp],
+      [{ shift: true, key: 'arrowdown' }, moveDown],
       ['t', moveBookTop],
       ['e', () => currentBook && nav(editPath(currentBook.uuid))],
       ['x', () => select(false)],

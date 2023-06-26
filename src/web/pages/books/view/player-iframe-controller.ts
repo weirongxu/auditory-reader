@@ -298,13 +298,16 @@ export class PlayerIframeController {
           this.splitPageList,
           (page) => !!page.top && page.scrollLeft <= goalLeft
         )?.top?.paragraph
+        if (paragraph === undefined) return await this.player.prevSection(-1)
+        else await this.player.gotoParagraph(paragraph)
       } else {
         paragraph = find(
           this.splitPageList,
           (page) => !!page.top && page.scrollLeft >= goalLeft
         )?.top?.paragraph
+        if (paragraph === undefined) return await this.player.nextSection(0)
+        else await this.player.gotoParagraph(paragraph)
       }
-      if (paragraph !== undefined) await this.player.gotoParagraph(paragraph)
     } else {
       await this.scrollToPageByLeft(goalLeft, { abortCtrl })
     }
