@@ -1,4 +1,3 @@
-import type { BookNav } from '../../../../../core/book/book-base.js'
 import {
   PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
@@ -77,22 +76,16 @@ export class ReadableExtractor {
   #accAnchors?: string[]
   #alias: TextAlias[] = []
 
-  constructor(private doc: Document, private flattenedNavs: BookNav[]) {
+  constructor(private doc: Document) {
     this.walk()
   }
 
   walk() {
-    const navExistHashSet = new Set(
-      this.flattenedNavs
-        .filter((nav) => nav.hrefHash)
-        .map((nav) => nav.hrefHash)
-    )
-
     // walk
     for (const node of walkerNode(this.doc, this.doc.body)) {
       // hashes
       if (isElement(node)) {
-        if (node.id && navExistHashSet.has(node.id)) {
+        if (node.id) {
           this.addAnchor(node.id)
         }
 
@@ -187,20 +180,26 @@ export class ReadableExtractor {
   }
 
   toReadableParts() {
-    const blockSet = new Set<HTMLElement>()
+    const blockMap = new Map<HTMLElement, null | ReadablePart>()
 
-    const addText = (blockElem: HTMLElement, anchors: string[] | undefined) => {
-      blockSet.add(blockElem)
+    const addTextPart = (
+      blockElem: HTMLElement,
+      anchors: string[] | undefined
+    ) => {
       blockElem.classList.add(PARA_BOX_CLASS)
       const textContent = this.getContentText(blockElem)
       const notEmpty = !!textContent?.trim()
       if (notEmpty) {
-        readableParts.push({
+        const part: ReadablePart = {
           elem: blockElem,
           type: 'text',
           text: textContent,
           anchorIds: anchors,
-        })
+        }
+        blockMap.set(blockElem, part)
+        readableParts.push(part)
+      } else {
+        blockMap.set(blockElem, null)
       }
     }
 
@@ -225,17 +224,24 @@ export class ReadableExtractor {
         if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
 
         // avoid duplicated
-        if (blockSet.has(blockElem)) continue
+        const part = blockMap.get(blockElem)
+        if (part) {
+          if (anchors) {
+            part.anchorIds ??= []
+            part.anchorIds.push(...anchors)
+          }
+          continue
+        }
 
         if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
-          addText(blockElem, anchors)
+          addTextPart(blockElem, anchors)
         } else {
           // split block
           if (!elem.parentElement) continue
           const wrapElem = this.doc.createElement('span')
           elem.after(wrapElem)
           wrapElem.appendChild(elem)
-          addText(wrapElem, anchors)
+          addTextPart(wrapElem, anchors)
         }
       }
     }

@@ -362,7 +362,7 @@ export class PlayerIframeController {
       if (!doc) return console.error('iframe load failed')
 
       // load readableParts & alias
-      const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs())
+      const readableExtractor = new ReadableExtractor(doc)
       this.readableParts = readableExtractor.toReadableParts()
       this.alias = readableExtractor.alias()
 
