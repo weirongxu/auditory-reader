@@ -4,7 +4,7 @@ export const langEn = {
     autoNextSection: 'Auto Next Section',
     timer: 'Timer (Minute)',
     personReplace: '中文人称替换',
-    speed: 'Speed',
+    speed: '$t(speed)',
     userColorScheme: 'Color Scheme',
     paragraphRepeat: 'Paragraph Repeat',
     splitPage: 'Split Page',
@@ -30,6 +30,7 @@ export const langEn = {
   error: {
     login: '$t(account) or $t(password) error',
   },
+  speed: 'Speed',
   view: 'View',
   account: 'Account',
   password: 'Password',

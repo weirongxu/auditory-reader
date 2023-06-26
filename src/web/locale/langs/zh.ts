@@ -4,7 +4,7 @@ export const langZh = {
     autoNextSection: '自动下一章节',
     timer: '计时器 (分钟)',
     personReplace: '中文人称替换',
-    speed: '速度',
+    speed: '$t(speed)',
     userColorScheme: '颜色主题',
     paragraphRepeat: '段落重复',
     splitPage: '分页',
@@ -30,6 +30,7 @@ export const langZh = {
   error: {
     login: '$t(account)或$t(password)错误',
   },
+  speed: '速度',
   view: '浏览',
   account: '帐号',
   password: '密码',

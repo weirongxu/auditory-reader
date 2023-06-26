@@ -15,6 +15,8 @@ import { Layout } from './layout/layout.js'
 import { GlobalSnackbar } from './layout/snackbar.js'
 import { Login } from './login.js'
 import { NotFound } from './not-found.js'
+import { useHintText } from '../hint-text.js'
+import { t } from 'i18next'
 
 function Books() {
   const { data: user } = useAction(userRouter, null)
@@ -35,13 +37,29 @@ function Books() {
 function Main() {
   const [, setSpeechSpeed] = useSpeechSpeed()
   const { addHotkeys } = useHotkeys()
+  const { openHint } = useHintText()
 
   // hotkey
   useEffect(() => {
     const dispose = addHotkeys([
-      // TODO display label
-      ['[', () => setSpeechSpeed((v) => (v * 10 - 1) / 10)],
-      [']', () => setSpeechSpeed((v) => (v * 10 + 1) / 10)],
+      [
+        '[',
+        () =>
+          setSpeechSpeed((v) => {
+            const n = (v * 10 - 1) / 10
+            openHint(`${t('speed')}: ${n}`)
+            return n
+          }),
+      ],
+      [
+        ']',
+        () =>
+          setSpeechSpeed((v) => {
+            const n = (v * 10 + 1) / 10
+            openHint(`${t('speed')}: ${n}`)
+            return n
+          }),
+      ],
       [
         'r',
         () => {

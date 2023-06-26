@@ -22,6 +22,7 @@ import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
 import { Provider } from 'jotai'
 import { globalStore } from './store/global.js'
+import { HintText } from './hint-text.js'
 
 function AppRegistrar() {
   const theme = useAppTheme()
@@ -59,6 +60,7 @@ function AppRegistrar() {
           {loadedStatus}
         </Alert>
       )}
+      <HintText></HintText>
       <PreviewImage></PreviewImage>
     </>
   )
