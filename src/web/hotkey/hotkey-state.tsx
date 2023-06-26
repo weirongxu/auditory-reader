@@ -13,7 +13,14 @@ type Hotkey =
   | Hotkey[]
 
 type HotkeyCallback = () => void
-type HotkeysList = [key: string, callbacks: HotkeyCallback[]][]
+type HotkeyCallbackMap = Map<number, HotkeyCallback>
+type HotkeysList = [key: string, callback: HotkeyCallbackMap][]
+type HotkeyOption = {
+  /**
+   * The default value is 1, and the higher the level, the higher the priority.
+   */
+  level?: number
+}
 
 const sequenceSymbol = ' '
 const hotkeysList: HotkeysList = []
@@ -38,33 +45,44 @@ function getHotkeyKey(hotkey: Hotkey): string {
 }
 
 export function useHotkeys() {
-  const addHotkey = useCallback((hotkeys: Hotkey, callback: () => void) => {
-    const key = getHotkeyKey(hotkeys)
-    let callbacks: HotkeyCallback[]
+  const addHotkey = useCallback(
+    (hotkeys: Hotkey, callback: () => void, options: HotkeyOption = {}) => {
+      const key = getHotkeyKey(hotkeys)
+      const level = options.level ?? 1
 
-    let itemOrNil = hotkeysList.find(([k]) => k === key)
-    if (!itemOrNil) {
-      callbacks = [callback]
-      itemOrNil = [key, callbacks]
-      hotkeysList.push(itemOrNil)
-    } else {
-      itemOrNil[1].unshift(callback)
-    }
-    const item = itemOrNil
-    return function dispose() {
-      item[1] = item[1].filter((c) => c !== callback)
-      if (!item[1].length) {
-        const i = hotkeysList.findIndex((it) => it === itemOrNil)
-        if (i !== -1) hotkeysList.splice(i, 1)
+      let itemOrNil = hotkeysList.find(([k]) => k === key)
+      if (!itemOrNil) {
+        const callbackMap: HotkeyCallbackMap = new Map([[level, callback]])
+        itemOrNil = [key, callbackMap]
+        hotkeysList.push(itemOrNil)
+      } else {
+        if (itemOrNil[1].has(level))
+          throw new Error(
+            `Hotkey ${JSON.stringify(hotkeys)} level: ${level} already exists`
+          )
+        itemOrNil[1].set(level, callback)
       }
-    }
-  }, [])
+      const item = itemOrNil
+
+      return function dispose() {
+        item[1].delete(level)
+        if (!item[1].size) {
+          const i = hotkeysList.findIndex((it) => it === itemOrNil)
+          if (i !== -1) hotkeysList.splice(i, 1)
+        }
+      }
+    },
+    []
+  )
 
   const addHotkeys = useCallback(
-    (hotkeys: [hotkey: Hotkey, callback: () => void][]) => {
+    (
+      hotkeys: [hotkey: Hotkey, callback: () => void][],
+      options: HotkeyOption = {}
+    ) => {
       const disposes: (() => void)[] = []
       for (const [hotkey, callback] of hotkeys) {
-        disposes.push(addHotkey(hotkey, callback))
+        disposes.push(addHotkey(hotkey, callback, options))
       }
       return function disposeAll() {
         disposes.forEach((dispose) => dispose())
@@ -104,9 +122,10 @@ function getListener() {
         curKeySeq = ''
       }, seqTimeout)
     } else if (targetRet) {
-      // callback latest hotkey
-      const callback = targetRet[1][0]
-      callback?.()
+      // callback max level hotkey
+      const levels = targetRet[1].keys()
+      const maxLevel = Math.max(...levels)
+      if (maxLevel) targetRet[1].get(maxLevel)?.()
     }
   }
 }

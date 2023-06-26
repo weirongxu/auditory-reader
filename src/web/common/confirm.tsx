@@ -51,10 +51,14 @@ function ConfirmDialog() {
 
   useEffect(() => {
     if (confirm) {
-      return addHotkey('Enter', () => {
-        confirm.okCallback()
-        onClose()
-      })
+      return addHotkey(
+        'Enter',
+        () => {
+          confirm.okCallback()
+          onClose()
+        },
+        { level: 100 }
+      )
     }
   }, [addHotkey, confirm, onClose])
 

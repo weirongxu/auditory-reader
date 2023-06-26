@@ -170,7 +170,7 @@ function useHomeHotKeys({
   moveBooksTop,
   removeBooks,
 }: {
-  setPage: Dispatch<SetStateAction<number | undefined>>
+  setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
   selectAll: () => void
@@ -212,18 +212,13 @@ function useHomeHotKeys({
     }
 
     const pagePrev = () => {
-      setPage((page) => (page && page > 1 ? page - 1 : 1))
+      if (dataBooks)
+        setPage((page) => (page > 1 ? page - 1 : dataBooks.pageCount))
     }
 
     const pageNext = () => {
       if (dataBooks)
-        setPage((page) =>
-          page
-            ? page < dataBooks.pageCount
-              ? page + 1
-              : dataBooks.pageCount
-            : 2
-        )
+        setPage((page) => (page < dataBooks.pageCount ? page + 1 : 1))
     }
 
     const moveUp = async () => {
@@ -477,7 +472,7 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
 
 export function BookList() {
   const theme = useTheme()
-  const [page, setPage] = useState<number>()
+  const [page, setPage] = useState<number>(1)
   const { data: dataBooks, reload } = useAction(booksPageRouter, { page })
   const [loading, setLoading] = useState<boolean>(false)
 

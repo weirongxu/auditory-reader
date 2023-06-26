@@ -10,8 +10,12 @@ export function useKeyEscape(callback: () => void) {
   }, [callback])
 
   useEffect(() => {
-    return addHotkey('escape', () => {
-      refCallback.current()
-    })
+    return addHotkey(
+      'escape',
+      () => {
+        refCallback.current()
+      },
+      { level: 100 }
+    )
   }, [addHotkey])
 }
