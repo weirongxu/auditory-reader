@@ -41,7 +41,6 @@
     "jotai": "^2.2.0",
     "jsdom": "^22.1.0",
     "jszip": "^3.10.1",
-    "material-ui-confirm": "^3.0.9",
     "mime-types": "^2.1.35",
     "node-fetch": "^3.3.1",
     "pinch-zoom-pan": "^3.0.0",

@@ -29,7 +29,7 @@ export function useHintText() {
   return useMemo(() => ({ openHint }), [openHint])
 }
 
-export function HintText() {
+export function HintTextProvider() {
   const [hint] = useAtom(hintTextAtom)
   return (
     <div

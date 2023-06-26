@@ -15,7 +15,7 @@ import { Layout } from './layout/layout.js'
 import { GlobalSnackbar } from './layout/snackbar.js'
 import { Login } from './login.js'
 import { NotFound } from './not-found.js'
-import { useHintText } from '../hint-text.js'
+import { useHintText } from '../common/hint-text.js'
 import { t } from 'i18next'
 
 function Books() {

@@ -18,7 +18,6 @@ import {
   useTheme,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useConfirm } from 'material-ui-confirm'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
@@ -38,7 +37,8 @@ import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
 import { getBooksCoverPath } from '../../../core/api/books/cover.js'
 import { globalStore } from '../../store/global.js'
-import { previewImgSrcAtom } from '../../preview-image.js'
+import { previewImgSrcAtom } from '../../common/preview-image.js'
+import { useConfirm } from '../../common/confirm.js'
 
 const DragType = 'book'
 type DragItem = {

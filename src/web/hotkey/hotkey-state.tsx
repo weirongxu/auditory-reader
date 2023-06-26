@@ -48,7 +48,7 @@ export function useHotkeys() {
       itemOrNil = [key, callbacks]
       hotkeysList.push(itemOrNil)
     } else {
-      itemOrNil[1].push(callback)
+      itemOrNil[1].unshift(callback)
     }
     const item = itemOrNil
     return function dispose() {
@@ -104,9 +104,9 @@ function getListener() {
         curKeySeq = ''
       }, seqTimeout)
     } else if (targetRet) {
-      for (const cb of targetRet[1]) {
-        cb()
-      }
+      // callback latest hotkey
+      const callback = targetRet[1][0]
+      callback?.()
     }
   }
 }

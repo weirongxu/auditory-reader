@@ -8,7 +8,6 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material'
-import { ConfirmProvider } from 'material-ui-confirm'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
@@ -16,13 +15,14 @@ import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { useStyle } from './hooks/useStyle.js'
 import { useHotkeysRegister } from './hotkey/hotkey-state.js'
 import { RootEntry } from './pages/entry.js'
-import { PreviewImage } from './preview-image.js'
+import { PreviewImageProvider } from './common/preview-image.js'
 import { registerAPI } from './service-worker/register.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
 import { Provider } from 'jotai'
 import { globalStore } from './store/global.js'
-import { HintText } from './hint-text.js'
+import { HintTextProvider } from './common/hint-text.js'
+import { ConfirmProvider } from './common/confirm.js'
 
 function AppRegistrar() {
   const theme = useAppTheme()
@@ -60,8 +60,6 @@ function AppRegistrar() {
           {loadedStatus}
         </Alert>
       )}
-      <HintText></HintText>
-      <PreviewImage></PreviewImage>
     </>
   )
 }
@@ -73,9 +71,10 @@ export function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <DndProvider backend={HTML5Backend}>
-          <ConfirmProvider>
-            <AppRegistrar></AppRegistrar>
-          </ConfirmProvider>
+          <AppRegistrar></AppRegistrar>
+          <HintTextProvider></HintTextProvider>
+          <PreviewImageProvider></PreviewImageProvider>
+          <ConfirmProvider></ConfirmProvider>
         </DndProvider>
       </ThemeProvider>
     </Provider>
