@@ -18,7 +18,7 @@ export const booksRenderRouter = new URouter('books/render', {
     book = await bookManager.book(userInfo.account, uuid)
   }
   if (!book) throw new ErrorRequestResponse('book not found')
-  const filepath = path.join(...paths)
+  const filepath = decodeURI(path.join(...paths))
   const file = await book.file(filepath)
   if (!file) throw new ErrorRequestResponse('Path in book not found')
   const contType = file.mediaType ?? mime.contentType(path.basename(filepath))
