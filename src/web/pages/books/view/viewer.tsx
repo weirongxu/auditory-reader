@@ -47,7 +47,7 @@ export function useViewer(props: BookContextProps) {
 
     const dispose = addHotkeys([
       [' ', () => player.toggle()],
-      ['n', () => setVisibleNav((v) => !v)],
+      ['t', () => setVisibleNav((v) => !v)],
       ['u', () => nav('../../')],
       [{ shift: true, key: 'h' }, prevSection],
       [{ shift: true, key: 'l' }, nextSection],
