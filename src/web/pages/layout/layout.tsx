@@ -22,8 +22,10 @@ import { DragFile } from './drag-file.js'
 import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
+import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
+  const [title] = useTitle()
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
@@ -60,7 +62,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
           )}
         </LinkWrap>
         <Typography flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
-          {appBarStates.title ?? 'Auditory Reader'}
+          {title ?? defaultTitle}
         </Typography>
       </Stack>
       <Stack direction="row" alignItems="center" flex={1} spacing={1}>

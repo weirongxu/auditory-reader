@@ -3,14 +3,12 @@ import { atom, useAtom } from 'jotai'
 import { useEffect } from 'react'
 
 export const appBarStatesAtom = atom<{
-  title: React.ReactNode
   topLeft: React.ReactNode
   topRight: React.ReactNode
   settings: React.ReactNode
   bottomLeft: React.ReactNode
   bottomRight: React.ReactNode
 }>({
-  title: null,
   topLeft: null,
   topRight: null,
   settings: null,
@@ -19,38 +17,27 @@ export const appBarStatesAtom = atom<{
 })
 
 export const useAppBarSync = (props: {
-  title?: React.ReactNode
   topLeft?: React.ReactNode
   topRight?: React.ReactNode
   settings?: React.ReactNode
   bottomLeft?: React.ReactNode
   bottomRight?: React.ReactNode
 }) => {
-  const { title, topLeft, topRight, settings, bottomLeft, bottomRight } = props
+  const { topLeft, topRight, settings, bottomLeft, bottomRight } = props
   const [, setAppBarStates] = useAtom(appBarStatesAtom)
 
   useEffect(() => {
     setAppBarStates({
-      title,
       topLeft,
       topRight,
       settings,
       bottomLeft,
       bottomRight,
     })
-  }, [
-    title,
-    topLeft,
-    topRight,
-    settings,
-    bottomLeft,
-    bottomRight,
-    setAppBarStates,
-  ])
+  }, [topLeft, topRight, settings, bottomLeft, bottomRight, setAppBarStates])
 
   useUnmountEffect(() => {
     setAppBarStates({
-      title: null,
       topLeft: null,
       topRight: null,
       settings: null,

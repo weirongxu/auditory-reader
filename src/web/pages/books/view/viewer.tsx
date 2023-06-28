@@ -98,6 +98,7 @@ export function useViewer(props: BookContextProps) {
   })
 
   return {
+    focusedNavs,
     NavTreeView,
     MainContent,
   }

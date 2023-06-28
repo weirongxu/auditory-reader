@@ -317,7 +317,6 @@ export function usePlayerUI(
   }, [SelectVoices])
 
   useAppBarSync({
-    title: book.item.name,
     topRight,
     bottomLeft,
     bottomRight,

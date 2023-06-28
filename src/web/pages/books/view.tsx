@@ -1,5 +1,11 @@
 import { CircularProgress, Stack } from '@mui/material'
-import { useCallback, useEffect, useState, type SetStateAction } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type SetStateAction,
+  useMemo,
+} from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
@@ -45,7 +51,17 @@ export const useBookView = (uuid: string) => {
 }
 
 function BookViewContent(props: BookContextProps) {
-  const { NavTreeView, MainContent } = useViewer(props)
+  const { book } = props
+  const { NavTreeView, MainContent, focusedNavs } = useViewer(props)
+  const [, setTitle] = useTitle()
+
+  const lastNav = useMemo(() => focusedNavs?.at(-1), [focusedNavs])
+
+  useEffect(() => {
+    let mainTitle = `${book.item.name}`
+    if (lastNav) mainTitle = `${lastNav.label} - ${mainTitle}`
+    setTitle(mainTitle)
+  }, [book, lastNav, setTitle])
 
   return (
     <Stack direction="row" className={styles.contentWrapper}>
@@ -58,13 +74,6 @@ function BookViewContent(props: BookContextProps) {
 function BookViewReq(props: { uuid: string }) {
   const { uuid } = props
   const { error, pos, setPos, book } = useBookView(uuid)
-
-  const [, setTitle] = useTitle()
-
-  useEffect(() => {
-    if (!book) return
-    setTitle(`${book.item.name} - Speech`)
-  }, [book, setTitle])
 
   if (error) return <NotFound title="book"></NotFound>
 
