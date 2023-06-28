@@ -34,7 +34,8 @@ export class BookEntityFS extends BookEntityBase {
     const bookEntity = new BookEntityFS(allBooksDir, entity)
     await bookEntity.mkdir()
     await bookEntity.writeFile(file)
-    await bookEntity.writeProp()
+    const prop = await bookEntity.readProp()
+    await bookEntity.writeProp(prop)
   }
 
   constructor(
@@ -59,29 +60,8 @@ export class BookEntityFS extends BookEntityBase {
     await fs.promises.mkdir(this.bookDir, { recursive: true })
   }
 
-  protected async readProp(): Promise<BookTypes.PropertyJson> {
-    if (!this.propJson) {
-      if (!fs.existsSync(this.propJsonPath)) {
-        this.propJson = {}
-      } else {
-        const str = await fs.promises.readFile(this.propJsonPath, 'utf8')
-        try {
-          this.propJson = JSON.parse(str) as BookTypes.PropertyJson
-        } catch {
-          this.propJson = {}
-        }
-      }
-    }
-    return this.propJson
-  }
-
   protected async writeFile(file: ArrayBuffer) {
     await fs.promises.writeFile(this.bufferPath, Buffer.from(file))
-  }
-
-  protected async writeProp() {
-    const json = await this.readProp()
-    await fs.promises.writeFile(this.propJsonPath, JSON.stringify(json), 'utf8')
   }
 
   async readFileBuffer(): Promise<ArrayBuffer> {
@@ -102,19 +82,23 @@ export class BookEntityFS extends BookEntityBase {
     }
   }
 
-  async posGet(): Promise<BookTypes.PropertyPosition> {
-    const json = await this.readProp()
-    return (
-      json.position ?? {
-        section: 0,
-        paragraph: 0,
+  protected async readProp(): Promise<BookTypes.PropertyJson> {
+    if (!this.propJson) {
+      if (!fs.existsSync(this.propJsonPath)) {
+        this.propJson = {}
+      } else {
+        const str = await fs.promises.readFile(this.propJsonPath, 'utf8')
+        try {
+          this.propJson = JSON.parse(str) as BookTypes.PropertyJson
+        } catch {
+          this.propJson = {}
+        }
       }
-    )
+    }
+    return this.propJson
   }
 
-  async posSet(pos: BookTypes.PropertyPosition) {
-    const json = await this.readProp()
-    json.position = pos
-    await this.writeProp()
+  protected async writeProp(prop: BookTypes.PropertyJson) {
+    await fs.promises.writeFile(this.propJsonPath, JSON.stringify(prop), 'utf8')
   }
 }

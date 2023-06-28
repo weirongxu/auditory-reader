@@ -40,11 +40,17 @@ export namespace BookTypes {
 
   export type PropertyJson = {
     position?: PropertyPosition
+    bookmarks?: PropertyBookmark[]
   }
 
   export type PropertyPosition = {
     section: number
     paragraph: number
+  }
+
+  export interface PropertyBookmark extends PropertyPosition {
+    uuid: string
+    brief: string
   }
 
   export interface PageParamsRequired {

@@ -1,6 +1,9 @@
+import { booksAddBookmarksRouter } from './books/add-bookmarks.js'
+import { booksBookmarksRouter } from './books/bookmarks.js'
 import { booksCoverRouter } from './books/cover.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
+import { booksDeleteBookmarksRouter } from './books/delete-bookmarks.js'
 import { booksDownloadRouter } from './books/download.js'
 import { booksFetchUrlInfoRouter } from './books/fetch-url-info.js'
 import { booksMoveOffsetRouter } from './books/move-offset.js'
@@ -29,11 +32,14 @@ export const ROUTERS = [
   booksMoveOffsetRouter,
   booksMoveTopRouter,
   booksPageRouter,
-  booksPositionRouter,
   booksRemoveRouter,
   booksShowRouter,
   booksDownloadRouter,
+  booksPositionRouter,
   booksSyncPositionRouter,
+  booksBookmarksRouter,
+  booksAddBookmarksRouter,
+  booksDeleteBookmarksRouter,
   booksUpdateRouter,
   booksViewRouter,
   booksCoverRouter,

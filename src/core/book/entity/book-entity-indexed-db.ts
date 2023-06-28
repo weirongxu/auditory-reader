@@ -9,7 +9,8 @@ export class BookEntityIndexedDB extends BookEntityBase {
   static async create(entity: BookTypes.Entity, file: ArrayBuffer) {
     const bookEntity = new BookEntityIndexedDB(entity)
     await bookEntity.writeFile(file)
-    await bookEntity.writeProp()
+    const prop = await bookEntity.readProp()
+    await bookEntity.writeProp(prop)
   }
 
   constructor(entity: BookTypes.Entity) {
@@ -57,26 +58,8 @@ export class BookEntityIndexedDB extends BookEntityBase {
     return this.propJson
   }
 
-  protected async writeProp() {
-    const json = await this.readProp()
+  protected async writeProp(prop: BookTypes.PropertyJson) {
     const db = await getDB()
-    await db.put('book-properties', json, this.uid)
-  }
-
-  async posGet(): Promise<BookTypes.PropertyPosition> {
-    const json = await this.readProp()
-    return (
-      json?.position ?? {
-        section: 0,
-        paragraph: 0,
-      }
-    )
-  }
-
-  async posSet(pos: BookTypes.PropertyPosition): Promise<void> {
-    const db = await getDB()
-    const json = await this.readProp()
-    json.position = pos
-    await db.put('book-properties', json, this.uid)
+    await db.put('book-properties', prop, this.uid)
   }
 }
