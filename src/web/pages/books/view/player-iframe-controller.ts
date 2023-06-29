@@ -147,7 +147,7 @@ export class PlayerIframeController {
         (page) => !!page.top && page.top.paragraph <= paragraph
       )
       if (
-        !this.splitPageCurPageIndex ||
+        this.splitPageCurPageIndex === undefined ||
         curSplitPageIndex === this.splitPageCurPageIndex
       ) {
         this.splitPageFocusedNode = {
@@ -313,7 +313,7 @@ export class PlayerIframeController {
         //     - It will happen when the last paragraph is too long
         // paragraph is current.paragraph
         //   - Scroll
-        return await this.scrollToPageByLeft(goalLeft, { abortCtrl })
+        await this.scrollToPageByLeft(goalLeft, { abortCtrl })
       else await this.player.gotoParagraph(paragraph)
     } else {
       await this.scrollToPageByLeft(goalLeft, { abortCtrl })
