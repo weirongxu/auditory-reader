@@ -17,6 +17,11 @@ export const langZh = {
   },
   desc: {
     addedBookSuccessful: '成功添加了一本新书',
+    addedBookmark: '添加了一个$t(bookmark)',
+    deletedBookmark: '删除了一个$t(bookmark)',
+    noSuportedBookmark: '不支持的$t(bookmark)类型',
+    bookmarksEmpty: '$t(bookmark)书签为空',
+    navEmpty: '$t(nav)为空',
   },
   prompt: {
     inputBookName: '请输入$t(bookName)',
@@ -46,6 +51,8 @@ export const langZh = {
   export: '导出',
   bookName: '书名',
   cover: '封面',
+  nav: '导航',
+  bookmark: '书签',
   url: 'URL',
   extractUrlInfo: '提取URL信息',
   bookContent: '文本内容',

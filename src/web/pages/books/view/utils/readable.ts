@@ -1,8 +1,9 @@
+import type { BookNav } from '../../../../../core/book/book-base.js'
 import {
   PARA_BOX_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../../core/consts.js'
-import { orderBy } from '../../../../../core/util/collection.js'
+import { compact, orderBy } from '../../../../../core/util/collection.js'
 import {
   isElement,
   isImageElement,
@@ -66,27 +67,34 @@ export class ReadableExtractor {
         type: 'image'
         elem: HTMLImageElement
         anchors: string[] | undefined
+        navAnchors: string[] | undefined
       }
     | {
         type: 'text'
         elem: Text
         anchors: string[] | undefined
+        navAnchors: string[] | undefined
       }
   )[] = []
   #accAnchors?: string[]
+  #accNavAnchors?: string[]
   #alias: TextAlias[] = []
+  #navAnchorSet: Set<string>
 
-  constructor(private doc: Document) {
+  constructor(private doc: Document, private flattenedNavs: BookNav[]) {
+    this.#navAnchorSet = new Set(
+      compact(this.flattenedNavs.map((n) => n.hrefAnchor))
+    )
     this.walk()
   }
 
   walk() {
     // walk
     for (const node of walkerNode(this.doc, this.doc.body)) {
-      // hashes
+      // anchors
       if (isElement(node)) {
         if (node.id) {
-          this.addAnchor(node.id)
+          this.addAnchor(node.id, this.#navAnchorSet.has(node.id))
         }
 
         if (node.tagName.toLowerCase() === 'ruby') {
@@ -127,14 +135,20 @@ export class ReadableExtractor {
   }
 
   private popAccAnchors() {
-    const acc = this.#accAnchors
+    const anchors = this.#accAnchors
+    const navAnchors = this.#accNavAnchors
     this.#accAnchors = undefined
-    return acc
+    this.#accNavAnchors = undefined
+    return { anchors, navAnchors }
   }
 
-  addAnchor(id: string) {
+  addAnchor(id: string, isNavAnchor: boolean) {
     this.#accAnchors ??= []
     this.#accAnchors.push(id)
+    if (isNavAnchor) {
+      this.#accNavAnchors ??= []
+      this.#accNavAnchors.push(id)
+    }
   }
 
   addRuby(elem: HTMLElement) {
@@ -157,14 +171,17 @@ export class ReadableExtractor {
   }
 
   addImage(elem: HTMLImageElement) {
-    this.#parts.push({ type: 'image', elem, anchors: this.popAccAnchors() })
+    const { anchors, navAnchors } = this.popAccAnchors()
+    this.#parts.push({ type: 'image', elem, anchors, navAnchors })
   }
 
   addText(text: Text) {
+    const { anchors, navAnchors } = this.popAccAnchors()
     this.#parts.push({
       type: 'text',
       elem: text,
-      anchors: this.popAccAnchors(),
+      anchors,
+      navAnchors,
     })
   }
 
@@ -184,7 +201,8 @@ export class ReadableExtractor {
 
     const addTextPart = (
       blockElem: HTMLElement,
-      anchors: string[] | undefined
+      anchors: string[] | undefined,
+      navAnchors: string[] | undefined
     ) => {
       blockElem.classList.add(PARA_BOX_CLASS)
       const textContent = this.getContentText(blockElem)
@@ -195,6 +213,7 @@ export class ReadableExtractor {
           type: 'text',
           text: textContent,
           anchorIds: anchors,
+          navAnchorIds: navAnchors,
         }
         blockMap.set(blockElem, part)
         readableParts.push(part)
@@ -204,7 +223,7 @@ export class ReadableExtractor {
     }
 
     const readableParts: ReadablePart[] = []
-    for (const { type, elem, anchors } of this.#parts) {
+    for (const { type, elem, anchors, navAnchors } of this.#parts) {
       if (type === 'image') {
         // image
         elem.classList.add(PARA_BOX_CLASS)
@@ -212,6 +231,7 @@ export class ReadableExtractor {
           elem,
           type: 'image',
           anchorIds: anchors,
+          navAnchorIds: navAnchors,
         })
       } else if (type === 'text') {
         // text
@@ -230,18 +250,22 @@ export class ReadableExtractor {
             part.anchorIds ??= []
             part.anchorIds.push(...anchors)
           }
+          if (navAnchors) {
+            part.navAnchorIds ??= []
+            part.navAnchorIds.push(...navAnchors)
+          }
           continue
         }
 
         if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
-          addTextPart(blockElem, anchors)
+          addTextPart(blockElem, anchors, navAnchors)
         } else {
           // split block
           if (!elem.parentElement) continue
           const wrapElem = this.doc.createElement('span')
           elem.after(wrapElem)
           wrapElem.appendChild(elem)
-          addTextPart(wrapElem, anchors)
+          addTextPart(wrapElem, anchors, navAnchors)
         }
       }
     }

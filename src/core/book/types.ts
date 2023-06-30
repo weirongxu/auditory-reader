@@ -50,7 +50,9 @@ export namespace BookTypes {
 
   export interface PropertyBookmark extends PropertyPosition {
     uuid: string
+    type: 'text'
     brief: string
+    note?: string
   }
 
   export interface PageParamsRequired {

@@ -24,9 +24,9 @@ import {
 import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import { debounceFn } from '../../../../core/util/timer.js'
-import { urlSplitHash } from '../../../../core/util/url.js'
-import { hotkeyIframeWinAtom } from '../../../hotkey/hotkey-state.js'
+import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
+import { hotkeyIframeWinAtom } from '../../../hotkey/hotkey-state.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
@@ -67,9 +67,9 @@ export class PlayerIframeController {
   splitPageCount?: number
   splitPageWidth?: number
   splitPageList?: SplitPageNode[]
-  splitPageCurPageIndex?: number
-  splitPageCurPage?: SplitPageNode
-  splitPageFocusedNode?: {
+  splitPageCurScrollIndex?: number
+  splitPageCurScrollNode?: SplitPageNode
+  splitPageResizeToNode?: {
     paragraph: number
     readablePart: ReadablePart
   }
@@ -115,7 +115,7 @@ export class PlayerIframeController {
     this.states.events.on('pos', () => {
       this.paragraphActive()
       this.updateFocusedNavs()
-      this.updateSplitPageFocusedNode()
+      this.updateSplitPageResizeToNode()
     })
 
     let firstSplitPageChanged = true
@@ -139,7 +139,7 @@ export class PlayerIframeController {
     return this.states.splitPage
   }
 
-  updateSplitPageFocusedNode() {
+  updateSplitPageResizeToNode(first = false) {
     if (this.splitPageList) {
       const paragraph = this.states.pos.paragraph
       const curSplitPageIndex = findLastIndex(
@@ -147,15 +147,18 @@ export class PlayerIframeController {
         (page) => !!page.top && page.top.paragraph <= paragraph
       )
       if (
-        this.splitPageCurPageIndex === undefined ||
-        curSplitPageIndex === this.splitPageCurPageIndex
+        this.splitPageCurScrollIndex === undefined ||
+        first ||
+        curSplitPageIndex === this.splitPageCurScrollIndex
       ) {
-        this.splitPageFocusedNode = {
+        // use the pos paragraph as focused node
+        this.splitPageResizeToNode = {
           paragraph,
           readablePart: this.readableParts[paragraph],
         }
-      } else if (this.splitPageCurPage?.top) {
-        this.splitPageFocusedNode = this.splitPageCurPage?.top
+      } else if (this.splitPageCurScrollNode?.top) {
+        // use the current scroll offset as focused node
+        this.splitPageResizeToNode = this.splitPageCurScrollNode?.top
       }
     }
   }
@@ -259,7 +262,7 @@ export class PlayerIframeController {
   async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
     if (!this.splitPageWidth) return
     if (offsetPage === 0) return
-    if (this.splitPageCurPageIndex === undefined) return
+    if (this.splitPageCurScrollIndex === undefined) return
     if (!this.splitPageCount) return
     if (!this.splitPageList) return
 
@@ -267,7 +270,7 @@ export class PlayerIframeController {
     if (this.#pushSplitPageLast) {
       goalPage = this.#pushSplitPageLast.page + offsetPage
     } else {
-      goalPage = this.splitPageCurPageIndex + offsetPage
+      goalPage = this.splitPageCurScrollIndex + offsetPage
     }
 
     // exceed section range
@@ -319,7 +322,7 @@ export class PlayerIframeController {
       await this.scrollToPageByLeft(goalLeft, { abortCtrl })
     }
 
-    this.updateSplitPageFocusedNode()
+    this.updateSplitPageResizeToNode()
 
     this.#pushSplitPageLast = undefined
   }
@@ -362,7 +365,7 @@ export class PlayerIframeController {
       if (!doc) return console.error('iframe load failed')
 
       // load readableParts & alias
-      const readableExtractor = new ReadableExtractor(doc)
+      const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs)
       this.readableParts = readableExtractor.toReadableParts()
       this.alias = readableExtractor.alias()
 
@@ -374,7 +377,7 @@ export class PlayerIframeController {
   }
 
   async gotoUrlPathAndScroll(path: string) {
-    const [urlMain, anchorId] = urlSplitHash(path)
+    const [urlMain, anchorId] = urlSplitAnchor(path)
     const spineIndex = this.book.spines.findIndex((s) => s.href === urlMain)
     if (spineIndex === -1) return
     await this.loadByPath(urlMain)
@@ -406,6 +409,9 @@ export class PlayerIframeController {
     }
   }
 
+  /**
+   * When loaded a new page
+   */
   async onLoaded(iframe: HTMLIFrameElement) {
     const win = iframe.contentWindow
     const doc = iframe.contentDocument
@@ -439,10 +445,10 @@ export class PlayerIframeController {
               if (!this.win || !this.scrollContainer) return
               this.splitPageTypeUpdate(doc)
               await this.splitPageCalcuate(win, doc, this.scrollContainer)
-              const focusedNode =
-                this.splitPageFocusedNode ?? this.splitPageCurPage?.top
-              if (focusedNode)
-                await this.scrollToElem(focusedNode.readablePart.elem)
+              const resizeToNode =
+                this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
+              if (resizeToNode)
+                await this.scrollToElem(resizeToNode.readablePart.elem)
               else
                 await this.scrollToPageByLeft(this.scrollContainer.scrollLeft)
             })
@@ -713,10 +719,11 @@ export class PlayerIframeController {
     const listener = () => {
       if (!this.splitPageWidth) return 0
 
-      this.splitPageCurPageIndex = Math.round(
+      this.splitPageCurScrollIndex = Math.round(
         scrollContainer.scrollLeft / this.splitPageWidth
       )
-      this.splitPageCurPage = this.splitPageList?.[this.splitPageCurPageIndex]
+      this.splitPageCurScrollNode =
+        this.splitPageList?.[this.splitPageCurScrollIndex]
     }
     listener()
 
@@ -847,7 +854,7 @@ export class PlayerIframeController {
     }
     this.paragraphActive()
     this.updateFocusedNavs()
-    this.updateSplitPageFocusedNode()
+    this.updateSplitPageResizeToNode(true)
   }
 
   #paragraphLastActive?: ReadablePart
@@ -867,14 +874,14 @@ export class PlayerIframeController {
 
   #flattenedNavs?: BookNav[]
 
-  flattenedNavs() {
+  get flattenedNavs() {
     if (!this.#flattenedNavs) {
       this.#flattenedNavs = []
-      const stack = [...this.book.navs].reverse()
+      const stack = [...this.book.navs]
       while (stack.length) {
-        const cur = stack.pop()!
+        const cur = stack.shift()!
         this.#flattenedNavs.push(cur)
-        stack.push(...cur.children)
+        stack.unshift(...cur.children)
       }
     }
     return this.#flattenedNavs
@@ -886,12 +893,12 @@ export class PlayerIframeController {
     }
 
     // same spineIndex navs
-    const navs = this.flattenedNavs().filter(
+    const navs = this.flattenedNavs.filter(
       (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section
     )
     if (navs.length === 0) {
       const lastNav = findLast(
-        this.flattenedNavs(),
+        this.flattenedNavs,
         (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
       )
       this.states.focusedNavs = lastNav ? [lastNav] : []
@@ -899,24 +906,24 @@ export class PlayerIframeController {
     }
 
     const readableParts = this.readableParts
-    // last hash from iframe page
-    const lastHashes = findLast(
+    // last anchor from iframe page
+    const lastAnchors = findLast(
       readableParts.slice(0, this.states.pos.paragraph + 1),
-      (part) => !!part.anchorIds
-    )?.anchorIds
-    const lastHash =
-      lastHashes && lastHashes.length > 0
-        ? lastHashes[lastHashes.length - 1]
+      (part) => !!part.navAnchorIds
+    )?.navAnchorIds
+    const lastAnchor =
+      lastAnchors && lastAnchors.length > 0
+        ? lastAnchors[lastAnchors.length - 1]
         : null
-    if (!lastHash) {
+    if (!lastAnchor) {
       this.states.focusedNavs = [navs[0]]
       return
     }
 
-    // find nav and index is equal last hash
+    // find nav and index is equal last anchor
     const [matchedNav, matchedNavIndex] = findPair(
       navs,
-      (nav) => nav.hrefHash === lastHash
+      (nav) => nav.hrefAnchor === lastAnchor
     )
     if (!matchedNav) {
       this.states.focusedNavs = [navs[0]]

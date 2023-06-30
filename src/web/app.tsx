@@ -23,6 +23,7 @@ import { Provider } from 'jotai'
 import { globalStore } from './store/global.js'
 import { HintTextProvider } from './common/hint-text.js'
 import { ConfirmProvider } from './common/confirm.js'
+import { SnackbarPrivider } from './common/snackbar.js'
 
 function AppRegistrar() {
   const theme = useAppTheme()
@@ -72,6 +73,7 @@ export function App() {
         <CssBaseline />
         <DndProvider backend={HTML5Backend}>
           <AppRegistrar></AppRegistrar>
+          <SnackbarPrivider></SnackbarPrivider>
           <HintTextProvider></HintTextProvider>
           <PreviewImageProvider></PreviewImageProvider>
           <ConfirmProvider></ConfirmProvider>

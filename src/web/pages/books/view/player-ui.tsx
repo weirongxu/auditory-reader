@@ -1,5 +1,8 @@
 import {
   AccountTree,
+  Bookmark,
+  BookmarkBorder,
+  Bookmarks,
   FastForward,
   FastRewind,
   Pause,
@@ -37,7 +40,7 @@ import {
   useVoice,
 } from '../../../store.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
-import { useBookViewNav } from './nav.js'
+import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerSyncUI } from './player-states.js'
 import type { BookContextProps } from './types'
@@ -158,9 +161,10 @@ export function usePlayerUI(
     focusedNavs?: BookNav[]
   }
 ) {
-  const { book, player, started, focusedNavs } = props
+  const { book, player, pos, started, focusedNavs } = props
   const nav = useNavigate()
-  const { NavTreeView, toggleNav } = useBookViewNav(book, player, focusedNavs)
+  const { BookPanelView, setViewPanelType, toggleBookmark, curIsBookmark } =
+    useBookPanel(book, player, focusedNavs, pos)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
@@ -185,10 +189,24 @@ export function usePlayerUI(
       <ButtonGroup>
         <Button
           onClick={() => {
-            toggleNav()
+            setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
           }}
         >
           <AccountTree />
+        </Button>
+        <Button
+          onClick={() => {
+            setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
+          }}
+        >
+          <Bookmarks />
+        </Button>
+        <Button
+          onClick={() => {
+            toggleBookmark()
+          }}
+        >
+          {curIsBookmark ? <Bookmark /> : <BookmarkBorder />}
         </Button>
         <TooltipButton
           tooltip={<span>shift + ←</span>}
@@ -238,13 +256,15 @@ export function usePlayerUI(
       </ButtonGroup>
     )
   }, [
+    curIsBookmark,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
     isLastSection,
     player,
+    setViewPanelType,
     started,
-    toggleNav,
+    toggleBookmark,
   ])
 
   const TimerRemainUI = useMemo(() => {
@@ -328,6 +348,7 @@ export function usePlayerUI(
     speechSpeed,
     autoNextSection,
     isPersonReplace,
-    NavTreeView,
+    toggleBookmark,
+    BookPanelView,
   }
 }

@@ -47,10 +47,14 @@ function createStore<T>(options: {
   }
 }
 
-export const useVisibleNav = createStore<boolean>({
-  storeKey: 'visibleNav',
-  read: (v) => (v ? v === '1' : false),
-  write: (v) => (v ? '1' : '0'),
+export type ViewPanelType = 'none' | 'nav' | 'bookmark'
+const limitViewPanelType = (v: string | null): ViewPanelType =>
+  v === 'nav' || v === 'bookmark' ? v : 'none'
+
+export const useViewPanelType = createStore<ViewPanelType>({
+  storeKey: 'viewPanelType',
+  read: limitViewPanelType,
+  write: limitViewPanelType,
 })
 
 const useLastVoiceURIDict = createStore<Record<string, string>>({

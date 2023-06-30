@@ -1,10 +1,26 @@
+import type { AlertColor } from '@mui/material'
 import { Alert, Snackbar } from '@mui/material'
-import { useAtom } from 'jotai'
+import { atom, useAtom } from 'jotai'
 import { useCallback } from 'react'
-import type { SnackbarItem } from './snackbar-hooks.js'
-import { snackbarAtom } from './snackbar-hooks.js'
+import { globalStore } from '../store/global.js'
 
-export function GlobalSnackbar() {
+export type SnackbarItem = {
+  severity?: AlertColor
+  /**
+   * @default 5000
+   */
+  duration?: number
+  message: string
+}
+
+const snackbarAtom = atom<SnackbarItem[]>([])
+
+export function pushSnackbar(item: SnackbarItem) {
+  const list = globalStore.get(snackbarAtom)
+  globalStore.set(snackbarAtom, [...list, item])
+}
+
+export function SnackbarPrivider() {
   const [list, setList] = useAtom(snackbarAtom)
 
   const removeItem = useCallback(
@@ -21,6 +37,7 @@ export function GlobalSnackbar() {
           key={index}
           open={true}
           autoHideDuration={it.duration ?? 5000}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           onClose={() => removeItem(it)}
         >
           <Alert

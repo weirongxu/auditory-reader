@@ -1,0 +1,164 @@
+import { Delete } from '@mui/icons-material'
+import { t } from 'i18next'
+import { useCallback, useMemo } from 'react'
+import { booksAddBookmarksRouter } from '../../../../../core/api/books/add-bookmarks.js'
+import { booksBookmarksRouter } from '../../../../../core/api/books/bookmarks.js'
+import { booksDeleteBookmarksRouter } from '../../../../../core/api/books/delete-bookmarks.js'
+import type { BookViewRes } from '../../../../../core/api/books/view.js'
+import type { BookTypes } from '../../../../../core/book/types.js'
+import { useAction } from '../../../../../core/route/action.js'
+import { pushSnackbar } from '../../../../common/snackbar.js'
+import type { Player } from '../player.js'
+
+function Bookmarks(props: {
+  bookmarks: BookTypes.PropertyBookmark[] | undefined | null
+  pos: BookTypes.PropertyPosition
+  player: Player
+  removeBookmark: (bookmark: BookTypes.PropertyBookmark) => void
+}) {
+  const { bookmarks, pos, player, removeBookmark } = props
+
+  return (
+    <div className="panel-content book-bookmarks">
+      {!bookmarks?.length ? (
+        t('desc.bookmarksEmpty')
+      ) : (
+        <ul>
+          {bookmarks.map((bookmark, idx) => {
+            const isActive = bookmark.section === pos.section
+            const isActiveWhole =
+              isActive && bookmark.paragraph === pos.paragraph
+            const textCls: string[] = ['text', 'clickable']
+            if (isActive) textCls.push('active')
+            if (isActiveWhole) textCls.push('active-whole')
+            return (
+              <li
+                key={idx}
+                data-pos-section={bookmark.section}
+                data-pos-paragraph={bookmark.paragraph}
+              >
+                <div className="item">
+                  <div
+                    className={textCls.join(' ')}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      player
+                        .gotoSection(bookmark.section, bookmark.paragraph)
+                        .catch(console.error)
+                    }}
+                  >
+                    {bookmark.brief}
+                  </div>
+                  <div className="btns">
+                    <div
+                      className="btn"
+                      onClick={() => {
+                        removeBookmark(bookmark)
+                      }}
+                    >
+                      <Delete />
+                    </div>
+                  </div>
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+export function useBookViewBookmarks(
+  book: BookViewRes,
+  player: Player,
+  pos: BookTypes.PropertyPosition
+) {
+  const { data: bookmarks, reload } = useAction(booksBookmarksRouter, {
+    uuid: book.item.uuid,
+  })
+
+  const curBookmark = useMemo(
+    () =>
+      bookmarks?.find(
+        (b) => b.section === pos.section && b.paragraph === pos.paragraph
+      ),
+    [bookmarks, pos.paragraph, pos.section]
+  )
+
+  const curIsBookmark = useMemo(() => !!curBookmark, [curBookmark])
+
+  const addBookmark = useCallback(() => {
+    const node = player.iframeCtrler.readableParts[pos.paragraph]
+    if (node.type !== 'text')
+      return pushSnackbar({
+        severity: 'error',
+        message: t('desc.noSuportedBookmark'),
+      })
+    const brief = node.text.slice(0, 20)
+    booksAddBookmarksRouter
+      .action({
+        bookmarks: [
+          {
+            brief,
+            type: 'text',
+            section: pos.section,
+            paragraph: pos.paragraph,
+          },
+        ],
+        uuid: book.item.uuid,
+      })
+      .then(() => {
+        reload()
+        return pushSnackbar({
+          message: `${t('desc.addedBookmark')} ${brief}`,
+        })
+      })
+      .catch(console.error)
+  }, [
+    book.item.uuid,
+    player.iframeCtrler.readableParts,
+    pos.paragraph,
+    pos.section,
+    reload,
+  ])
+
+  const removeBookmark = useCallback(
+    (bookmark: BookTypes.PropertyBookmark) => {
+      booksDeleteBookmarksRouter
+        .action({
+          uuid: book.item.uuid,
+          bookmarkUuids: [bookmark.uuid],
+        })
+        .then(() => {
+          reload()
+          return pushSnackbar({
+            message: `${t('desc.deletedBookmark')} ${bookmark.brief}`,
+          })
+        })
+        .catch(console.error)
+    },
+    [book.item.uuid, reload]
+  )
+
+  const toggleBookmark = useCallback(() => {
+    if (curBookmark) {
+      removeBookmark(curBookmark)
+    } else {
+      addBookmark()
+    }
+  }, [addBookmark, curBookmark, removeBookmark])
+
+  return {
+    BookmarkView: (
+      <Bookmarks
+        bookmarks={bookmarks}
+        player={player}
+        pos={pos}
+        removeBookmark={removeBookmark}
+      ></Bookmarks>
+    ),
+    toggleBookmark,
+    curIsBookmark,
+  }
+}

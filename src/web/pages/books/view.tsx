@@ -52,7 +52,7 @@ export const useBookView = (uuid: string) => {
 
 function BookViewContent(props: BookContextProps) {
   const { book } = props
-  const { NavTreeView, MainContent, focusedNavs } = useViewer(props)
+  const { BookPanelView, MainContent, focusedNavs } = useViewer(props)
   const [, setTitle] = useTitle()
 
   const lastNav = useMemo(() => focusedNavs?.at(-1), [focusedNavs])
@@ -65,7 +65,7 @@ function BookViewContent(props: BookContextProps) {
 
   return (
     <Stack direction="row" className={styles.contentWrapper}>
-      {NavTreeView}
+      {BookPanelView}
       {MainContent}
     </Stack>
   )

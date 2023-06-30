@@ -17,6 +17,11 @@ export const langEn = {
   },
   desc: {
     addedBookSuccessful: 'Successfully added a new book',
+    addedBookmark: 'Added a $t(bookmark)',
+    deletedBookmark: 'Deleted a $t(bookmark)',
+    noSuportedBookmark: 'No support $t(bookmark) type',
+    bookmarksEmpty: '$t(bookmark)s empty',
+    navEmpty: '$t(nav) empty',
   },
   prompt: {
     inputBookName: 'Please input $t(bookName)',
@@ -46,6 +51,8 @@ export const langEn = {
   export: 'Export',
   bookName: 'Book name',
   cover: 'Cover',
+  nav: 'Table contents',
+  bookmark: 'Bookmark',
   url: 'URL',
   extractUrlInfo: 'Extract URL info',
   bookContent: 'Book content',

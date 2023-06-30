@@ -8,7 +8,7 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 import { useNavigate } from 'react-router-dom'
-import { useVisibleNav } from '../../../store.js'
+import { useViewPanelType } from '../../../store.js'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -17,7 +17,7 @@ export function useViewer(props: BookContextProps) {
   const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
-  const [, setVisibleNav] = useVisibleNav()
+  const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
 
   const player = usePlayer(book, pos, iframeRef)
@@ -47,7 +47,12 @@ export function useViewer(props: BookContextProps) {
 
     const dispose = addHotkeys([
       [' ', () => player.toggle()],
-      ['t', () => setVisibleNav((v) => !v)],
+      ['t', () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))],
+      [
+        { shift: true, key: 't' },
+        () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
+      ],
+      ['b', () => toggleBookmark()],
       ['u', () => nav('../../')],
       [{ shift: true, key: 'h' }, prevSection],
       [{ shift: true, key: 'l' }, nextSection],
@@ -85,7 +90,7 @@ export function useViewer(props: BookContextProps) {
     [loading]
   )
 
-  const { NavTreeView } = usePlayerUI({
+  const { BookPanelView, toggleBookmark } = usePlayerUI({
     ...props,
     player,
     started,
@@ -99,7 +104,7 @@ export function useViewer(props: BookContextProps) {
 
   return {
     focusedNavs,
-    NavTreeView,
+    BookPanelView,
     MainContent,
   }
 }

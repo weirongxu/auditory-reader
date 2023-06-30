@@ -4,7 +4,7 @@ export type BookNav = {
   label: string
   href?: string
   hrefBase?: string
-  hrefHash?: string
+  hrefAnchor?: string
   spineIndex?: number
   children: BookNav[]
 }

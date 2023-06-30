@@ -12,7 +12,8 @@ export type BookContextProps = {
 
 interface ReadablePartBase {
   elem: HTMLElement
-  anchorIds?: string[]
+  anchorIds: string[] | undefined
+  navAnchorIds: string[] | undefined
 }
 
 export interface ReadablePartText extends ReadablePartBase {

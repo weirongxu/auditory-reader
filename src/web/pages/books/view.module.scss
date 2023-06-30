@@ -11,9 +11,11 @@
   position: relative;
 
   :global {
-    .book-nav {
-      max-width: 200px;
+    .book-panel {
+      width: 200px;
       height: 100%;
+      display: flex;
+      flex-direction: column;
       background-color: var(--main-bg);
       border-right: 1px dashed var(--main-fg);
       @include mobile {
@@ -24,36 +26,81 @@
         z-index: 2;
         border: 1px solid var(--main-fg);
       }
-      padding: 0 8px;
-      overflow-y: auto;
-      :global {
-        ul {
-          padding: 0;
-          margin: 0;
-          list-style-type: none;
-          font-size: 16px;
-          color: var(--main-fg);
-        }
-        ul > li > ul {
-          border-left: 1px solid var(--main-fg);
-          margin-left: 10px;
-          padding-left: 10px;
-          font-size: 12px;
-        }
 
-        li {
-          > .item {
-            border-bottom: 1px dashed var(--main-fg);
+      h3 {
+        padding: 0 8px;
+        margin: 0;
+        border-bottom: 1px solid var(--main-fg);
+      }
+
+      ul {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+        font-size: 16px;
+        color: var(--main-fg);
+      }
+
+      li {
+        border-bottom: 1px dashed var(--main-fg);
+        &:last-child {
+          border-bottom: none;
+        }
+        > .item {
+          width: 100%;
+          display: flex;
+          > .text {
+            flex: 1;
             &.clickable {
               cursor: pointer;
-            }
-            &.active {
-              background-color: var(--main-bg-active);
-              color: var(--main-fg-active);
             }
             &:hover {
               background-color: var(--main-bg-hover);
               color: var(--main-fg-hover);
+            }
+          }
+        }
+        .btn {
+          cursor: pointer;
+          &:hover {
+            background-color: var(--main-bg-hover);
+            color: var(--main-fg-hover);
+          }
+        }
+      }
+    }
+
+    .panel-content {
+      overflow-y: auto;
+      padding: 0 8px;
+    }
+
+    .book-bookmarks {
+      li {
+        > .item {
+          > .text {
+            &.active-whole {
+              background-color: var(--main-bg-active);
+              color: var(--main-fg-active);
+            }
+          }
+        }
+      }
+    }
+
+    .book-nav {
+      ul > li > ul {
+        border-left: 1px dashed var(--main-fg);
+        margin-left: 10px;
+        padding-left: 10px;
+        font-size: 12px;
+      }
+      li {
+        > .item {
+          > .text {
+            &.active {
+              background-color: var(--main-bg-active);
+              color: var(--main-fg-active);
             }
           }
         }

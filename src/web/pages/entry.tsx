@@ -12,7 +12,6 @@ import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { useSpeechSpeed } from '../store.js'
 import { BooksEntry } from './books/entry.js'
 import { Layout } from './layout/layout.js'
-import { GlobalSnackbar } from './layout/snackbar.js'
 import { Login } from './login.js'
 import { NotFound } from './not-found.js'
 import { useHintText } from '../common/hint-text.js'
@@ -90,7 +89,6 @@ function Main() {
 export function RootEntry() {
   return (
     <HashRouter>
-      <GlobalSnackbar></GlobalSnackbar>
       <Main></Main>
     </HashRouter>
   )

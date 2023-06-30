@@ -274,13 +274,13 @@ export class BookEpub extends BookBase {
           const label = elem.textContent ?? ''
           let href: string | undefined
           let hrefBase: string | undefined
-          let hrefHash: string | undefined
+          let hrefAnchor: string | undefined
           let spineIndex: number | undefined
           if (elem.tagName.toLowerCase() === 'a') {
             const src = elem.getAttribute('href')
             if (src) {
               href = path.join(dir, src)
-              ;[hrefBase, hrefHash] = href.split('#', 2)
+              ;[hrefBase, hrefAnchor] = href.split('#', 2)
               spineIndex = this.getSpineIndexByHref(hrefBase)
             }
           }
@@ -290,7 +290,7 @@ export class BookEpub extends BookBase {
             label,
             href,
             hrefBase,
-            hrefHash,
+            hrefAnchor,
             spineIndex,
             children: childOl ? this.parseNav3(childOl, dir, level + 1) : [],
           }
@@ -320,12 +320,12 @@ export class BookEpub extends BookBase {
         if (!label) return
         let href: string | undefined
         let hrefBase: string | undefined
-        let hrefHash: string | undefined
+        let hrefAnchor: string | undefined
         let spineIndex: number | undefined
         const src = el.findChild('content')?.getAttribute('src')
         if (src) {
           href = path.join(dir, src)
-          ;[hrefBase, hrefHash] = href.split('#', 2)
+          ;[hrefBase, hrefAnchor] = href.split('#', 2)
           spineIndex = this.getSpineIndexByHref(hrefBase)
         }
         return {
@@ -333,7 +333,7 @@ export class BookEpub extends BookBase {
           label,
           href,
           hrefBase,
-          hrefHash,
+          hrefAnchor,
           spineIndex,
           children: this.parseNav2(el, dir, level + 1),
         }

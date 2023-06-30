@@ -1,4 +1,4 @@
-import { pushSnackbar } from '../../web/pages/layout/snackbar-hooks.js'
+import { pushSnackbar } from '../../web/common/snackbar.js'
 import {
   ActionError,
   ActionRequestError,

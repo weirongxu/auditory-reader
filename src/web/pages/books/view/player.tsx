@@ -140,6 +140,10 @@ export class Player {
     this.utterer.cancel()
   }
 
+  async gotoSection(section: number, paragraph: number) {
+    await this.checkAndGotoPos({ section, paragraph })
+  }
+
   async prevSection(paragraph?: number) {
     await this.checkAndGotoPos({
       section: this.states.pos.section - 1,
@@ -162,17 +166,17 @@ export class Player {
   }
 
   get isFirstPage() {
-    return this.iframeCtrler.splitPageCurPageIndex === 0
+    return this.iframeCtrler.splitPageCurScrollIndex === 0
   }
 
   get isLastPage() {
     if (
-      !this.iframeCtrler.splitPageCurPageIndex ||
+      !this.iframeCtrler.splitPageCurScrollIndex ||
       !this.iframeCtrler.splitPageCount
     )
       return true
     return (
-      this.iframeCtrler.splitPageCurPageIndex >=
+      this.iframeCtrler.splitPageCurScrollIndex >=
       this.iframeCtrler.splitPageCount - 1
     )
   }
