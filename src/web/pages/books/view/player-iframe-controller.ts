@@ -114,7 +114,7 @@ export class PlayerIframeController {
 
     this.states.events.on('pos', () => {
       this.paragraphActive()
-      this.updateFocusedNavs()
+      this.updateActiveNavs()
       this.updateSplitPageResizeToNode()
     })
 
@@ -151,13 +151,13 @@ export class PlayerIframeController {
         first ||
         curSplitPageIndex === this.splitPageCurScrollIndex
       ) {
-        // use the pos paragraph as focused node
+        // use the pos paragraph as resize to node
         this.splitPageResizeToNode = {
           paragraph,
           readablePart: this.readableParts[paragraph],
         }
       } else if (this.splitPageCurScrollNode?.top) {
-        // use the current scroll offset as focused node
+        // use the current scroll offset as resize to node
         this.splitPageResizeToNode = this.splitPageCurScrollNode?.top
       }
     }
@@ -853,7 +853,7 @@ export class PlayerIframeController {
       await this.scrollToCurParagraph(false)
     }
     this.paragraphActive()
-    this.updateFocusedNavs()
+    this.updateActiveNavs()
     this.updateSplitPageResizeToNode(true)
   }
 
@@ -887,7 +887,7 @@ export class PlayerIframeController {
     return this.#flattenedNavs
   }
 
-  updateFocusedNavs() {
+  updateActiveNavs() {
     interface RequiredNav extends BookNav {
       spineIndex: number
     }
@@ -901,7 +901,7 @@ export class PlayerIframeController {
         this.flattenedNavs,
         (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
       )
-      this.states.focusedNavs = lastNav ? [lastNav] : []
+      this.states.activeNavs = lastNav ? [lastNav] : []
       return
     }
 
@@ -916,7 +916,7 @@ export class PlayerIframeController {
         ? lastAnchors[lastAnchors.length - 1]
         : null
     if (!lastAnchor) {
-      this.states.focusedNavs = [navs[0]]
+      this.states.activeNavs = [navs[0]]
       return
     }
 
@@ -926,7 +926,7 @@ export class PlayerIframeController {
       (nav) => nav.hrefAnchor === lastAnchor
     )
     if (!matchedNav) {
-      this.states.focusedNavs = [navs[0]]
+      this.states.activeNavs = [navs[0]]
       return
     }
 
@@ -948,7 +948,7 @@ export class PlayerIframeController {
         break
       }
     }
-    this.states.focusedNavs = matchedNavs
+    this.states.activeNavs = matchedNavs
   }
 }
 

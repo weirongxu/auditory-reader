@@ -158,13 +158,13 @@ export function usePlayerUI(
   props: BookContextProps & {
     started: boolean
     player: Player
-    focusedNavs?: BookNav[]
+    activeNavs?: BookNav[]
   }
 ) {
-  const { book, player, pos, started, focusedNavs } = props
+  const { book, player, pos, started, activeNavs } = props
   const nav = useNavigate()
-  const { BookPanelView, setViewPanelType, toggleBookmark, curIsBookmark } =
-    useBookPanel(book, player, focusedNavs, pos)
+  const { BookPanelView, setViewPanelType, toggleBookmark, activeBookmark } =
+    useBookPanel(book, player, activeNavs, pos)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
@@ -206,7 +206,7 @@ export function usePlayerUI(
             toggleBookmark()
           }}
         >
-          {curIsBookmark ? <Bookmark /> : <BookmarkBorder />}
+          {activeBookmark ? <Bookmark /> : <BookmarkBorder />}
         </Button>
         <TooltipButton
           tooltip={<span>shift + ←</span>}
@@ -256,7 +256,7 @@ export function usePlayerUI(
       </ButtonGroup>
     )
   }, [
-    curIsBookmark,
+    activeBookmark,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
@@ -350,5 +350,6 @@ export function usePlayerUI(
     isPersonReplace,
     toggleBookmark,
     BookPanelView,
+    curIsBookmark: activeBookmark,
   }
 }

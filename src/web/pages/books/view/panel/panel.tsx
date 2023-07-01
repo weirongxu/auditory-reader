@@ -11,12 +11,12 @@ import { t } from 'i18next'
 export function useBookPanel(
   book: BookViewRes,
   player: Player,
-  focusedNavs: BookNav[] | undefined,
+  activeNavs: BookNav[] | undefined,
   pos: BookTypes.PropertyPosition
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
-  const { NavTreeView } = useBookViewNav(book, player, focusedNavs)
-  const { BookmarkView, toggleBookmark, curIsBookmark } = useBookViewBookmarks(
+  const { NavTreeView } = useBookViewNav(book, player, activeNavs)
+  const { BookmarkView, toggleBookmark, activeBookmark } = useBookViewBookmarks(
     book,
     player,
     pos
@@ -45,7 +45,7 @@ export function useBookPanel(
   )
 
   return useMemo(
-    () => ({ BookPanelView, setViewPanelType, toggleBookmark, curIsBookmark }),
-    [BookPanelView, setViewPanelType, toggleBookmark, curIsBookmark]
+    () => ({ BookPanelView, setViewPanelType, toggleBookmark, activeBookmark }),
+    [BookPanelView, setViewPanelType, toggleBookmark, activeBookmark]
   )
 }

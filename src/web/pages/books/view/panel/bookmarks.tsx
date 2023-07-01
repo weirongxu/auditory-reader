@@ -1,6 +1,6 @@
 import { Delete } from '@mui/icons-material'
 import { t } from 'i18next'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { booksAddBookmarksRouter } from '../../../../../core/api/books/add-bookmarks.js'
 import { booksBookmarksRouter } from '../../../../../core/api/books/bookmarks.js'
 import { booksDeleteBookmarksRouter } from '../../../../../core/api/books/delete-bookmarks.js'
@@ -12,14 +12,29 @@ import type { Player } from '../player.js'
 
 function Bookmarks(props: {
   bookmarks: BookTypes.PropertyBookmark[] | undefined | null
+  activeBookmark: BookTypes.PropertyBookmark | undefined
   pos: BookTypes.PropertyPosition
   player: Player
   removeBookmark: (bookmark: BookTypes.PropertyBookmark) => void
 }) {
-  const { bookmarks, pos, player, removeBookmark } = props
+  const { bookmarks, activeBookmark, pos, player, removeBookmark } = props
+  const refBookmark = useRef<HTMLDivElement>(null)
+
+  // scroll to first active bookmark
+  useEffect(() => {
+    if (!activeBookmark) return
+    const bookmarkDiv = refBookmark.current
+    if (!bookmarkDiv) return
+    const fristBookmarkDiv = [
+      ...bookmarkDiv.querySelectorAll('div.text.active-whole'),
+    ].at(0)
+    fristBookmarkDiv?.scrollIntoView({
+      block: 'center',
+    })
+  }, [activeBookmark])
 
   return (
-    <div className="panel-content book-bookmarks">
+    <div className="panel-content book-bookmarks" ref={refBookmark}>
       {!bookmarks?.length ? (
         t('desc.bookmarksEmpty')
       ) : (
@@ -78,15 +93,13 @@ export function useBookViewBookmarks(
     uuid: book.item.uuid,
   })
 
-  const curBookmark = useMemo(
+  const activeBookmark = useMemo(
     () =>
       bookmarks?.find(
         (b) => b.section === pos.section && b.paragraph === pos.paragraph
       ),
     [bookmarks, pos.paragraph, pos.section]
   )
-
-  const curIsBookmark = useMemo(() => !!curBookmark, [curBookmark])
 
   const addBookmark = useCallback(() => {
     const node = player.iframeCtrler.readableParts[pos.paragraph]
@@ -142,23 +155,24 @@ export function useBookViewBookmarks(
   )
 
   const toggleBookmark = useCallback(() => {
-    if (curBookmark) {
-      removeBookmark(curBookmark)
+    if (activeBookmark) {
+      removeBookmark(activeBookmark)
     } else {
       addBookmark()
     }
-  }, [addBookmark, curBookmark, removeBookmark])
+  }, [addBookmark, activeBookmark, removeBookmark])
 
   return {
     BookmarkView: (
       <Bookmarks
         bookmarks={bookmarks}
+        activeBookmark={activeBookmark}
         player={player}
         pos={pos}
         removeBookmark={removeBookmark}
       ></Bookmarks>
     ),
     toggleBookmark,
-    curIsBookmark,
+    activeBookmark,
   }
 }

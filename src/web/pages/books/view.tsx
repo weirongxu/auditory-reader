@@ -52,10 +52,10 @@ export const useBookView = (uuid: string) => {
 
 function BookViewContent(props: BookContextProps) {
   const { book } = props
-  const { BookPanelView, MainContent, focusedNavs } = useViewer(props)
+  const { BookPanelView, MainContent, activeNavs } = useViewer(props)
   const [, setTitle] = useTitle()
 
-  const lastNav = useMemo(() => focusedNavs?.at(-1), [focusedNavs])
+  const lastNav = useMemo(() => activeNavs?.at(-1), [activeNavs])
 
   useEffect(() => {
     let mainTitle = `${book.item.name}`

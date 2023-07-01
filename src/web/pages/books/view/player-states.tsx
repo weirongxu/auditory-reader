@@ -10,7 +10,7 @@ import type { Player } from './player.js'
 type PlayerStates = {
   started: boolean
   pos: BookTypes.PropertyPosition
-  focusedNavs: BookNav[]
+  activeNavs: BookNav[]
   loading: boolean
 }
 
@@ -27,7 +27,7 @@ export class PlayerStatesManager {
   #states: PlayerStates = {
     started: false,
     pos: { section: 0, paragraph: 0 },
-    focusedNavs: [],
+    activeNavs: [],
     loading: false,
   }
 
@@ -51,9 +51,9 @@ export class PlayerStatesManager {
     this.events.fire('pos', pos)
   }
 
-  set focusedNavs(focusedNavs: BookNav[]) {
-    this.#states.focusedNavs = focusedNavs
-    this.events.fire('focusedNavs', focusedNavs)
+  set activeNavs(activeNavs: BookNav[]) {
+    this.#states.activeNavs = activeNavs
+    this.events.fire('activeNavs', activeNavs)
   }
 
   get loading() {
@@ -122,11 +122,11 @@ export function usePlayerSync(
   props: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
-    setFocusedNavs: Dispatch<BookNav[]>
+    setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
   }
 ) {
-  const { setPos, setStarted, setFocusedNavs, setLoading } = props
+  const { setPos, setStarted, setActiveNavs, setLoading } = props
 
   useEffect(() => {
     const events = player.states.events
@@ -137,8 +137,8 @@ export function usePlayerSync(
       events.on('started', (started) => {
         setStarted(started)
       }),
-      events.on('focusedNavs', (focusedNavs) => {
-        setFocusedNavs(focusedNavs)
+      events.on('activeNavs', (activeNavs) => {
+        setActiveNavs(activeNavs)
       }),
       events.on('loading', (loading) => {
         setLoading(loading)
@@ -147,7 +147,7 @@ export function usePlayerSync(
     return () => {
       disposes.forEach((dispose) => dispose())
     }
-  }, [player, setPos, setStarted, setFocusedNavs, setLoading])
+  }, [player, setPos, setStarted, setActiveNavs, setLoading])
 }
 
 export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {

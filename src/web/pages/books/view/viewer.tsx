@@ -14,7 +14,7 @@ export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
-  const [focusedNavs, setFocusedNavs] = useState<BookNav[]>()
+  const [activeNavs, setActiveNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
@@ -24,7 +24,7 @@ export function useViewer(props: BookContextProps) {
   usePlayerSync(player, {
     setPos,
     setStarted,
-    setFocusedNavs,
+    setActiveNavs,
     setLoading,
   })
 
@@ -94,7 +94,7 @@ export function useViewer(props: BookContextProps) {
     ...props,
     player,
     started,
-    focusedNavs,
+    activeNavs,
   })
 
   // leave
@@ -103,7 +103,7 @@ export function useViewer(props: BookContextProps) {
   })
 
   return {
-    focusedNavs,
+    activeNavs,
     BookPanelView,
     MainContent,
   }
