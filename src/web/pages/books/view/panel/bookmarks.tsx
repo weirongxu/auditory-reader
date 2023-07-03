@@ -89,8 +89,9 @@ export function useBookViewBookmarks(
   player: Player,
   pos: BookTypes.PropertyPosition
 ) {
+  const uuid = book.item?.isTmp ? '$tmp' : book.item.uuid
   const { data: bookmarks, reload } = useAction(booksBookmarksRouter, {
-    uuid: book.item.uuid,
+    uuid,
   })
 
   const activeBookmark = useMemo(
@@ -119,7 +120,7 @@ export function useBookViewBookmarks(
             paragraph: pos.paragraph,
           },
         ],
-        uuid: book.item.uuid,
+        uuid,
       })
       .then(() => {
         reload()
@@ -129,18 +130,18 @@ export function useBookViewBookmarks(
       })
       .catch(console.error)
   }, [
-    book.item.uuid,
     player.iframeCtrler.readableParts,
     pos.paragraph,
     pos.section,
     reload,
+    uuid,
   ])
 
   const removeBookmark = useCallback(
     (bookmark: BookTypes.PropertyBookmark) => {
       booksDeleteBookmarksRouter
         .action({
-          uuid: book.item.uuid,
+          uuid,
           bookmarkUuids: [bookmark.uuid],
         })
         .then(() => {
@@ -151,7 +152,7 @@ export function useBookViewBookmarks(
         })
         .catch(console.error)
     },
-    [book.item.uuid, reload]
+    [reload, uuid]
   )
 
   const toggleBookmark = useCallback(() => {
