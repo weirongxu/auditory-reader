@@ -749,7 +749,7 @@ export class PlayerIframeController {
     scrollContainer.offsetWidth
 
     let scrollWidth = scrollContainer.scrollWidth
-    const width = win.innerWidth
+    let width = win.innerWidth
     let count: number
 
     // fix column double last page
@@ -768,6 +768,7 @@ export class PlayerIframeController {
     } else {
       count = Math.round(scrollContainer.scrollWidth / width)
     }
+    width = scrollWidth / count
 
     this.splitPageWidth = width
     this.splitPageCount = count
