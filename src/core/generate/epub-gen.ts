@@ -37,7 +37,9 @@ export class EpubGen {
     this.zip.file(
       'content.opf',
       dedent`
-        <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="uuid_id" version="3.0" >
+        <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="${
+          this.options.uuid
+        }" version="3.0" >
           <metadata
             xmlns:dc="http://purl.org/dc/elements/1.1/"
             xmlns:dcterms="http://purl.org/dc/terms/"
