@@ -9,6 +9,7 @@ import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
 import { pushSnackbar } from '../../../../common/snackbar.js'
 import type { Player } from '../player.js'
+import { TMP_UUID } from '../../../../../core/consts.js'
 
 function Bookmarks(props: {
   bookmarks: BookTypes.PropertyBookmark[] | undefined | null
@@ -89,7 +90,7 @@ export function useBookViewBookmarks(
   player: Player,
   pos: BookTypes.PropertyPosition
 ) {
-  const uuid = book.item?.isTmp ? '$tmp' : book.item.uuid
+  const uuid = book.item.uuid
   const { data: bookmarks, reload } = useAction(booksBookmarksRouter, {
     uuid,
   })
@@ -104,6 +105,7 @@ export function useBookViewBookmarks(
 
   const addBookmark = useCallback(() => {
     const node = player.iframeCtrler.readableParts[pos.paragraph]
+    if (!node) return
     if (node.type !== 'text')
       return pushSnackbar({
         severity: 'error',

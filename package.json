@@ -49,7 +49,6 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "6.12.0",
-    "swr": "^2.1.5",
     "tsconfig-paths": "^4.2.0",
     "type-fest": "^3.11.1",
     "uuid": "^9.0.0"

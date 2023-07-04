@@ -65,12 +65,13 @@ export class URouter<Req = any, Res = any> {
       .split('/')
   }
 
-  async action(body: Req): Promise<Res> {
+  async action(body: Req, signal?: AbortSignal): Promise<Res> {
     const res = await fetch(this.fullRoutePath, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      signal,
       body: body ? JSON.stringify(body) : null,
     })
     if (res.status === 401) throw new ActionUnauthorized()

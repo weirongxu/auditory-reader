@@ -12,16 +12,10 @@ export const booksCoverRouter = new URouter<BookCoverQuery>('books/cover', {
   method: 'get',
 }).routeLogined(async ({ req, res, userInfo }) => {
   const uuid = req.searchParams.get('uuid')
-  let book: BookBase | undefined
-  if (uuid === '$tmp') {
-    book = await bookManager.bookTmp(userInfo.account)
-    if (!book) throw new ErrorRequestResponse('Tmp not found')
-  } else if (uuid) {
-    book = await bookManager.book(userInfo.account, uuid)
-    if (!book) throw new ErrorRequestResponse('Parse epub error')
-  } else {
+  if (!uuid) {
     throw new ErrorRequestResponse('uuid parameter required')
   }
+  const book = await bookManager.book(userInfo.account, uuid)
 
   const file = await book.cover()
   if (!file) throw new ErrorRequestResponse('cover in book not found')

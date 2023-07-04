@@ -21,15 +21,9 @@ export class BookListIndexedDB extends BookListBase {
     await db.put('book-json', json, 'default')
   }
 
-  async book(uuid: string): Promise<BookEntityBase | undefined> {
-    const entityJson = await this.entityJson(uuid)
-    if (!entityJson) return
-    return new BookEntityIndexedDB(this.toEntity(entityJson))
-  }
-
-  async bookTmp(): Promise<BookEntityBase | undefined> {
-    const entityJson = await this.getTmp()
-    if (!entityJson) return
+  protected entity2bookEntity(
+    entityJson: BookTypes.EntityJson
+  ): BookEntityBase {
     return new BookEntityIndexedDB(this.toEntity(entityJson))
   }
 

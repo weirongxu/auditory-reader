@@ -1,8 +1,12 @@
+import { TMP_UUID } from '../../consts.js'
+import { bookManager } from '../book-manager.js'
 import type { BookEntityBase } from '../entity/book-entity-base.js'
 import type { BookTypes } from '../types.js'
 
 export abstract class BookListBase {
   protected json?: BookTypes.Json
+
+  constructor(protected readonly account: string) {}
 
   protected async getJson(): Promise<BookTypes.Json> {
     this.json ??= await this.readJson()
@@ -121,8 +125,11 @@ export abstract class BookListBase {
     }
 
     if (entity.isTmp) {
-      const tmp = await this.bookTmp()
-      await tmp?.reset()
+      entity.uuid = TMP_UUID
+      entityJson.uuid = TMP_UUID
+      await bookManager.delete(this.account, TMP_UUID)
+      const bookEntity = this.entity2bookEntity(entityJson)
+      await bookEntity.reset()
       await this.setTmp(entityJson)
     } else {
       const list = await this.list()
@@ -147,9 +154,16 @@ export abstract class BookListBase {
     await this.write()
   }
 
-  abstract book(uuid: string): Promise<BookEntityBase | undefined>
+  async book(uuid: string): Promise<BookEntityBase | undefined> {
+    const entityJson =
+      uuid === TMP_UUID ? await this.getTmp() : await this.entityJson(uuid)
+    if (!entityJson) return
+    return this.entity2bookEntity(entityJson)
+  }
 
-  abstract bookTmp(): Promise<BookEntityBase | undefined>
+  protected abstract entity2bookEntity(
+    entity: BookTypes.EntityJson
+  ): BookEntityBase
 
   abstract bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void>
 

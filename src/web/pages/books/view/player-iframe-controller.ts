@@ -33,6 +33,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
+import { pushSnackbar } from '../../../common/snackbar.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -61,34 +62,44 @@ type ScrollOptions = {
 export class PlayerIframeController {
   readableParts: ReadablePart[] = []
   alias: TextAlias[] = []
-  mainContentRootPath: string
-  mainContentRootUrl: string
-  colorScheme: ColorScheme = 'light'
-  splitPageCount?: number
-  splitPageWidth?: number
-  splitPageList?: SplitPageNode[]
-  splitPageCurScrollIndex?: number
-  splitPageCurScrollNode?: SplitPageNode
-  splitPageResizeToNode?: {
+  protected mainContentRootPath: string
+  protected mainContentRootUrl: string
+  protected colorScheme: ColorScheme = 'light'
+  protected splitPageCount?: number
+  protected splitPageWidth?: number
+  protected splitPageList?: SplitPageNode[]
+  protected splitPageCurScrollIndex?: number
+  protected splitPageCurScrollNode?: SplitPageNode
+  protected splitPageResizeToNode?: {
     paragraph: number
     readablePart: ReadablePart
   }
-  win?: Window
+  protected win?: Window
   doc?: Document
-  scrollContainer?: HTMLElement
-  #curAbsPath?: string
+  protected scrollContainer?: HTMLElement
   #isVertical = false
 
   get book() {
     return this.player.book
   }
 
-  get bookType() {
-    return this.book.item.isTmp ? 'tmp' : 'book'
-  }
-
   get iframe() {
     return this.iframeRef.current
+  }
+
+  #flattenedNavs?: BookNav[]
+
+  get flattenedNavs() {
+    if (!this.#flattenedNavs) {
+      this.#flattenedNavs = []
+      const stack = [...this.book.navs]
+      while (stack.length) {
+        const cur = stack.shift()!
+        this.#flattenedNavs.push(cur)
+        stack.unshift(...cur.children)
+      }
+    }
+    return this.#flattenedNavs
   }
 
   get isSplitPage() {
@@ -96,16 +107,22 @@ export class PlayerIframeController {
     return !this.#isVertical
   }
 
+  get isFirstSplitPage() {
+    return this.splitPageCurScrollIndex === 0
+  }
+
+  get isLastSplitPage() {
+    if (this.splitPageCurScrollIndex === undefined || !this.splitPageCount)
+      return true
+    return this.splitPageCurScrollIndex >= this.splitPageCount - 1
+  }
+
   constructor(
     protected player: Player,
     protected states: PlayerStatesManager,
     protected iframeRef: RefObject<HTMLIFrameElement>
   ) {
-    this.mainContentRootPath = getBooksRenderPath(
-      this.bookType,
-      this.book.item.uuid,
-      ''
-    )
+    this.mainContentRootPath = getBooksRenderPath(this.book.item.uuid, '')
 
     this.mainContentRootUrl = new URL(
       this.mainContentRootPath,
@@ -113,7 +130,7 @@ export class PlayerIframeController {
     ).toString()
 
     this.states.events.on('pos', () => {
-      this.paragraphActive()
+      this.updateParagraphActive()
       this.updateActiveNavs()
       this.updateSplitPageResizeToNode()
     })
@@ -128,7 +145,7 @@ export class PlayerIframeController {
     })
   }
 
-  splitPageType(): 'none' | 'double' | 'single' {
+  protected splitPageType(): 'none' | 'double' | 'single' {
     if (this.states.splitPage === 'auto') {
       if (this.win) {
         return this.win.innerWidth > 700 ? 'double' : 'single'
@@ -139,7 +156,7 @@ export class PlayerIframeController {
     return this.states.splitPage
   }
 
-  updateSplitPageResizeToNode(first = false) {
+  protected updateSplitPageResizeToNode(first = false) {
     if (this.splitPageList) {
       const paragraph = this.states.pos.paragraph
       const curSplitPageIndex = findLastIndex(
@@ -163,13 +180,13 @@ export class PlayerIframeController {
     }
   }
 
-  async tryManipulateDOM(callback: () => any) {
+  public async tryManipulateDOM(callback: () => any) {
     setTimeout(() => {
       Promise.resolve(callback()).catch(console.error)
     }, 100)
   }
 
-  getReadablePartIndexByAnchorId(anchorId: string): number | null {
+  protected getReadablePartIndexByAnchorId(anchorId: string): number | null {
     if (!anchorId) return null
     // goto anchorId
     const doc = this.doc
@@ -185,14 +202,14 @@ export class PlayerIframeController {
     return null
   }
 
-  async scrollToCurParagraph(animated = true) {
+  public async scrollToCurParagraph(animated = true) {
     // goto paragraph
     const item = this.readableParts[this.states.pos.paragraph]
     if (!item) return
     await this.scrollToElem(item.elem, { animated })
   }
 
-  async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
+  public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
     await this.tryManipulateDOM(async () => {
       if (!this.isSplitPage) {
         element.scrollIntoView({
@@ -259,7 +276,7 @@ export class PlayerIframeController {
     abortCtrl: AbortController
     page: number
   }
-  async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
+  public async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
     if (!this.splitPageWidth) return
     if (offsetPage === 0) return
     if (this.splitPageCurScrollIndex === undefined) return
@@ -327,79 +344,111 @@ export class PlayerIframeController {
     this.#pushSplitPageLast = undefined
   }
 
+  #curAbsPath?: string
+
   /**
-   * @param absPath absolute path
-   * @example
-   * ```
-   * '/OEBPS/Text/index.html'
-   * ```
+   * @param locate default is this.states.pos
    */
-  async loadByPath(absPath: string, force = false) {
+  public async loadByPos(
+    locate: {
+      section?: number
+      anchorId?: string
+      paragraph?: number
+      /** @default false */
+      animated?: boolean
+    },
+    force = false
+  ) {
     const iframe = this.iframe
     if (!iframe) return
 
-    // skip same path
-    if (!force && absPath === this.#curAbsPath) return
+    const section = locate.section ?? this.states.pos.section
+    let spine = this.book.spines[section]
+    if (!spine) spine = this.book.spines[0]
+    if (!spine)
+      return pushSnackbar({
+        message: 'book spine is empty',
+        severity: 'error',
+      })
+
+    const absPath = spine.href
+
+    const isLoadNewPath = force || absPath !== this.#curAbsPath
     this.#curAbsPath = absPath
 
     try {
-      iframe.style.visibility = 'hidden'
-      this.states.loading = true
-      const loaded = new Promise<void>((resolve) => {
-        iframe.addEventListener(
-          'load',
-          () => {
-            resolve()
-          },
-          { once: true }
-        )
-      })
-      iframe.src = getBooksRenderPath(
-        this.bookType,
-        this.book.item.uuid,
-        absPath
-      )
-      await loaded
+      // load iframe
+      if (isLoadNewPath) {
+        iframe.style.visibility = 'hidden'
+        this.states.loading = true
+        const loaded = new Promise<void>((resolve) => {
+          iframe.addEventListener(
+            'load',
+            () => {
+              resolve()
+            },
+            { once: true }
+          )
+        })
+        iframe.src = getBooksRenderPath(this.book.item.uuid, absPath)
+        await loaded
 
-      const doc = iframe.contentDocument
-      if (!doc) return console.error('iframe load failed')
+        const doc = iframe.contentDocument
+        if (!doc)
+          return pushSnackbar({
+            message: 'iframe load failed',
+            severity: 'error',
+          })
 
-      // load readableParts & alias
-      const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs)
-      this.readableParts = readableExtractor.toReadableParts()
-      this.alias = readableExtractor.alias()
+        // load readableParts & alias
+        const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs)
+        this.readableParts = readableExtractor.toReadableParts()
+        this.alias = readableExtractor.alias()
+        if (!this.readableParts.length)
+          return pushSnackbar({
+            message: 'readableParts is empty',
+            severity: 'error',
+          })
+      }
 
-      await this.onLoaded(iframe)
-      iframe.style.visibility = 'visible'
+      // goto pos
+      let paragraph = this.states.pos.paragraph
+      if (locate?.paragraph !== undefined) {
+        paragraph =
+          locate.paragraph < 0
+            ? this.readableParts.length + locate.paragraph
+            : locate.paragraph
+        // if exceeds readablePart range
+        if (paragraph < 0) paragraph = 0
+        else if (paragraph >= this.readableParts.length)
+          paragraph = this.readableParts.length - 1
+      } else if (locate?.anchorId)
+        paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
+
+      this.states.pos = {
+        section,
+        paragraph,
+      }
+      await this.scrollToCurParagraph(locate.animated ?? false)
+
+      // loaded
+      if (isLoadNewPath) {
+        await this.onLoaded(iframe)
+        iframe.style.visibility = 'visible'
+      }
     } finally {
       this.states.loading = false
     }
   }
 
-  async gotoUrlPathAndScroll(path: string) {
+  public async gotoUrlPath(path: string) {
     const [urlMain, anchorId] = urlSplitAnchor(path)
-    const spineIndex = this.book.spines.findIndex((s) => s.href === urlMain)
-    if (spineIndex === -1) return
-    await this.loadByPath(urlMain)
-
-    const elemIndex = this.getReadablePartIndexByAnchorId(anchorId)
-    if (elemIndex == null) {
-      this.states.pos = {
-        section: spineIndex,
-        paragraph: 0,
-      }
-      await this.scrollToCurParagraph()
-      return
-    }
-
-    this.states.pos = {
-      section: spineIndex,
-      paragraph: elemIndex,
-    }
-    await this.scrollToCurParagraph()
+    const section = this.book.spines.findIndex((s) => s.href === urlMain)
+    if (section === -1) return
+    await this.loadByPos({ section, anchorId })
   }
 
-  updateColorTheme(colorScheme: ColorScheme) {
+  public updateColorTheme(colorScheme: ColorScheme) {
     this.colorScheme = colorScheme
     if (!this.doc) return
     if (colorScheme === 'dark') {
@@ -412,7 +461,7 @@ export class PlayerIframeController {
   /**
    * When loaded a new page
    */
-  async onLoaded(iframe: HTMLIFrameElement) {
+  protected async onLoaded(iframe: HTMLIFrameElement) {
     const win = iframe.contentWindow
     const doc = iframe.contentDocument
     // load inject and hook
@@ -436,14 +485,14 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       if (this.isSplitPage) {
-        this.splitPageTypeUpdate(doc)
+        this.updateSplitPageType(doc)
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
           'resize',
           debounceFn(300, () => {
             async(async () => {
               if (!this.win || !this.scrollContainer) return
-              this.splitPageTypeUpdate(doc)
+              this.updateSplitPageType(doc)
               await this.splitPageCalcuate(win, doc, this.scrollContainer)
               const resizeToNode =
                 this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
@@ -458,16 +507,15 @@ export class PlayerIframeController {
         this.hookPageTouch()
         this.hookPageWheel()
         this.hookPageScroll()
-      } else {
-        this.parsePageResizeImgs(doc)
       }
+      this.parsePageResizeImgs(doc)
       this.hookALinks(doc)
       this.hookImgs(doc)
       this.hookParagraphClick()
     }
   }
 
-  injectCSS(doc: Document) {
+  protected injectCSS(doc: Document) {
     const styleElem = doc.createElement('style')
     const contentSelectors = [
       'a',
@@ -575,7 +623,7 @@ export class PlayerIframeController {
     })
   }
 
-  hookALinks(doc: Document) {
+  protected hookALinks(doc: Document) {
     for (const link of doc.querySelectorAll('a')) {
       if (link.getAttribute('target') === '_blank') {
         link.addEventListener('click', () => {
@@ -602,14 +650,14 @@ export class PlayerIframeController {
             }
             rootPath = url.substring(this.mainContentRootUrl.length)
           }
-          await this.gotoUrlPathAndScroll(rootPath)
+          await this.gotoUrlPath(rootPath)
           this.player.utterer.cancel()
         })
       })
     }
   }
 
-  hookImgs(doc: Document) {
+  protected hookImgs(doc: Document) {
     for (const img of doc.querySelectorAll('img')) {
       img.addEventListener('click', (event) => {
         const src = img.src
@@ -630,7 +678,7 @@ export class PlayerIframeController {
     }
   }
 
-  hookParagraphClick() {
+  protected hookParagraphClick() {
     const click = (event: Event) => {
       const target = event.currentTarget as Element
       const paraIndex = this.readableParts.findIndex((n) => n.elem === target)
@@ -641,7 +689,7 @@ export class PlayerIframeController {
     this.readableParts.forEach((n) => n.elem.addEventListener('click', click))
   }
 
-  hookPageTouch() {
+  protected hookPageTouch() {
     const doc = this.doc
     if (!doc) return
 
@@ -686,7 +734,7 @@ export class PlayerIframeController {
     })
   }
 
-  hookPageWheel() {
+  protected hookPageWheel() {
     const doc = this.doc
     if (!doc) return
 
@@ -709,7 +757,7 @@ export class PlayerIframeController {
     })
   }
 
-  hookPageScroll() {
+  protected hookPageScroll() {
     const win = this.win
     const scrollContainer = this.scrollContainer
     if (!win || !scrollContainer) return
@@ -717,7 +765,7 @@ export class PlayerIframeController {
     if (!doc) return
 
     const listener = () => {
-      if (!this.splitPageWidth) return 0
+      if (!this.splitPageWidth) return
 
       this.splitPageCurScrollIndex = Math.round(
         scrollContainer.scrollLeft / this.splitPageWidth
@@ -733,14 +781,14 @@ export class PlayerIframeController {
     })
   }
 
-  splitPageTypeUpdate(doc: Document) {
+  protected updateSplitPageType(doc: Document) {
     // column count
     const columnCount = this.splitPageType() === 'single' ? 1 : 2
     const html = doc.documentElement
     html.style.setProperty('--main-column-count', columnCount.toString())
   }
 
-  async splitPageCalcuate(
+  protected async splitPageCalcuate(
     win: Window,
     doc: Document,
     scrollContainer: HTMLElement
@@ -779,15 +827,14 @@ export class PlayerIframeController {
     // eslint-disable-next-line no-console
     console.debug(`splitPageCount: ${this.splitPageCount}`)
 
-    this.parsePageResizeImgs(doc)
     this.parseSplitPageTopReadableParts(scrollContainer)
   }
 
-  private parsePageResizeImgs(doc: Document) {
-    const img_classes = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
+  protected parsePageResizeImgs(doc: Document) {
+    const imgClasses = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
     const imgs = doc.querySelectorAll('img')
     for (const img of imgs) {
-      img.classList.remove(...img_classes)
+      img.classList.remove(...imgClasses)
     }
     if (!this.splitPageWidth) return
 
@@ -813,7 +860,7 @@ export class PlayerIframeController {
     }
   }
 
-  private parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
+  protected parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
     const width = this.splitPageWidth
     if (!width) return
     if (!this.splitPageCount) return
@@ -839,27 +886,15 @@ export class PlayerIframeController {
     }
   }
 
-  async load(force = false) {
-    const spine = this.book.spines[this.states.pos.section]
-    if (spine) {
-      await this.loadByPath(spine.href, force)
-      await this.scrollToCurParagraph(false)
-    } else {
-      const spine = this.book.spines[0]
-      await this.loadByPath(spine.href, force)
-      this.states.pos = {
-        section: 0,
-        paragraph: 0,
-      }
-      await this.scrollToCurParagraph(false)
-    }
-    this.paragraphActive()
+  public async load(force = false) {
+    await this.loadByPos({}, force)
+    this.updateParagraphActive()
     this.updateActiveNavs()
     this.updateSplitPageResizeToNode(true)
   }
 
   #paragraphLastActive?: ReadablePart
-  paragraphActive() {
+  protected updateParagraphActive() {
     this.tryManipulateDOM(() => {
       const item = this.readableParts[this.states.pos.paragraph]
       if (
@@ -873,22 +908,7 @@ export class PlayerIframeController {
     }).catch(console.error)
   }
 
-  #flattenedNavs?: BookNav[]
-
-  get flattenedNavs() {
-    if (!this.#flattenedNavs) {
-      this.#flattenedNavs = []
-      const stack = [...this.book.navs]
-      while (stack.length) {
-        const cur = stack.shift()!
-        this.#flattenedNavs.push(cur)
-        stack.unshift(...cur.children)
-      }
-    }
-    return this.#flattenedNavs
-  }
-
-  updateActiveNavs() {
+  protected updateActiveNavs() {
     interface RequiredNav extends BookNav {
       spineIndex: number
     }
@@ -955,6 +975,7 @@ export class PlayerIframeController {
 
 export function usePlayerIframe(player: Player) {
   useMountEffect(async () => {
+    // first load page
     await player.iframeCtrler.load()
   })
 }

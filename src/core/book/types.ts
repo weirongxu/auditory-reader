@@ -14,7 +14,7 @@ export namespace BookTypes {
   }
 
   export type EntityJson = {
-    uuid: string
+    uuid: EntityUUID
     name: string
     type: EntityType
     langCode: LangCode
@@ -24,7 +24,7 @@ export namespace BookTypes {
   }
 
   export type Entity = {
-    uuid: string
+    uuid: EntityUUID
     name: string
     type: EntityType
     langCode: LangCode

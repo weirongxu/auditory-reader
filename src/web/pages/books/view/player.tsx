@@ -113,28 +113,11 @@ export class Player {
       await this.iframeCtrler.scrollToCurParagraph(to.animated)
     } else {
       // Change section
-      const href = this.book.spines[section]?.href
-      if (!href) {
-        return
-      }
-
-      await this.iframeCtrler.loadByPath(href)
-
-      // new paragraph
-      let paragraph = to.paragraph ?? 0
-      if (paragraph < 0)
-        paragraph = this.iframeCtrler.readableParts.length + paragraph
-      if (
-        this.iframeCtrler.readableParts.length &&
-        (paragraph < 0 || paragraph >= this.iframeCtrler.readableParts.length)
-      )
-        return
-
-      this.states.pos = {
+      await this.iframeCtrler.loadByPos({
         section,
-        paragraph,
-      }
-      await this.iframeCtrler.scrollToCurParagraph(to.animated)
+        paragraph: to.paragraph,
+        animated: to.animated,
+      })
     }
 
     this.utterer.cancel()
@@ -161,24 +144,16 @@ export class Player {
   }
 
   async gotoUrlPath(urlPath: string) {
-    await this.iframeCtrler.gotoUrlPathAndScroll(urlPath)
+    await this.iframeCtrler.gotoUrlPath(urlPath)
     this.utterer.cancel()
   }
 
   get isFirstPage() {
-    return this.iframeCtrler.splitPageCurScrollIndex === 0
+    return this.iframeCtrler.isFirstSplitPage
   }
 
   get isLastPage() {
-    if (
-      !this.iframeCtrler.splitPageCurScrollIndex ||
-      !this.iframeCtrler.splitPageCount
-    )
-      return true
-    return (
-      this.iframeCtrler.splitPageCurScrollIndex >=
-      this.iframeCtrler.splitPageCount - 1
-    )
+    return this.iframeCtrler.isLastSplitPage
   }
 
   async prevPage(count: number, jump: boolean) {

@@ -4,6 +4,7 @@ import type { BookTypes } from '../../book/types.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
 import { ErrorRequestResponse } from '../../route/session.js'
+import { TMP_UUID } from '../../consts.js'
 
 export type BookCreate = {
   name: string
@@ -19,9 +20,7 @@ export type BookCreate = {
 export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
   'books/tmp-store'
 ).routeLogined(async ({ userInfo }) => {
-  const bookEntityTmp = await bookManager.entityTmp(userInfo.account)
-  if (!bookEntityTmp) throw new ErrorRequestResponse('Tmp not found')
-
+  const bookEntityTmp = await bookManager.entity(userInfo.account, TMP_UUID)
   const uuid = uuidv1()
 
   const entity: BookTypes.Entity = {
@@ -36,11 +35,13 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
 
   const buf = await bookEntityTmp.readFileBuffer()
   const pos = await bookEntityTmp.posGet()
+  const bookmarks = await bookEntityTmp.bookmarksGet()
 
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
 
   const bookEntity = await bookManager.entity(userInfo.account, entityJson.uuid)
   await bookEntity.posSet(pos)
+  await bookEntity.bookmarksAdd(bookmarks)
 
   return entityJson
 })

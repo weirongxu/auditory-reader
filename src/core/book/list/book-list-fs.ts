@@ -4,6 +4,7 @@ import { env } from '../../env.js'
 import { BookEntityFS } from '../entity/book-entity-fs.js'
 import type { BookTypes } from '../types'
 import { BookListBase } from './book-list-base.js'
+import type { BookEntityBase } from '../entity/book-entity-base.js'
 
 export class BookListFS extends BookListBase {
   /**
@@ -19,8 +20,8 @@ export class BookListFS extends BookListBase {
    */
   protected allBooksDir: string
 
-  constructor(protected readonly account: string) {
-    super()
+  constructor(account: string) {
+    super(account)
     this.accountDir = path.join(env.dataPath, 'users', account)
     this.allBooksDir = path.join(this.accountDir, 'books')
     this.jsonPath = path.join(this.accountDir, 'books.json')
@@ -42,15 +43,9 @@ export class BookListFS extends BookListBase {
     await fs.promises.writeFile(this.jsonPath, JSON.stringify(json), 'utf8')
   }
 
-  async book(uuid: string): Promise<BookEntityFS | undefined> {
-    const entityJson = await this.entityJson(uuid)
-    if (!entityJson) return
-    return new BookEntityFS(this.allBooksDir, this.toEntity(entityJson))
-  }
-
-  async bookTmp(): Promise<BookEntityFS | undefined> {
-    const entityJson = await this.getTmp()
-    if (!entityJson) return
+  protected entity2bookEntity(
+    entityJson: BookTypes.EntityJson
+  ): BookEntityBase {
     return new BookEntityFS(this.allBooksDir, this.toEntity(entityJson))
   }
 

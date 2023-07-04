@@ -1,8 +1,7 @@
 import path from 'path'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
-import useSWR from 'swr'
 import { env } from '../env.js'
 import type { URouter } from './router'
 
@@ -39,28 +38,70 @@ export function actionCatchError(navigate: NavigateFunction) {
   }
 }
 
-export function useAction<Req, Res>(router: URouter<Req, Res>, arg: Req) {
+type ActionOptions = {
+  /**
+   * @default true
+   */
+  autoLoad?: boolean
+  /**
+   * @default true
+   */
+  clearWhenReload?: boolean
+}
+
+export function useAction<Req, Res>(
+  router: URouter<Req, Res>,
+  arg: Req,
+  options?: ActionOptions
+) {
   const navigate = useNavigate()
   const refArg = useRef<Req>(arg)
   refArg.current = arg
+  const refOptions = useRef<ActionOptions | undefined>(options)
+  refOptions.current = options
+  const [data, setData] = useState<Res>()
+  const [error, setError] = useState<any>()
 
-  const { data, error, mutate } = useSWR<Res | null, any>(
-    [router.fullRoutePath, refArg.current],
-    () => {
-      try {
-        return router.action(refArg.current)
-      } catch (error) {
-        if (error instanceof ActionUnauthorized) {
-          navigate('/login')
-          return null
-        } else throw error
-      }
-    }
+  const load = useCallback(
+    (signal: AbortSignal) => {
+      router
+        .action(refArg.current)
+        .then((res) => {
+          if (signal.aborted) return
+          setData(res)
+        })
+        .catch((error) => {
+          if (signal.aborted) return
+          if (error instanceof ActionUnauthorized) {
+            navigate('/login')
+            return null
+          } else {
+            setError(error)
+          }
+        })
+    },
+    [navigate, router]
   )
 
-  const reload = useCallback(() => {
-    mutate().catch(console.error)
-  }, [mutate])
+  useEffect(() => {
+    if (refOptions.current?.autoLoad === false) return
+    const abort = new AbortController()
+    load(abort.signal)
+    return () => {
+      abort.abort()
+    }
+  }, [load])
+
+  const reload = useCallback(
+    (options?: { signal?: AbortSignal }) => {
+      if (refOptions.current?.clearWhenReload !== false) {
+        setData(undefined)
+        setError(undefined)
+      }
+      load(options?.signal ?? new AbortController().signal)
+    },
+    [load]
+  )
 
   return { data, reload, error }
 }

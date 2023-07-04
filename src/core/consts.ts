@@ -24,3 +24,5 @@ export const ZH_PERSON_RULES = {
     pinyin: 'tuó',
   },
 }
+
+export const TMP_UUID = '$tmp'

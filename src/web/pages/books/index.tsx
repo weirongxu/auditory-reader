@@ -477,7 +477,14 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
 export function BookList() {
   const theme = useTheme()
   const [page, setPage] = useState<number>(1)
-  const { data: dataBooks, reload } = useAction(booksPageRouter, { page })
+  const { data: dataBooks, reload } = useAction(
+    booksPageRouter,
+    { page },
+    {
+      autoLoad: false,
+      clearWhenReload: false,
+    }
+  )
   const [loading, setLoading] = useState<boolean>(false)
 
   const [books, setBooks] = useState<BookTypes.Entity[] | null>(null)

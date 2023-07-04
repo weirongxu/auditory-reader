@@ -1,5 +1,4 @@
 import { bookManager } from '../../book/book-manager.js'
-import type { BookEntityBase } from '../../book/entity/book-entity-base.js'
 import { URouter } from '../../route/router.js'
 import { ErrorRequestResponse } from '../../route/session.js'
 
@@ -16,11 +15,7 @@ export const booksDownloadRouter = new URouter<
   const searchParams = req.searchParams
   const uuid = searchParams.get('uuid')
   if (!uuid) throw new ErrorRequestResponse('uuid parameter required')
-  const bookEntity: BookEntityBase = await bookManager.entity(
-    userInfo.account,
-    uuid
-  )
-  if (!bookEntity) throw new ErrorRequestResponse('book not found')
+  const bookEntity = await bookManager.entity(userInfo.account, uuid)
   const { contentType, buffer, filename } = await bookEntity.download()
   res.header('Content-Type', contentType)
   res.header(

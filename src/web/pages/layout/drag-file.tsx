@@ -20,6 +20,7 @@ import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
+import { TMP_UUID } from '../../../core/consts.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
 
@@ -99,7 +100,7 @@ export function DragFile(props: { children: React.ReactNode }) {
         })
       setLoading(false)
       setDragItem(null)
-      nav(`/books/view/$tmp`)
+      nav(`/books/view/${TMP_UUID}`)
     })
   }, [dragItem, nav])
 
