@@ -2,6 +2,7 @@ import {
   PARA_HIGHLIGHT_CLASS,
   PARA_IGNORE_CLASS,
 } from '../../../../core/consts.js'
+import { sum } from '../../../../core/util/collection.js'
 import { isElement, isTextNode } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
@@ -24,6 +25,58 @@ export class Highlight {
   get doc() {
     return this.iframeCtrl.doc
   }
+
+  #hlRoot: HTMLDivElement | undefined
+  #cacheHlRectMap = new Map<number, HTMLDivElement>()
+
+  public reCreateRoot(doc: Document) {
+    this.#hlRoot = doc.createElement('div')
+    doc.body.appendChild(this.#hlRoot)
+    this.#cacheHlRectMap.clear()
+  }
+  #highlightCharsByRects(range: Range) {
+    const doc = this.doc
+    const hlRoot = this.#hlRoot
+    if (!doc || !hlRoot) return
+
+    const getRectDiv = (idx: number) => {
+      let div = this.#cacheHlRectMap.get(idx)
+      if (!div) {
+        div = doc.createElement('div')
+        this.#cacheHlRectMap.set(idx, div)
+        hlRoot.appendChild(div)
+      }
+      return div
+    }
+
+    const rects = [...range.getClientRects()]
+    ;[...hlRoot.children].forEach((div) => {
+      ;(div as HTMLDivElement).style.display = 'none'
+    })
+    for (const [idx, rect] of rects.entries()) {
+      const div = getRectDiv(idx)
+      div.classList.add(PARA_HIGHLIGHT_CLASS)
+      div.style.display = 'block'
+      div.style.top = `${rect.top}px`
+      div.style.left = `${rect.left}px`
+      div.style.width = `${rect.width}px`
+      div.style.height = `${rect.height}px`
+    }
+
+    this.#scrollToRects(rects)
+  }
+
+  #scrollToRects = throttleFn(1000, (rects: DOMRect[]) => {
+    const container = this.iframeCtrl.scrollContainer
+    if (!rects.length || !container) return
+
+    const leftList: number[] = []
+    for (const rect of rects) {
+      leftList.push(rect.left)
+    }
+    const left = sum(leftList) / leftList.length + container.scrollLeft
+    this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)
+  })
 
   #findRangePos(
     node: Node,
@@ -83,66 +136,29 @@ export class Highlight {
     }
   }
 
-  highlightClear() {
-    const parentSet = new Set<ParentNode>()
-    while (this.highlightedElems.length) {
-      const el = this.highlightedElems.pop()
-      if (!el) break
-      if (el.parentNode) parentSet.add(el.parentNode)
-      el.replaceWith(...el.childNodes)
+  #highlightChars(node: ReadablePart, charIndex: number, charLength: number) {
+    if (!this.doc) return
+
+    // remove last class
+    this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
+
+    // get range
+    const range = document.createRange()
+    const start = this.#getChildAndIndex(node.elem, charIndex)
+    if (!start) return
+    const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
+    if (!end) return
+    try {
+      range.setStart(start.node, start.index)
+      range.setEnd(end.node, end.index)
+    } catch (error) {
+      console.error(error)
+      // skip range index error
+      return
     }
-    for (const parent of parentSet) {
-      parent.normalize()
-    }
+
+    this.#highlightCharsByRects(range)
   }
-
-  #highlightChars = throttleFn(
-    300,
-    (node: ReadablePart, charIndex: number, charLength: number) => {
-      if (!this.doc) return
-
-      // remove last class
-      this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
-
-      // get range
-      const range = document.createRange()
-      const start = this.#getChildAndIndex(node.elem, charIndex)
-      if (!start) return
-      const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
-      if (!end) return
-      try {
-        range.setStart(start.node, start.index)
-        range.setEnd(end.node, end.index)
-      } catch (error) {
-        console.error(error)
-        // skip range index error
-        return
-      }
-
-      // create span
-      const span = this.doc.createElement('span')
-      span.classList.add(PARA_HIGHLIGHT_CLASS)
-      this.highlightedElems.push(span)
-      const parentRuby = start.node.parentElement?.closest('ruby')
-      if (parentRuby) {
-        // wrap ruby
-        parentRuby.after(span)
-        span.appendChild(parentRuby)
-      } else {
-        // wrap range
-        span.appendChild(range.extractContents())
-        range.insertNode(span)
-      }
-
-      // Note: use previous span, because latest span rect is incorrect
-      const span0 = this.highlightedElems.at(-2)
-      if (span0) {
-        void this.iframeCtrl.scrollToElem(span0, {
-          position: 'nearest',
-        })
-      }
-    }
-  )
 
   highlight(node: ReadablePart, charIndex: number, charLength: number) {
     this.iframeCtrl

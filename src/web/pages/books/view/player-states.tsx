@@ -14,7 +14,7 @@ type PlayerStates = {
   loading: boolean
 }
 
-type PlayerUIStates = {
+type PlayerReadonlyStates = {
   isPersonReplace: boolean
   speechSpeed: number
   voice: null | SpeechSynthesisVoice
@@ -65,7 +65,7 @@ export class PlayerStatesManager {
     this.events.fire('loading', loading)
   }
 
-  #uiStates: PlayerUIStates = {
+  #readonlyStates: PlayerReadonlyStates = {
     voice: null,
     isPersonReplace: false,
     speechSpeed: 1,
@@ -74,30 +74,30 @@ export class PlayerStatesManager {
     splitPage: 'double',
   }
 
-  uiEvents = new ChangedEmitter<PlayerUIStates>()
+  uiEvents = new ChangedEmitter<PlayerReadonlyStates>()
 
   get voice() {
-    return this.#uiStates.voice
+    return this.#readonlyStates.voice
   }
 
   get isPersonReplace() {
-    return this.#uiStates.isPersonReplace
+    return this.#readonlyStates.isPersonReplace
   }
 
   get speechSpeed() {
-    return this.#uiStates.speechSpeed
+    return this.#readonlyStates.speechSpeed
   }
 
   get autoNextSection() {
-    return this.#uiStates.autoNextSection
+    return this.#readonlyStates.autoNextSection
   }
 
   get paragraphRepeat() {
-    return this.#uiStates.paragraphRepeat
+    return this.#readonlyStates.paragraphRepeat
   }
 
   get splitPage() {
-    return this.#uiStates.splitPage
+    return this.#readonlyStates.splitPage
   }
 
   get docVisible() {
@@ -108,11 +108,11 @@ export class PlayerStatesManager {
     return this.docVisible || !isMobile
   }
 
-  syncUIState<K extends keyof PlayerUIStates>(
+  syncUIState<K extends keyof PlayerReadonlyStates>(
     name: K,
-    state: PlayerUIStates[K]
+    state: PlayerReadonlyStates[K]
   ) {
-    this.#uiStates[name] = state
+    this.#readonlyStates[name] = state
     this.uiEvents.fire(name, state)
   }
 }
@@ -150,7 +150,7 @@ export function usePlayerSync(
   }, [player, setPos, setStarted, setActiveNavs, setLoading])
 }
 
-export function usePlayerSyncUI(player: Player, props: PlayerUIStates) {
+export function usePlayerSyncUI(player: Player, props: PlayerReadonlyStates) {
   const {
     isPersonReplace,
     speechSpeed,

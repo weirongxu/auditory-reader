@@ -75,8 +75,8 @@ export class PlayerIframeController {
     readablePart: ReadablePart
   }
   protected win?: Window
-  doc?: Document
-  protected scrollContainer?: HTMLElement
+  public doc?: Document
+  public scrollContainer?: HTMLElement
   #isVertical = false
 
   get book() {
@@ -231,7 +231,7 @@ export class PlayerIframeController {
   /**
    * scroll to page by left offset with animation
    */
-  private async scrollToPageByLeft(
+  public async scrollToPageByLeft(
     left: number,
     {
       iteration = 10,
@@ -512,6 +512,7 @@ export class PlayerIframeController {
       this.hookALinks(doc)
       this.hookImgs(doc)
       this.hookParagraphClick()
+      this.player.utterer.hl.reCreateRoot(doc)
     }
   }
 
@@ -614,6 +615,8 @@ export class PlayerIframeController {
       .${PARA_HIGHLIGHT_CLASS} {
         background-color: var(--main-bg-highlight);
         color: var(--main-fg-highlight) !important;
+        position: fixed;
+        user-select: none;
       }
     `
     doc.head.appendChild(styleElem)

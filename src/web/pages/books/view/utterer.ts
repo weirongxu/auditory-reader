@@ -218,7 +218,6 @@ export class Utterer {
       )
     })
     this.utterance.removeEventListener('boundary', boundaryListener)
-    this.hl.highlightClear()
     rainStop()
     this.state = 'none'
     return result
