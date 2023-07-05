@@ -225,10 +225,9 @@ export const useOrderedLangs = () => {
   const userLanguages = useUserLanguages()
 
   const langs = useMemo(() => {
-    return orderBy(langList, 'asc', (l) => {
-      const idx = userLanguages.indexOf(l.code)
-      return idx === -1 ? userLanguages.length : idx
-    })
+    return orderBy(langList, 'asc', (l) =>
+      userLanguages.indexOf(l.code) === -1 ? 0 : 1
+    )
   }, [userLanguages])
 
   return langs

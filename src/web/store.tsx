@@ -96,11 +96,10 @@ export const useVoice = (book: BookTypes.Entity) => {
   const [allVoices] = useAtom(allVoicesAtom)
 
   const allSortedVoices = useMemo(() => {
-    return orderBy(
-      allVoices,
-      'asc',
-      (v) => !v.lang.startsWith(`${book.langCode}-`)
-    )
+    return orderBy(allVoices, 'desc', (v) => [
+      v.lang.startsWith(`${book.langCode}-`),
+      v.localService,
+    ])
   }, [allVoices, book.langCode])
 
   const voiceURI = useMemo((): string | null => {

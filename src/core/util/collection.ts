@@ -153,7 +153,7 @@ export function uniq<T>(list: T[]): T[] {
   return uniqBy(list, (it) => it)
 }
 
-type OrderTypes = number | string | boolean
+type OrderTypes = number | string | boolean | OrderTypes[]
 
 export function orderBy<T>(
   list: T[],
@@ -161,16 +161,27 @@ export function orderBy<T>(
   getValue: (value: T, index: number, list: T[]) => OrderTypes
 ): T[] {
   const listEntries = [...list.entries()]
-  listEntries.sort(([ai, a], [bi, b]) => {
-    const va = getValue(a, ai, list)
-    const vb = getValue(b, bi, list)
+  const getDiff = <T extends OrderTypes>(va: T, vb: T): number => {
     if (typeof va === 'string' && typeof vb === 'string')
       return va.localeCompare(vb)
     else if (typeof va === 'number' && typeof vb === 'number') return va - vb
     else if (typeof va === 'boolean' && typeof vb === 'boolean')
       return Number(va) - Number(vb)
-    else
+    else if (Array.isArray(va) && Array.isArray(vb)) {
+      for (const [idx, vaIt] of va.entries()) {
+        const vbIt = vb.at(idx)
+        if (vbIt === undefined) return 0
+        const diff = getDiff(vaIt, vbIt)
+        if (diff !== 0) return diff
+      }
+      return 0
+    } else
       throw new Error(`no support order by type(${typeof va} vs ${typeof vb})`)
+  }
+  listEntries.sort(([ai, a], [bi, b]) => {
+    const va = getValue(a, ai, list)
+    const vb = getValue(b, bi, list)
+    return getDiff(va, vb)
   })
   if (order === 'desc') {
     listEntries.reverse()
