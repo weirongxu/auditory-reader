@@ -500,6 +500,7 @@ export class PlayerIframeController {
                 await this.scrollToElem(resizeToNode.readablePart.elem)
               else
                 await this.scrollToPageByLeft(this.scrollContainer.scrollLeft)
+              this.player.utterer.hl.reCreateRoot(doc)
             })
           })
         )
@@ -589,10 +590,7 @@ export class PlayerIframeController {
       }
 
       ${contentSelectors
-        .map(
-          (s) =>
-            `.${COLOR_SCHEME_DARK_CLASS} ${s}:not(.${PARA_HIGHLIGHT_CLASS})`
-        )
+        .map((s) => `.${COLOR_SCHEME_DARK_CLASS} ${s}`)
         .join(', ')} {
         color: var(--main-fg) !important;
       }
@@ -612,7 +610,7 @@ export class PlayerIframeController {
         outline: 5px solid var(--main-bg-hover);
       }
 
-      .${PARA_HIGHLIGHT_CLASS} {
+      .${PARA_HIGHLIGHT_CLASS} > div {
         background-color: var(--main-bg-highlight);
         color: var(--main-fg-highlight) !important;
         position: fixed;

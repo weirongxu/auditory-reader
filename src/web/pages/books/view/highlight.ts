@@ -30,7 +30,12 @@ export class Highlight {
   #cacheHlRectMap = new Map<number, HTMLDivElement>()
 
   public reCreateRoot(doc: Document) {
+    doc
+      .querySelectorAll(`.${PARA_HIGHLIGHT_CLASS}`)
+      .forEach((div) => div.remove())
+
     this.#hlRoot = doc.createElement('div')
+    this.#hlRoot.classList.add(PARA_HIGHLIGHT_CLASS)
     doc.body.appendChild(this.#hlRoot)
     this.#cacheHlRectMap.clear()
   }
@@ -55,7 +60,6 @@ export class Highlight {
     })
     for (const [idx, rect] of rects.entries()) {
       const div = getRectDiv(idx)
-      div.classList.add(PARA_HIGHLIGHT_CLASS)
       div.style.display = 'block'
       div.style.top = `${rect.top}px`
       div.style.left = `${rect.left}px`
@@ -138,9 +142,6 @@ export class Highlight {
 
   #highlightChars(node: ReadablePart, charIndex: number, charLength: number) {
     if (!this.doc) return
-
-    // remove last class
-    this.highlightedElems.at(-1)?.classList.remove(PARA_HIGHLIGHT_CLASS)
 
     // get range
     const range = document.createRange()
