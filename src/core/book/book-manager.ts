@@ -1,3 +1,4 @@
+import { TMP_UUID } from '../consts.js'
 import { env } from '../env.js'
 import { ErrorRequestResponse } from '../route/session.js'
 import type { BookBase } from './book-base'
@@ -7,11 +8,32 @@ import type { BookEntityBase } from './entity/book-entity-base'
 import type { BookListBase } from './list/book-list-base'
 import { BookListFS } from './list/book-list-fs.js'
 import { BookListIndexedDB } from './list/book-list-indexed-db.js'
+import type { BookTypes } from './types.js'
+
+const extractUuid = (
+  method: (account: string, uuid: BookTypes.EntityUUID) => unknown,
+  context: ClassMethodDecoratorContext
+) => {
+  const methodName = context.name
+  context.addInitializer(function (this: any) {
+    this[methodName] = function (account: string, uuid: BookTypes.EntityUUID) {
+      const extractedUuid =
+        uuid === TMP_UUID ? bookManager.reqTmpUuid(account) : uuid
+      return method.call(this, account, extractedUuid)
+    }
+  })
+}
 
 class BookManager {
   protected cacheList = new Map<string, BookListBase>()
   protected cacheEntity = new Map<string, BookEntityBase>()
   protected cacheBook = new Map<string, BookBase>()
+
+  reqTmpUuid(account: string) {
+    const uuid = this.list(account).tmpUuid
+    if (!uuid) throw new ErrorRequestResponse(`uuid(${uuid}) not found`)
+    return uuid
+  }
 
   list(account: string) {
     let bookList = this.cacheList.get(account)
@@ -25,12 +47,14 @@ class BookManager {
     return bookList
   }
 
-  async delete(account: string, uuid: string) {
+  @extractUuid
+  async delete(account: string, uuid: BookTypes.EntityUUID) {
     this.cacheEntity.delete(uuid)
     this.cacheBook.delete(uuid)
     await bookManager.list(account).delete(uuid)
   }
 
+  @extractUuid
   async entity(account: string, uuid: string): Promise<BookEntityBase> {
     let entity = this.cacheEntity.get(uuid)
     if (!entity) {
@@ -42,6 +66,7 @@ class BookManager {
     return entity
   }
 
+  @extractUuid
   async book(account: string, uuid: string): Promise<BookBase> {
     let book = this.cacheBook.get(uuid)
     if (!book) {

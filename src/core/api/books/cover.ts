@@ -1,4 +1,3 @@
-import type { BookBase } from '../../book/book-base.js'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'

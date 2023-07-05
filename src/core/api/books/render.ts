@@ -19,5 +19,5 @@ export const booksRenderRouter = new URouter('books/render', {
   return file.buffer
 })
 
-export const getBooksRenderPath = (uuid: string, p: string) =>
-  path.join(booksRenderRouter.fullRoutePath, uuid, p)
+export const getBooksRenderPath = (uuid: string, paths: string) =>
+  path.join(booksRenderRouter.fullRoutePath, uuid, paths)

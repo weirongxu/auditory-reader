@@ -9,7 +9,6 @@ import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
 import { pushSnackbar } from '../../../../common/snackbar.js'
 import type { Player } from '../player.js'
-import { TMP_UUID } from '../../../../../core/consts.js'
 
 function Bookmarks(props: {
   bookmarks: BookTypes.PropertyBookmark[] | undefined | null

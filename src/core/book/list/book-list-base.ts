@@ -8,6 +8,14 @@ export abstract class BookListBase {
 
   constructor(protected readonly account: string) {}
 
+  get tmpUuid() {
+    return this.json?.tmp?.uuid
+  }
+
+  isTmpUuid(uuid: string) {
+    return this.json?.tmp?.uuid === uuid
+  }
+
   protected async getJson(): Promise<BookTypes.Json> {
     this.json ??= await this.readJson()
     return this.json
@@ -125,9 +133,9 @@ export abstract class BookListBase {
     }
 
     if (entity.isTmp) {
-      entity.uuid = TMP_UUID
-      entityJson.uuid = TMP_UUID
+      // delete cache
       await bookManager.delete(this.account, TMP_UUID)
+
       const bookEntity = this.entity2bookEntity(entityJson)
       await bookEntity.reset()
       await this.setTmp(entityJson)
@@ -155,8 +163,9 @@ export abstract class BookListBase {
   }
 
   async book(uuid: string): Promise<BookEntityBase | undefined> {
-    const entityJson =
-      uuid === TMP_UUID ? await this.getTmp() : await this.entityJson(uuid)
+    const entityJson = this.isTmpUuid(uuid)
+      ? await this.getTmp()
+      : await this.entityJson(uuid)
     if (!entityJson) return
     return this.entity2bookEntity(entityJson)
   }

@@ -1,10 +1,9 @@
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
+import { TMP_UUID } from '../../consts.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-import { ErrorRequestResponse } from '../../route/session.js'
-import { TMP_UUID } from '../../consts.js'
 
 export type BookCreate = {
   name: string

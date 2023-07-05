@@ -1,3 +1,4 @@
+import type { LiteralUnion } from 'type-fest'
 import type { LangCode } from '../lang.js'
 
 export namespace BookTypes {
@@ -6,7 +7,7 @@ export namespace BookTypes {
   /**
    * Using tmp content when uuid is '$tmp'
    */
-  export type EntityUUID = string
+  export type EntityUUID = LiteralUnion<'$tmp', string>
 
   export type Json = {
     list: EntityJson[]
