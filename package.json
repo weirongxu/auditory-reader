@@ -14,6 +14,7 @@
     "dev:server:web": "webpack-dev-server --port 4000 --mode development --env app_mode=server",
     "dev:server:node": "ts-node-esm src/server/index.ts",
     "test": "jest src",
+    "test:watch": "jest src --watch",
     "predeploy": "webpack build --mode production --env=app_public_path=/auditory-reader/ --env app_mode=service-worker",
     "deploy": "gh-pages -d sw-public",
     "start": "node lib/server/index.js",

@@ -98,7 +98,7 @@ export const useVoice = (book: BookTypes.Entity) => {
   const allSortedVoices = useMemo(() => {
     return orderBy(allVoices, 'desc', (v) => [
       v.lang.startsWith(`${book.langCode}-`),
-      v.localService,
+      !v.localService,
     ])
   }, [allVoices, book.langCode])
 

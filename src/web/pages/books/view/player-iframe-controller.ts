@@ -34,6 +34,7 @@ import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
 import { pushSnackbar } from '../../../common/snackbar.js'
+import { env } from '../../../../core/env.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -60,6 +61,8 @@ type ScrollOptions = {
 }
 
 export class PlayerIframeController {
+  #debugLoading = false
+
   readableParts: ReadablePart[] = []
   alias: TextAlias[] = []
   protected mainContentRootPath: string
@@ -379,7 +382,7 @@ export class PlayerIframeController {
     try {
       // load iframe
       if (isLoadNewPath) {
-        iframe.style.visibility = 'hidden'
+        if (!this.#debugLoading) iframe.style.visibility = 'hidden'
         this.states.loading = true
         const loaded = new Promise<void>((resolve) => {
           iframe.addEventListener(
@@ -434,7 +437,7 @@ export class PlayerIframeController {
       // loaded
       if (isLoadNewPath) {
         await this.onLoaded(iframe)
-        iframe.style.visibility = 'visible'
+        if (!this.#debugLoading) iframe.style.visibility = 'visible'
       }
     } finally {
       this.states.loading = false
@@ -485,21 +488,23 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       if (this.isSplitPage) {
-        this.updateSplitPageType(doc)
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
         win.addEventListener(
           'resize',
           debounceFn(300, () => {
             async(async () => {
               if (!this.win || !this.scrollContainer) return
-              this.updateSplitPageType(doc)
               await this.splitPageCalcuate(win, doc, this.scrollContainer)
               const resizeToNode =
                 this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
               if (resizeToNode)
-                await this.scrollToElem(resizeToNode.readablePart.elem)
+                await this.scrollToElem(resizeToNode.readablePart.elem, {
+                  animated: false,
+                })
               else
-                await this.scrollToPageByLeft(this.scrollContainer.scrollLeft)
+                await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
+                  animated: false,
+                })
               this.player.utterer.hl.reCreateRoot(doc)
             })
           })
@@ -542,7 +547,8 @@ export class PlayerIframeController {
           width: auto;
           overflow-y: hidden;
           overflow-x: auto;
-          columns: auto var(--main-column-count, 1);
+          columns: var(--main-column-count, 1) auto;
+          /* columns: auto var(--main-column-width); */
           column-gap: 0;
           margin: 0;
           padding: 0;
@@ -687,7 +693,9 @@ export class PlayerIframeController {
         this.player.gotoParagraph(paraIndex).catch(console.error)
       }
     }
-    this.readableParts.forEach((n) => n.elem.addEventListener('click', click))
+    this.readableParts.forEach(
+      (n) => n.type === 'text' && n.elem.addEventListener('click', click)
+    )
   }
 
   protected hookPageTouch() {
@@ -782,45 +790,47 @@ export class PlayerIframeController {
     })
   }
 
-  protected updateSplitPageType(doc: Document) {
-    // column count
-    const columnCount = this.splitPageType() === 'single' ? 1 : 2
-    const html = doc.documentElement
-    html.style.setProperty('--main-column-count', columnCount.toString())
-  }
-
   protected async splitPageCalcuate(
     win: Window,
     doc: Document,
     scrollContainer: HTMLElement
   ) {
     // Make sure the width is loaded correctly
-    scrollContainer.offsetWidth
+    // scrollContainer.offsetWidth
+
+    const html = doc.documentElement
+    const splitPageType = this.splitPageType()
+    const width = win.innerWidth
+
+    // update column count
+    const columnCount = splitPageType === 'single' ? 1 : 2
+    const columnWidth = width / columnCount
+    html.style.setProperty('--main-column-count', columnCount.toString())
+    html.style.setProperty('--main-column-width', `${columnWidth}px`)
 
     let scrollWidth = scrollContainer.scrollWidth
-    let width = win.innerWidth
-    let count: number
+    let pageCount: number
 
-    // fix column double last page
+    // update split page width
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
-    if (this.splitPageType() === 'double') {
-      count = Math.round((2 * scrollWidth) / width)
-      if (count % 2 === 1) {
-        // add empty page & refresh the scrollWidth
-        count += 1
+    if (splitPageType === 'double') {
+      // fix column double last page
+      pageCount = Math.round((2 * scrollWidth) / width)
+      if (pageCount % 2 === 1) {
+        // add empty page & update the scrollWidth
+        pageCount += 1
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
         scrollWidth = scrollContainer.scrollWidth
       }
-      count /= 2
+      pageCount /= 2
     } else {
-      count = Math.round(scrollContainer.scrollWidth / width)
+      pageCount = Math.round(scrollWidth / width)
     }
-    width = scrollWidth / count
 
     this.splitPageWidth = width
-    this.splitPageCount = count
+    this.splitPageCount = pageCount
     // eslint-disable-next-line no-console
     console.debug(`scrollWidth: ${scrollWidth}`)
     // eslint-disable-next-line no-console
