@@ -24,6 +24,7 @@ import { globalStore } from './store/global.js'
 import { HintTextProvider } from './common/hint-text.js'
 import { ConfirmProvider } from './common/confirm.js'
 import { SnackbarPrivider } from './common/snackbar.js'
+import { TitleProvider } from './hooks/useTitle.js'
 
 function AppRegistrar() {
   const theme = useAppTheme()
@@ -77,6 +78,7 @@ export function App() {
           <HintTextProvider></HintTextProvider>
           <PreviewImageProvider></PreviewImageProvider>
           <ConfirmProvider></ConfirmProvider>
+          <TitleProvider></TitleProvider>
         </DndProvider>
       </ThemeProvider>
     </Provider>

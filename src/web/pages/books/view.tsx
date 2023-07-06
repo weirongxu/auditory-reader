@@ -2,9 +2,9 @@ import { CircularProgress, Stack } from '@mui/material'
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type SetStateAction,
-  useMemo,
 } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
@@ -12,7 +12,7 @@ import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.j
 import { booksViewRouter } from '../../../core/api/books/view.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
-import { useTitle } from '../../hooks/useTitle.js'
+import { usePushTitle } from '../../hooks/useTitle.js'
 import { NotFound } from '../not-found.js'
 import styles from './view.module.scss'
 import type { BookContextProps } from './view/types'
@@ -53,15 +53,15 @@ export const useBookView = (uuid: string) => {
 function BookViewContent(props: BookContextProps) {
   const { book } = props
   const { BookPanelView, MainContent, activeNavs } = useViewer(props)
-  const [, setTitle] = useTitle()
+  const pushTitle = usePushTitle()
 
   const lastNav = useMemo(() => activeNavs?.at(-1), [activeNavs])
 
   useEffect(() => {
     let mainTitle = `${book.item.name}`
     if (lastNav) mainTitle = `${lastNav.label} - ${mainTitle}`
-    setTitle(mainTitle)
-  }, [book, lastNav, setTitle])
+    pushTitle(mainTitle)
+  }, [book, lastNav, pushTitle])
 
   return (
     <Stack direction="row" className={styles.contentWrapper}>

@@ -25,7 +25,7 @@ import { appBarStatesAtom } from './use-app-bar.js'
 import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 
 export const Layout = (props: { children?: React.ReactNode }) => {
-  const [title] = useTitle()
+  const title = useTitle()
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
