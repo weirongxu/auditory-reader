@@ -31,14 +31,18 @@ export class Player {
         // wakeLock
         let lock: WakeLockSentinel | undefined
         await lock?.release().catch(console.error)
-        if (this.states.docVisible) {
+        lock = undefined
+        if (this.states.started && this.states.docVisible) {
           lock = await navigator.wakeLock.request('screen')
         }
       })
     }
+    onVisibilityChange()
     document.addEventListener('visibilitychange', onVisibilityChange)
+    const startedDispose = this.states.events.on('started', onVisibilityChange)
     this.onUnmount(() => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
+      startedDispose()
     })
   }
 

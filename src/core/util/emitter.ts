@@ -1,10 +1,12 @@
+type Disposable = () => void
+
 export class Emitter<T extends Record<string, any>> {
   #listeners = new Map<string, ((value: any) => void | Promise<void>)[]>()
 
   on<K extends keyof T & string>(
     name: K,
     callback: (value: T[K]) => void | Promise<void>
-  ) {
+  ): Disposable {
     let listeners = this.#listeners.get(name)
     if (!listeners) {
       listeners = []
