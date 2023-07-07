@@ -9,6 +9,7 @@ import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 import { useNavigate } from 'react-router-dom'
 import { useViewPanelType } from '../../../store.js'
+import { t } from 'i18next'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -46,28 +47,37 @@ export function useViewer(props: BookContextProps) {
     const nextParagraph = () => player.nextParagraph()
 
     const dispose = addHotkeys([
-      [' ', () => player.toggle()],
-      ['t', () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))],
+      [' ', t('hotkey.playToggle'), () => player.toggle()],
+      [
+        't',
+        t('hotkey.navToggle'),
+        () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav')),
+      ],
       [
         { shift: true, key: 't' },
+        t('hotkey.bookmarksPanelToggle'),
         () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
       ],
-      ['b', () => toggleBookmark()],
-      ['u', () => nav('../../')],
-      [{ shift: true, key: 'h' }, prevSection],
-      [{ shift: true, key: 'l' }, nextSection],
-      [{ shift: true, key: 'arrowleft' }, prevSection],
-      [{ shift: true, key: 'arrowright' }, nextSection],
-      ['h', jumpPrevPage],
-      ['l', jumpNextPage],
-      ['arrowleft', jumpPrevPage],
-      ['arrowright', jumpNextPage],
-      ['pageup', prevPage],
-      ['pagedown', nextPage],
-      ['k', prevParagraph],
-      ['j', nextParagraph],
-      ['arrowup', prevParagraph],
-      ['arrowdown', nextParagraph],
+      ['b', t('hotkey.bookmarkToggle'), () => toggleBookmark()],
+      ['u', t('hotkey.goBack'), () => nav('../../')],
+      [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
+      [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
+      [{ shift: true, key: 'ArrowLeft' }, t('hotkey.prevSection'), prevSection],
+      [
+        { shift: true, key: 'ArrowRight' },
+        t('hotkey.nextSection'),
+        nextSection,
+      ],
+      ['h', t('hotkey.jumpPrevPage'), jumpPrevPage],
+      ['l', t('hotkey.jumpNextPage'), jumpNextPage],
+      ['ArrowLeft', t('hotkey.jumpPrevPage'), jumpPrevPage],
+      ['ArrowRight', t('hotkey.jumpNextPage'), jumpNextPage],
+      ['PageUp', t('hotkey.prevPage'), prevPage],
+      ['PageDown', t('hotkey.nextPage'), nextPage],
+      ['k', t('hotkey.prevParagraph'), prevParagraph],
+      ['j', t('hotkey.nextParagraph'), nextParagraph],
+      ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
+      ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
     return dispose
   })

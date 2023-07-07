@@ -43,6 +43,7 @@ function Main() {
     const dispose = addHotkeys([
       [
         '[',
+        t('hotkey.speedDown'),
         () =>
           setSpeechSpeed((v) => {
             const n = (v * 10 - 1) / 10
@@ -52,6 +53,7 @@ function Main() {
       ],
       [
         ']',
+        t('hotkey.speedUp'),
         () =>
           setSpeechSpeed((v) => {
             const n = (v * 10 + 1) / 10
@@ -61,6 +63,7 @@ function Main() {
       ],
       [
         'r',
+        t('hotkey.reload'),
         () => {
           location.reload()
         },

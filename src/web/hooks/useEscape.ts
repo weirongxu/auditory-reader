@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
+import { t } from 'i18next'
 
 export function useKeyEscape(callback: () => void) {
   const refCallback = useRef(callback)
@@ -12,6 +13,7 @@ export function useKeyEscape(callback: () => void) {
   useEffect(() => {
     return addHotkey(
       'escape',
+      t('hotkey.escape'),
       () => {
         refCallback.current()
       },

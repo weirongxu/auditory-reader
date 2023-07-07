@@ -191,7 +191,7 @@ function useHomeHotKeys({
   useEffect(() => {
     const count = dataBooks?.items.length ?? 0
 
-    const goUp = () => {
+    const goPrev = () => {
       setActivedIndex((activedIndex) =>
         activedIndex > 0 ? activedIndex - 1 : 0
       )
@@ -201,7 +201,7 @@ function useHomeHotKeys({
       setActivedIndex(0)
     }
 
-    const goDown = () => {
+    const goNext = () => {
       setActivedIndex((activedIndex) =>
         activedIndex < count - 1 ? activedIndex + 1 : activedIndex
       )
@@ -225,9 +225,9 @@ function useHomeHotKeys({
       }
     }
 
-    const moveUp = async () => {
+    const movePrev = async () => {
       if (!currentBook) return
-      goUp()
+      goPrev()
       await booksMoveOffsetRouter.action({
         uuid: currentBook.uuid,
         offset: -1,
@@ -235,9 +235,9 @@ function useHomeHotKeys({
       reload()
     }
 
-    const moveDown = async () => {
+    const moveNext = async () => {
       if (!currentBook) return
-      goDown()
+      goNext()
       await booksMoveOffsetRouter.action({
         uuid: currentBook.uuid,
         offset: 1,
@@ -258,36 +258,41 @@ function useHomeHotKeys({
     }
 
     const dispose = addHotkeys([
-      ['k', goUp],
-      ['j', goDown],
-      ['arrowup', goUp],
-      ['arrowdown', goDown],
-      ['h', pagePrev],
-      ['l', pageNext],
-      ['arrowleft', pagePrev],
-      ['arrowright', pageNext],
-      [{ shift: true, key: 'k' }, moveUp],
-      [{ shift: true, key: 'j' }, moveDown],
-      [{ shift: true, key: 'arrowup' }, moveUp],
-      [{ shift: true, key: 'arrowdown' }, moveDown],
-      ['t', moveBookTop],
-      ['e', () => currentBook && nav(editPath(currentBook.uuid))],
-      ['x', () => select(false)],
-      ['v', () => select(false)],
-      [{ shift: true, key: 'x' }, () => select(true)],
-      [{ shift: true, key: 'v' }, () => select(true)],
-      [{ shift: true, key: 'a' }, () => selectAll()],
+      ['k', t('hotkey.goPrev'), goPrev],
+      ['j', t('hotkey.goNext'), goNext],
+      ['ArrowUp', t('hotkey.goPrev'), goPrev],
+      ['ArrowDown', t('hotkey.goNext'), goNext],
+      ['h', t('hotkey.goPagePrev'), pagePrev],
+      ['l', t('hotkey.goPageNext'), pageNext],
+      ['ArrowLeft', t('hotkey.goPagePrev'), pagePrev],
+      ['ArrowRight', t('hotkey.goPageNext'), pageNext],
+      [{ shift: true, key: 'k' }, t('hotkey.goMovePrev'), movePrev],
+      [{ shift: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],
+      [{ shift: true, key: 'ArrowUp' }, t('hotkey.goMovePrev'), movePrev],
+      [{ shift: true, key: 'ArrowDown' }, t('hotkey.goMoveNext'), moveNext],
+      ['t', t('hotkey.goMoveTop'), moveBookTop],
+      [
+        'e',
+        t('hotkey.edit'),
+        () => currentBook && nav(editPath(currentBook.uuid)),
+      ],
+      ['x', t('hotkey.select'), () => select(false)],
+      ['v', t('hotkey.select'), () => select(false)],
+      [{ shift: true, key: 'x' }, t('hotkey.selectShift'), () => select(true)],
+      [{ shift: true, key: 'v' }, t('hotkey.selectShift'), () => select(true)],
+      [{ shift: true, key: 'a' }, t('hotkey.selectAll'), () => selectAll()],
       [
         'Enter',
+        t('hotkey.open'),
         () => {
           if (!currentBook) return
           nav(viewPath(currentBook.uuid))
         },
       ],
-      [{ shift: true, key: '#' }, removeBook],
-      [['d', 'd'], removeBook],
-      [['g', 'g'], goTop],
-      [{ shift: true, key: 'g' }, goBottom],
+      [{ shift: true, key: '#' }, t('hotkey.remove'), removeBook],
+      [['d', 'd'], t('hotkey.remove'), removeBook],
+      [['g', 'g'], t('hotkey.goTop'), goTop],
+      [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
     ])
     return dispose
   }, [

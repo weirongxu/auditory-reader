@@ -8,23 +8,23 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material'
+import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
-import { useStyle } from './hooks/useStyle.js'
-import { useHotkeysRegister } from './hotkey/hotkey-state.js'
-import { RootEntry } from './pages/entry.js'
+import { ConfirmProvider } from './common/confirm.js'
+import { HintTextProvider } from './common/hint-text.js'
 import { PreviewImageProvider } from './common/preview-image.js'
+import { SnackbarPrivider } from './common/snackbar.js'
+import { useStyle } from './hooks/useStyle.js'
+import { TitleProvider } from './hooks/useTitle.js'
+import { HotkeysProvider } from './hotkey/hotkey-state.js'
+import { RootEntry } from './pages/entry.js'
 import { registerAPI } from './service-worker/register.js'
+import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
-import { Provider } from 'jotai'
-import { globalStore } from './store/global.js'
-import { HintTextProvider } from './common/hint-text.js'
-import { ConfirmProvider } from './common/confirm.js'
-import { SnackbarPrivider } from './common/snackbar.js'
-import { TitleProvider } from './hooks/useTitle.js'
 
 function AppRegistrar() {
   const theme = useAppTheme()
@@ -51,7 +51,6 @@ function AppRegistrar() {
     else document.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
   }, [theme.palette.mode])
   useStyle(globalStyle)
-  useHotkeysRegister()
 
   return (
     <>
@@ -79,6 +78,7 @@ export function App() {
           <PreviewImageProvider></PreviewImageProvider>
           <ConfirmProvider></ConfirmProvider>
           <TitleProvider></TitleProvider>
+          <HotkeysProvider></HotkeysProvider>
         </DndProvider>
       </ThemeProvider>
     </Provider>

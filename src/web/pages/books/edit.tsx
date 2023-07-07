@@ -27,7 +27,7 @@ function UpdateForm(props: { book: BookTypes.Entity }) {
 
   // hotkey
   useEffect(() => {
-    const dispose = addHotkeys([['u', () => nav('../../')]])
+    const dispose = addHotkeys([['u', t('hotkey.goBack'), () => nav('../../')]])
     return dispose
   })
 

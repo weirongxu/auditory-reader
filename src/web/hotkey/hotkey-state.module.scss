@@ -1,0 +1,29 @@
+.hotkeyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  column-count: 2;
+  :global {
+    li {
+      display: flex;
+      margin-bottom: 2px;
+    }
+    .keys {
+      margin-right: 4px;
+      min-width: 100px;
+      display: flex;
+      justify-content: right;
+    }
+    kbd {
+      border-radius: 4px;
+      padding: 2px 4px;
+      background: var(--main-bg-highlight);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+    }
+    .desc {
+      flex: 1;
+    }
+  }
+}

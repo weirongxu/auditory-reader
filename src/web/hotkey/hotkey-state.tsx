@@ -1,6 +1,10 @@
+import { Chip, Dialog, DialogContent, DialogTitle } from '@mui/material'
+import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { isInputElement } from '../../core/util/dom.js'
+import { useKeyEscape } from '../hooks/useEscape.js'
+import styles from './hotkey-state.module.scss'
 
 type Hotkey =
   | string
@@ -14,7 +18,12 @@ type Hotkey =
 
 type HotkeyCallback = () => void
 type HotkeyCallbackMap = Map<number, HotkeyCallback>
-type HotkeysList = [key: string, callback: HotkeyCallbackMap][]
+type HotkeysList = [
+  key: string,
+  keyDescription: string[],
+  description: string,
+  callback: HotkeyCallbackMap
+][]
 type HotkeyOption = {
   /**
    * The default value is 1, and the higher the level, the higher the priority.
@@ -44,29 +53,50 @@ function getHotkeyKey(hotkey: Hotkey): string {
   }
 }
 
+function getHotkeyDesc(hotkey: Hotkey): string[] {
+  if (Array.isArray(hotkey)) {
+    return hotkey.map(getHotkeyDesc).flat()
+  } else if (typeof hotkey === 'string') {
+    return [hotkey]
+  } else {
+    let s = ''
+    if (hotkey.shift) s += 'shift+'
+    if (hotkey.ctrl) s += 'ctrl+'
+    if (hotkey.alt) s += 'alt+'
+    s += hotkey.key
+    return [s]
+  }
+}
+
 export function useHotkeys() {
   const addHotkey = useCallback(
-    (hotkeys: Hotkey, callback: () => void, options: HotkeyOption = {}) => {
+    (
+      hotkeys: Hotkey,
+      description: string,
+      callback: () => void,
+      options: HotkeyOption = {}
+    ) => {
       const key = getHotkeyKey(hotkeys)
+      const keyDescs = getHotkeyDesc(hotkeys)
       const level = options.level ?? 1
 
       let itemOrNil = hotkeysList.find(([k]) => k === key)
       if (!itemOrNil) {
         const callbackMap: HotkeyCallbackMap = new Map([[level, callback]])
-        itemOrNil = [key, callbackMap]
+        itemOrNil = [key, keyDescs, description, callbackMap]
         hotkeysList.push(itemOrNil)
       } else {
-        if (itemOrNil[1].has(level))
+        if (itemOrNil[3].has(level))
           throw new Error(
             `Hotkey ${JSON.stringify(hotkeys)} level: ${level} already exists`
           )
-        itemOrNil[1].set(level, callback)
+        itemOrNil[3].set(level, callback)
       }
       const item = itemOrNil
 
       return function dispose() {
-        item[1].delete(level)
-        if (!item[1].size) {
+        item[3].delete(level)
+        if (!item[3].size) {
           const i = hotkeysList.findIndex((it) => it === itemOrNil)
           if (i !== -1) hotkeysList.splice(i, 1)
         }
@@ -77,12 +107,12 @@ export function useHotkeys() {
 
   const addHotkeys = useCallback(
     (
-      hotkeys: [hotkey: Hotkey, callback: () => void][],
+      hotkeys: [hotkey: Hotkey, description: string, callback: () => void][],
       options: HotkeyOption = {}
     ) => {
       const disposes: (() => void)[] = []
-      for (const [hotkey, callback] of hotkeys) {
-        disposes.push(addHotkey(hotkey, callback, options))
+      for (const [hotkey, description, callback] of hotkeys) {
+        disposes.push(addHotkey(hotkey, description, callback, options))
       }
       return function disposeAll() {
         disposes.forEach((dispose) => dispose())
@@ -123,14 +153,14 @@ function getListener() {
       }, seqTimeout)
     } else if (targetRet) {
       // callback max level hotkey
-      const levels = targetRet[1].keys()
+      const levels = targetRet[3].keys()
       const maxLevel = Math.max(...levels)
-      if (maxLevel) targetRet[1].get(maxLevel)?.()
+      if (maxLevel) targetRet[3].get(maxLevel)?.()
     }
   }
 }
 
-export function useHotkeysRegister() {
+function useHotkeysRegister() {
   const [refWin] = useAtom(hotkeyIframeWinAtom)
 
   // global
@@ -151,4 +181,46 @@ export function useHotkeysRegister() {
       refWin.win?.removeEventListener('keydown', listener)
     }
   }, [refWin])
+}
+
+export function HotkeysProvider() {
+  const [open, setOpen] = useState(false)
+  const { addHotkey } = useHotkeys()
+  useHotkeysRegister()
+
+  useEffect(() => {
+    addHotkey({ shift: true, key: '?' }, t('hotkey.helper'), () => {
+      setOpen(true)
+    })
+  }, [addHotkey])
+
+  useKeyEscape(() => {
+    setOpen(false)
+  })
+
+  return (
+    <Dialog
+      maxWidth={false}
+      open={open}
+      onClose={() => {
+        setOpen(false)
+      }}
+    >
+      <DialogTitle>{t('hotkey.title')}</DialogTitle>
+      <DialogContent>
+        <ul className={styles.hotkeyList}>
+          {hotkeysList.map(([, keyDescs, description], i) => (
+            <li key={i}>
+              <div className="keys">
+                {keyDescs.map((k, j) => (
+                  <kbd key={j}>{k}</kbd>
+                ))}
+              </div>
+              <div className="desc">{description}</div>
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
+  )
 }

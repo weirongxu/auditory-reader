@@ -10,6 +10,7 @@ import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 import { useKeyEscape } from '../hooks/useEscape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
+import { t } from 'i18next'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
@@ -53,6 +54,7 @@ function ConfirmDialog() {
     if (confirm) {
       return addHotkey(
         'Enter',
+        t('hotkey.ok'),
         () => {
           confirm.okCallback()
           onClose()
@@ -72,8 +74,8 @@ function ConfirmDialog() {
         <DialogTitle sx={{ m: 0, p: 2 }}>{confirm?.title}</DialogTitle>
         <DialogContent dividers>{confirm?.description}</DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button onClick={confirm?.okCallback}>Ok</Button>
+          <Button onClick={onClose}>{t('confirm.cancel')}</Button>
+          <Button onClick={confirm?.okCallback}>{t('confirm.ok')}</Button>
         </DialogActions>
       </BootstrapDialog>
     </>
