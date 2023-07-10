@@ -43,6 +43,24 @@ const getParentBlockElem = (
   }
 }
 
+const fixPageBreak = (elem: HTMLElement) => {
+  const style = getComputedStyle(elem)
+  const breakBefores = [
+    style.getPropertyValue('page-break-before'),
+    style.getPropertyValue('break-before'),
+  ]
+  if (breakBefores.some((b) => b === 'always')) {
+    elem.style.breakBefore = 'column'
+  }
+  const breakAfters = [
+    style.getPropertyValue('page-break-after'),
+    style.getPropertyValue('break-after'),
+  ]
+  if (breakAfters.some((b) => b === 'always')) {
+    elem.style.breakAfter = 'column'
+  }
+}
+
 function isAllInlineChild(elem: HTMLElement) {
   if (elem.dataset.isAllInlineChild !== undefined) {
     return elem.dataset.isAllInlineChild === '1'
@@ -100,6 +118,8 @@ export class ReadableExtractor {
         if (node.tagName.toLowerCase() === 'ruby') {
           this.addRuby(node)
         }
+
+        fixPageBreak(node)
       }
 
       // image

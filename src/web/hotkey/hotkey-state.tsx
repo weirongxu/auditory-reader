@@ -1,4 +1,4 @@
-import { Chip, Dialog, DialogContent, DialogTitle } from '@mui/material'
+import { Dialog, DialogContent, DialogTitle } from '@mui/material'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
@@ -194,9 +194,12 @@ export function HotkeysProvider() {
     })
   }, [addHotkey])
 
-  useKeyEscape(() => {
-    setOpen(false)
-  })
+  useKeyEscape(
+    () => {
+      setOpen(false)
+    },
+    { enable: open, level: 200 }
+  )
 
   return (
     <Dialog

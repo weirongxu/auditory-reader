@@ -26,6 +26,7 @@ import { async, sleep } from '../../../../core/util/promise.js'
 import { debounceFn } from '../../../../core/util/timer.js'
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
+import { pushSnackbar } from '../../../common/snackbar.js'
 import { hotkeyIframeWinAtom } from '../../../hotkey/hotkey-state.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
@@ -33,8 +34,6 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { pushSnackbar } from '../../../common/snackbar.js'
-import { env } from '../../../../core/env.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -407,11 +406,6 @@ export class PlayerIframeController {
         const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs)
         this.readableParts = readableExtractor.toReadableParts()
         this.alias = readableExtractor.alias()
-        if (!this.readableParts.length)
-          return pushSnackbar({
-            message: 'readableParts is empty',
-            severity: 'error',
-          })
       }
 
       // goto pos
@@ -686,15 +680,13 @@ export class PlayerIframeController {
   }
 
   protected hookParagraphClick() {
-    const click = (event: Event) => {
-      const target = event.currentTarget as Element
-      const paraIndex = this.readableParts.findIndex((n) => n.elem === target)
-      if (paraIndex !== -1) {
-        this.player.gotoParagraph(paraIndex).catch(console.error)
-      }
+    const click = (_event: Event, paraIndex: number) => {
+      this.player.gotoParagraph(paraIndex).catch(console.error)
     }
     this.readableParts.forEach(
-      (n) => n.type === 'text' && n.elem.addEventListener('click', click)
+      (n, i) =>
+        n.type === 'text' &&
+        n.elem.addEventListener('click', (e) => click(e, i))
     )
   }
 
