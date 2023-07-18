@@ -297,7 +297,7 @@ export class PlayerIframeController {
       if (goalPage < 0) {
         return await this.player.prevSection(-1)
       } else if (goalPage >= this.splitPageCount) {
-        return await this.player.nextSection(0)
+        return await this.player.nextSection()
       }
     } else {
       if (goalPage < 0) goalPage = 0

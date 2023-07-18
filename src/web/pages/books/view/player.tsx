@@ -131,7 +131,7 @@ export class Player {
     await this.checkAndGotoPos({ section, paragraph })
   }
 
-  async prevSection(paragraph?: number) {
+  async prevSection(paragraph = 0) {
     await this.checkAndGotoPos({
       section: this.states.pos.section - 1,
       paragraph,
@@ -139,7 +139,7 @@ export class Player {
     })
   }
 
-  async nextSection(paragraph?: number) {
+  async nextSection(paragraph = 0) {
     await this.checkAndGotoPos({
       section: this.states.pos.section + 1,
       paragraph,
@@ -189,7 +189,7 @@ export class Player {
 
   async nextParagraph() {
     if (this.states.pos.paragraph >= this.iframeCtrler.readableParts.length - 1)
-      await this.nextSection(0)
+      await this.nextSection()
     else await this.gotoParagraph(this.states.pos.paragraph + 1)
   }
 }
