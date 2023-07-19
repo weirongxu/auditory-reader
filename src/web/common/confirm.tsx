@@ -50,19 +50,23 @@ function ConfirmDialog() {
     setConfirm(null)
   }, [setConfirm])
 
+  const onOk = useCallback(() => {
+    confirm?.okCallback()
+    onClose()
+  }, [confirm, onClose])
+
   useEffect(() => {
     if (confirm) {
       return addHotkey(
         'Enter',
         t('hotkey.ok'),
         () => {
-          confirm.okCallback()
-          onClose()
+          onOk()
         },
         { level: 100 }
       )
     }
-  }, [addHotkey, confirm, onClose])
+  }, [addHotkey, confirm, onClose, onOk])
 
   useKeyEscape(() => {
     onClose()
@@ -75,7 +79,7 @@ function ConfirmDialog() {
         <DialogContent dividers>{confirm?.description}</DialogContent>
         <DialogActions>
           <Button onClick={onClose}>{t('confirm.cancel')}</Button>
-          <Button onClick={confirm?.okCallback}>{t('confirm.ok')}</Button>
+          <Button onClick={onOk}>{t('confirm.ok')}</Button>
         </DialogActions>
       </BootstrapDialog>
     </>
