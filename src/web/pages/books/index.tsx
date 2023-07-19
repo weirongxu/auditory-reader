@@ -416,7 +416,11 @@ function BookRow({
           onLoad={() => {
             setCoverLoaded(true)
           }}
-          style={{ maxHeight: '40px', display: coverLoaded ? 'block' : 'none' }}
+          style={{
+            maxHeight: '40px',
+            display: coverLoaded ? 'block' : 'none',
+            cursor: 'pointer',
+          }}
           src={coverUrl}
           alt={`${book.name} ${t('cover')}`}
         />
