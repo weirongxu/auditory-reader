@@ -680,14 +680,12 @@ export class PlayerIframeController {
   }
 
   protected hookParagraphClick() {
-    const click = (_event: Event, paraIndex: number) => {
+    const click = (paraIndex: number) => {
       this.player.gotoParagraph(paraIndex).catch(console.error)
     }
-    this.readableParts.forEach(
-      (n, i) =>
-        n.type === 'text' &&
-        n.elem.addEventListener('click', (e) => click(e, i))
-    )
+    this.readableParts.forEach((n, i) => {
+      if (n.type === 'text') n.elem.addEventListener('click', () => click(i))
+    })
   }
 
   protected hookPageTouch() {

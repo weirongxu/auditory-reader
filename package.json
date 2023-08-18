@@ -72,6 +72,7 @@
     "@types/prettier": "^2.7.3",
     "@types/react": "^18.2.12",
     "@types/react-dom": "^18.2.5",
+    "@types/sass-loader": "^8.0.5",
     "@types/session-file-store": "^1.2.2",
     "@types/uuid": "^9.0.2",
     "cross-env": "^7.0.3",

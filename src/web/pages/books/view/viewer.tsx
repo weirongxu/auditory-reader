@@ -90,11 +90,7 @@ export function useViewer(props: BookContextProps) {
             <CircularProgress></CircularProgress>
           </Stack>
         )}
-        <iframe
-          title="viewer"
-          ref={iframeRef}
-          sandbox="allow-same-origin"
-        ></iframe>
+        <iframe title="viewer" ref={iframeRef}></iframe>
       </Stack>
     ),
     [loading]

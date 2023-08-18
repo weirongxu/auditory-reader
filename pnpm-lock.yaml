@@ -154,6 +154,9 @@ devDependencies:
   '@types/react-dom':
     specifier: ^18.2.5
     version: 18.2.5
+  '@types/sass-loader':
+    specifier: ^8.0.5
+    version: 8.0.5
   '@types/session-file-store':
     specifier: ^1.2.2
     version: 1.2.2
@@ -1608,6 +1611,12 @@ packages:
     resolution: {integrity: sha512-Y4XFY5VJAuw0FgAqPNd6NNoV44jbq9Bz2L7Rh/J6jLTiHBSBJa9fxqQIvkIld4GsoDOcCbvzOUAbLPsSKKg+uA==}
     dev: true
 
+  /@types/node-sass@4.11.3:
+    resolution: {integrity: sha512-wXPCn3t9uu5rR4zXNSLasZHQMuRzUKBsdi4MsgT8uq4Lp1gQQo+T2G23tGj4SSgDHeNBle6vGseZtM2XV/X9bw==}
+    dependencies:
+      '@types/node': 20.3.1
+    dev: true
+
   /@types/node@20.3.1:
     resolution: {integrity: sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==}
 
@@ -1656,6 +1665,15 @@ packages:
 
   /@types/retry@0.12.0:
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
+    dev: true
+
+  /@types/sass-loader@8.0.5:
+    resolution: {integrity: sha512-3b3lQ+UwWanaPBzOcP1YeNTR4q0Klt2UEezhdIjDXkTnQ93F+fnv+z1tMsQBAopY0b+c5ATN5pHQ+vfzxaRnFg==}
+    dependencies:
+      '@types/node': 20.3.1
+      '@types/node-sass': 4.11.3
+      '@types/webpack': 4.41.33
+      sass: 1.63.4
     dev: true
 
   /@types/scheduler@0.16.3:
