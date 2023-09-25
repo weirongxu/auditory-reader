@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { booksAddBookmarksRouter } from '../../../../../core/api/books/add-bookmarks.js'
 import { booksBookmarksRouter } from '../../../../../core/api/books/bookmarks.js'
 import { booksDeleteBookmarksRouter } from '../../../../../core/api/books/delete-bookmarks.js'
-import type { BookViewRes } from '../../../../../core/api/books/view.js'
+import type { BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
 import { pushSnackbar } from '../../../../common/snackbar.js'
@@ -14,68 +14,65 @@ import type { Player } from '../player.js'
 function Bookmarks(props: {
   bookmarks: BookTypes.PropertyBookmark[] | undefined | null
   activeBookmarkIndex: number | undefined
-  activeBookmark: BookTypes.PropertyBookmark | undefined
   player: Player
   removeBookmark: (bookmark: BookTypes.PropertyBookmark) => void
 }) {
-  const {
-    bookmarks,
-    activeBookmarkIndex,
-    activeBookmark,
-    player,
-    removeBookmark,
-  } = props
+  const { bookmarks, activeBookmarkIndex, player, removeBookmark } = props
   const { addHotkeys } = useHotkeys()
-  const [selectedIndex, setSelectedIndex] = useState<number>()
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const refBookmark = useRef<HTMLDivElement>(null)
 
-  // change selected bookmark
-  useEffect(() => {
-    if (activeBookmarkIndex === undefined) return
-    setSelectedIndex((idx) => (idx === undefined ? idx : activeBookmarkIndex))
-  }, [activeBookmarkIndex])
+  const selectedBookmark = useMemo(() => {
+    return bookmarks?.at(selectedIndex)
+  }, [bookmarks, selectedIndex])
 
-  // scroll to first active bookmark
-  useEffect(() => {
-    if (!activeBookmark) return
-    const bookmarkDiv = refBookmark.current
-    if (!bookmarkDiv) return
-    const fristBookmarkDiv = [
-      ...bookmarkDiv.querySelectorAll('div.text.active'),
-    ].at(0)
-    fristBookmarkDiv?.scrollIntoView({
-      block: 'center',
-    })
-  }, [activeBookmark])
-
-  // hotkey
+  // selected hotkeys
   useEffect(() => {
     const prevBookmark = () => {
-      setSelectedIndex((idx) => (idx === undefined || idx <= 0 ? 0 : idx - 1))
+      setSelectedIndex((idx) => (idx <= 0 ? 0 : idx - 1))
     }
     const nextBookmark = () => {
       bookmarks &&
         setSelectedIndex((idx) =>
-          idx === undefined || idx >= bookmarks.length - 1
-            ? bookmarks.length - 1
-            : idx + 1
+          idx >= bookmarks.length - 1 ? bookmarks.length - 1 : idx + 1
         )
     }
     const gotoBookmark = () => {
-      const selectedBookmark =
-        selectedIndex !== undefined && bookmarks?.[selectedIndex]
+      const selectedBookmark = bookmarks?.[selectedIndex]
       if (!selectedBookmark) return
       player
         .gotoSection(selectedBookmark.section, selectedBookmark.paragraph)
         .catch(console.error)
+    }
+    const speakBookmark = () => {
+      if (!selectedBookmark) return
+      player.utterer.speakText(selectedBookmark.brief).catch(console.error)
     }
 
     return addHotkeys([
       ['p', t('hotkey.prevBookmark'), prevBookmark],
       ['n', t('hotkey.nextBookmark'), nextBookmark],
       ['enter', t('hotkey.gotoBookmark'), gotoBookmark],
+      [{ shift: true, key: 'K' }, t('hotkey.speakBookmark'), speakBookmark],
     ])
-  }, [addHotkeys, bookmarks, player, selectedIndex])
+  }, [addHotkeys, bookmarks, player, selectedBookmark, selectedIndex])
+
+  // change selected bookmark
+  useEffect(() => {
+    if (activeBookmarkIndex === undefined) return
+    setSelectedIndex(activeBookmarkIndex)
+  }, [activeBookmarkIndex])
+
+  // scroll to selected bookmark
+  useEffect(() => {
+    if (!selectedBookmark) return
+    const bookmarkDiv = refBookmark.current
+    if (!bookmarkDiv) return
+    const selectedBookmarkDiv = bookmarkDiv.querySelector('div.text.selected')
+    selectedBookmarkDiv?.scrollIntoView({
+      block: 'center',
+    })
+  }, [selectedBookmark])
 
   return (
     <div className="panel-content book-bookmarks" ref={refBookmark}>
@@ -84,9 +81,11 @@ function Bookmarks(props: {
       ) : (
         <ul>
           {bookmarks.map((bookmark, idx) => {
-            const isActive = activeBookmarkIndex === idx
+            const isSelected = selectedIndex === idx
+            const isActived = activeBookmarkIndex === idx
             const textCls: string[] = ['text', 'clickable']
-            if (isActive) textCls.push('active')
+            if (isActived) textCls.push('active')
+            if (isSelected) textCls.push('selected')
             return (
               <li
                 key={idx}
@@ -94,9 +93,7 @@ function Bookmarks(props: {
                 data-pos-paragraph={bookmark.paragraph}
               >
                 <div className="item">
-                  {selectedIndex === idx && (
-                    <ChevronRight className="selected" />
-                  )}
+                  {isSelected && <ChevronRight className="selected-icon" />}
                   <div
                     className={textCls.join(' ')}
                     onClick={(event) => {
@@ -129,7 +126,7 @@ function Bookmarks(props: {
 }
 
 export function useBookViewBookmarks(
-  book: BookViewRes,
+  book: BookView,
   player: Player,
   pos: BookTypes.PropertyPosition
 ) {
@@ -221,7 +218,6 @@ export function useBookViewBookmarks(
       <Bookmarks
         bookmarks={bookmarks}
         activeBookmarkIndex={activeBookmarkIndex}
-        activeBookmark={activeBookmark}
         player={player}
         removeBookmark={removeBookmark}
       ></Bookmarks>

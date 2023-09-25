@@ -60,6 +60,11 @@ function getQoutePostions(text: string): QoutePostion[] {
   return orderBy(pos, 'asc', (p) => p.charIndex)
 }
 
+type AliasResult = {
+  text: string
+  highlightOffsets: [index: number, accOffset: number][]
+}
+
 type SpeakResult = 'cancel' | 'done'
 
 const speakRetriedMax = 3
@@ -92,7 +97,7 @@ export class Utterer {
     if (speechSynthesis.speaking) speechSynthesis.cancel()
   }
 
-  private aliasReplace(text: string) {
+  private aliasReplace(text: string): AliasResult {
     if (!this.player.iframeCtrler.alias.length)
       return {
         text,
@@ -131,58 +136,74 @@ export class Utterer {
     return { text, highlightOffsets }
   }
 
-  async speak(node: ReadablePartText): Promise<SpeakResult> {
-    const isPersonReplace = this.states.isPersonReplace
+  async speakNode(node: ReadablePartText): Promise<SpeakResult> {
+    return this.speakText(node.text, {
+      onAlias: (aliasResult) => {
+        type HighlightEvent = {
+          charIndex: number
+          charLength: number
+        }
 
+        const highlightOffsetTable = aliasResult.highlightOffsets
+
+        const highlightOffsetFn: (event: HighlightEvent) => HighlightEvent =
+          highlightOffsetTable.length
+            ? (event) => {
+                const startOffset = findLast(
+                  highlightOffsetTable,
+                  ([i]) => i <= event.charIndex
+                )
+                if (!startOffset) return event
+                const charEndIndex = event.charIndex + event.charLength
+                const endOffset = findLast(
+                  highlightOffsetTable,
+                  ([i]) => i <= charEndIndex
+                )
+                if (!endOffset) return event
+                const charIndex = event.charIndex + (startOffset[1] ?? 0)
+                const charLength =
+                  charEndIndex + (endOffset[1] ?? 0) - charIndex
+                return {
+                  charIndex,
+                  charLength,
+                }
+              }
+            : (event) => event
+
+        const boundaryListener = (event: SpeechSynthesisEvent) => {
+          const { charIndex: highlightIndex, charLength: highlightLength } =
+            highlightOffsetFn(event)
+
+          // range highlight
+          this.hl.highlight(node, highlightIndex, highlightLength)
+        }
+
+        this.utterance.addEventListener('boundary', boundaryListener)
+
+        return () => {
+          this.utterance.removeEventListener('boundary', boundaryListener)
+        }
+      },
+    })
+  }
+
+  async speakText(
+    text: string,
+    { onAlias }: { onAlias?: (aliasResult: AliasResult) => () => void } = {}
+  ): Promise<SpeakResult> {
     this.state = 'speaking'
-    let text = node.text
-    text = isPersonReplace ? replacePersonText(text) : text
+    text = this.states.isPersonReplace ? replacePersonText(text) : text
 
     // alias
     const aliasResult = this.aliasReplace(text)
     text = aliasResult.text
-    // alias offset
-    type HighlightEvent = {
-      charIndex: number
-      charLength: number
-    }
-    const highlightOffsetTable = aliasResult.highlightOffsets
-    const highlightOffsetFn: (event: HighlightEvent) => HighlightEvent =
-      highlightOffsetTable.length
-        ? (event) => {
-            const startOffset = findLast(
-              highlightOffsetTable,
-              ([i]) => i <= event.charIndex
-            )
-            if (!startOffset) return event
-            const charEndIndex = event.charIndex + event.charLength
-            const endOffset = findLast(
-              highlightOffsetTable,
-              ([i]) => i <= charEndIndex
-            )
-            if (!endOffset) return event
-            const charIndex = event.charIndex + (startOffset[1] ?? 0)
-            const charLength = charEndIndex + (endOffset[1] ?? 0) - charIndex
-            return {
-              charIndex,
-              charLength,
-            }
-          }
-        : (event) => event
+
+    const disposeOnAlias = onAlias?.(aliasResult)
 
     const quotePostions = getQoutePostions(text)
 
-    this.utterance.text = text
-    speechSynthesis.speak(this.utterance)
-
     // boundary
     const boundaryListener = (event: SpeechSynthesisEvent) => {
-      const { charIndex: highlightIndex, charLength: highlightLength } =
-        highlightOffsetFn(event)
-
-      // range highlight
-      this.hl.highlight(node, highlightIndex, highlightLength)
-
       // quote & rain
       const quotePosIndex = findLastIndex(
         quotePostions,
@@ -199,6 +220,9 @@ export class Utterer {
       }
     }
     this.utterance.addEventListener('boundary', boundaryListener)
+
+    this.utterance.text = text
+    speechSynthesis.speak(this.utterance)
 
     const result = await new Promise<SpeakResult>((resolve, reject) => {
       this.utterance.addEventListener(
@@ -217,6 +241,8 @@ export class Utterer {
         { once: true }
       )
     })
+
+    disposeOnAlias?.()
     this.utterance.removeEventListener('boundary', boundaryListener)
     rainStop()
     this.state = 'none'
@@ -260,7 +286,7 @@ export class Utterer {
           if (node.type === 'text') {
             let isCancel = false
             for (let i = 0; i < this.states.paragraphRepeat; i++) {
-              const ret = await this.speak(node)
+              const ret = await this.speakNode(node)
               if (ret === 'cancel') {
                 isCancel = true
                 break

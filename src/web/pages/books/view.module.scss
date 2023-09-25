@@ -52,7 +52,6 @@
           > .text {
             flex: 1;
             display: flex;
-            justify-content: center;
             &.clickable {
               cursor: pointer;
             }
@@ -88,7 +87,7 @@
               color: var(--main-fg-active);
             }
           }
-          > .selected {
+          > .selected-icon {
             position: absolute;
             top: 0;
             left: -18px;

@@ -1,24 +1,29 @@
+import { ChevronRight } from '@mui/icons-material'
 import { t } from 'i18next'
-import { useEffect, useMemo, useRef } from 'react'
-import type { BookViewRes } from '../../../../../core/api/books/view.js'
-import type { BookNav } from '../../../../../core/book/book-base.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
+import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 
 function NavList(props: {
   navs: BookNav[]
   activeNavs: BookNav[]
+  selectedNav: BookNav | undefined
   player: Player
 }) {
-  const { navs, activeNavs, player } = props
+  const { navs, activeNavs, selectedNav, player } = props
   if (!navs.length) return null
 
   return (
     <ul>
       {navs.map((nav, idx) => {
+        const isSelected = selectedNav === nav
+        const isActived =
+          nav.spineIndex !== undefined && activeNavs.includes(nav)
         const textCls: string[] = ['text']
-        if (nav.spineIndex !== undefined && activeNavs.includes(nav))
-          textCls.push('active')
+        if (isActived) textCls.push('active')
         if (nav.href) textCls.push('clickable')
+        if (isSelected) textCls.push('selected')
         return (
           <li key={idx} data-href={nav.href} data-spine-index={nav.spineIndex}>
             <div
@@ -28,11 +33,13 @@ function NavList(props: {
                 if (nav.href) player.gotoUrlPath(nav.href).catch(console.error)
               }}
             >
+              {isSelected && <ChevronRight className="selected-icon" />}
               <div className={textCls.join(' ')}>{nav.label}</div>
             </div>
             <NavList
               navs={nav.children}
               activeNavs={activeNavs}
+              selectedNav={selectedNav}
               player={player}
             ></NavList>
           </li>
@@ -43,27 +50,70 @@ function NavList(props: {
 }
 
 function NavTree(props: {
-  book: BookViewRes
+  book: BookView
   activeNavs?: BookNav[]
   player: Player
 }) {
   const { book, activeNavs, player } = props
+  const { addHotkeys } = useHotkeys()
   const refNav = useRef<HTMLDivElement>(null)
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+
+  const selectedNav = useMemo(() => {
+    return book.flattenedNavs[selectedIndex] as BookNav | undefined
+  }, [book.flattenedNavs, selectedIndex])
+
+  // selected hotkeys
+  useEffect(() => {
+    const prevNav = () => {
+      setSelectedIndex((idx) => (idx <= 0 ? 0 : idx - 1))
+    }
+    const nextNav = () => {
+      setSelectedIndex((idx) =>
+        idx >= book.flattenedNavs.length - 1
+          ? book.flattenedNavs.length - 1
+          : idx + 1
+      )
+    }
+    const gotoNav = () => {
+      if (!selectedNav?.href) return
+      player.gotoUrlPath(selectedNav.href).catch(console.error)
+    }
+    const speakNav = () => {
+      if (!selectedNav) return
+      player.utterer.speakText(selectedNav.label).catch(console.error)
+    }
+
+    return addHotkeys([
+      ['p', t('hotkey.prevNav'), prevNav],
+      ['n', t('hotkey.nextNav'), nextNav],
+      ['enter', t('hotkey.gotoNav'), gotoNav],
+      [{ shift: true, key: 'K' }, t('hotkey.speakNav'), speakNav],
+    ])
+  }, [addHotkeys, book.flattenedNavs, player, selectedNav])
 
   const lastActiveNav = useMemo(() => {
     return activeNavs?.at(-1)
   }, [activeNavs])
 
-  // scroll to last active nav
+  // change selected bookmark
   useEffect(() => {
-    if (!lastActiveNav) return
+    if (lastActiveNav === undefined) return
+    const lastActiveNavIndex = book.flattenedNavs.indexOf(lastActiveNav)
+    if (lastActiveNavIndex === -1) return
+    setSelectedIndex(lastActiveNavIndex)
+  }, [book.flattenedNavs, lastActiveNav])
+
+  // scroll to selected nav
+  useEffect(() => {
+    if (!selectedNav) return
     const navDiv = refNav.current
     if (!navDiv) return
-    const lastNavDiv = [...navDiv.querySelectorAll('div.text.active')].at(-1)
-    lastNavDiv?.scrollIntoView({
+    const selectedNavDiv = navDiv.querySelector('div.text.selected')
+    selectedNavDiv?.scrollIntoView({
       block: 'center',
     })
-  }, [lastActiveNav])
+  }, [selectedNav])
 
   return (
     <div ref={refNav} className="panel-content book-nav">
@@ -71,6 +121,7 @@ function NavTree(props: {
         <NavList
           navs={book.navs}
           activeNavs={activeNavs ?? []}
+          selectedNav={selectedNav}
           player={player}
         />
       ) : (
@@ -81,7 +132,7 @@ function NavTree(props: {
 }
 
 export function useBookViewNav(
-  book: BookViewRes,
+  book: BookView,
   player: Player,
   activeNavs?: BookNav[]
 ) {

@@ -1,7 +1,7 @@
 import { useUnmountEffect } from '@react-hookz/web'
 import type { RefObject } from 'react'
 import { useRef } from 'react'
-import type { BookViewRes } from '../../../../core/api/books/view.js'
+import type { BookView } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { async } from '../../../../core/util/promise.js'
 import {
@@ -17,7 +17,7 @@ export class Player {
   iframeCtrler: PlayerIframeController
 
   constructor(
-    public book: BookViewRes,
+    public book: BookView,
     initPos: BookTypes.PropertyPosition,
     iframeRef: RefObject<HTMLIFrameElement>
   ) {
@@ -195,7 +195,7 @@ export class Player {
 }
 
 export function usePlayer(
-  book: BookViewRes,
+  book: BookView,
   pos: BookTypes.PropertyPosition,
   iframeRef: RefObject<HTMLIFrameElement>
 ) {

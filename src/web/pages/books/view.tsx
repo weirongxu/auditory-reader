@@ -9,7 +9,10 @@ import {
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
-import { booksViewRouter } from '../../../core/api/books/view.js'
+import {
+  booksViewRouter,
+  type BookViewRes,
+} from '../../../core/api/books/view.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { usePushTitle } from '../../hooks/useTitle.js'
@@ -17,6 +20,28 @@ import { NotFound } from '../not-found.js'
 import styles from './view.module.scss'
 import type { BookContextProps } from './view/types'
 import { useViewer } from './view/viewer.js'
+import type { BookView } from '../../../core/book/book-base.js'
+
+const useBook = (bookRes: BookViewRes | undefined): BookView | undefined => {
+  const [book, setBook] = useState<BookView | undefined>()
+
+  useEffect(() => {
+    if (!bookRes) return
+    const flattenedNavs = []
+    const stack = [...bookRes.navs]
+    while (stack.length) {
+      const cur = stack.shift()!
+      flattenedNavs.push(cur)
+      stack.unshift(...cur.children)
+    }
+    return setBook({
+      ...bookRes,
+      flattenedNavs,
+    })
+  }, [bookRes])
+
+  return book
+}
 
 export const useBookView = (uuid: string) => {
   const { data: bookData, error } = useAction(booksViewRouter, { uuid })
@@ -30,6 +55,8 @@ export const useBookView = (uuid: string) => {
     },
     []
   )
+
+  const book = useBook(bookData)
 
   // get pos
   useEffect(() => {
@@ -46,7 +73,7 @@ export const useBookView = (uuid: string) => {
     error: error || posError,
     pos,
     setPos,
-    book: bookData,
+    book,
   }
 }
 

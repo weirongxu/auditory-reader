@@ -19,7 +19,6 @@ import {
   findLast,
   findLastIndex,
   findLastPair,
-  findPair,
   range,
 } from '../../../../core/util/collection.js'
 import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
@@ -88,21 +87,6 @@ export class PlayerIframeController {
 
   get iframe() {
     return this.iframeRef.current
-  }
-
-  #flattenedNavs?: BookNav[]
-
-  get flattenedNavs() {
-    if (!this.#flattenedNavs) {
-      this.#flattenedNavs = []
-      const stack = [...this.book.navs]
-      while (stack.length) {
-        const cur = stack.shift()!
-        this.#flattenedNavs.push(cur)
-        stack.unshift(...cur.children)
-      }
-    }
-    return this.#flattenedNavs
   }
 
   get isSplitPage() {
@@ -408,7 +392,10 @@ export class PlayerIframeController {
           })
 
         // load readableParts & alias
-        const readableExtractor = new ReadableExtractor(doc, this.flattenedNavs)
+        const readableExtractor = new ReadableExtractor(
+          doc,
+          this.book.flattenedNavs
+        )
         this.readableParts = readableExtractor.toReadableParts()
         this.alias = readableExtractor.alias()
       }
@@ -938,40 +925,55 @@ export class PlayerIframeController {
     }
 
     // same spineIndex navs
-    const navs = this.flattenedNavs.filter(
+    const navs = this.book.flattenedNavs.filter(
       (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section
     )
-    if (navs.length === 0) {
-      const lastNav = findLast(
-        this.flattenedNavs,
-        (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
-      )
-      this.states.activeNavs = lastNav ? [lastNav] : []
-      return
+
+    const findNav = (): BookNav | undefined => {
+      // get last nav of less than spineIndex
+      if (navs.length === 0) {
+        const lastNav = findLast(
+          this.book.flattenedNavs,
+          (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
+        )
+        return lastNav
+      }
+
+      // last anchor from iframe page
+      const readableParts = this.readableParts
+      const lastAnchors = findLast(
+        readableParts.slice(0, this.states.pos.paragraph + 1),
+        (part) => !!part.navAnchorIds
+      )?.navAnchorIds
+      const lastAnchor =
+        lastAnchors && lastAnchors.length > 0
+          ? lastAnchors[lastAnchors.length - 1]
+          : null
+
+      // no anchor in iframe
+      if (!lastAnchor) {
+        return navs[0]
+      }
+
+      // find last matched anchor nav
+      const matchedNav = findLast(navs, (nav) => nav.hrefAnchor === lastAnchor)
+
+      // no matched nav by last anchor
+      if (!matchedNav) {
+        return navs[0]
+      }
+
+      return matchedNav
     }
 
-    const readableParts = this.readableParts
-    // last anchor from iframe page
-    const lastAnchors = findLast(
-      readableParts.slice(0, this.states.pos.paragraph + 1),
-      (part) => !!part.navAnchorIds
-    )?.navAnchorIds
-    const lastAnchor =
-      lastAnchors && lastAnchors.length > 0
-        ? lastAnchors[lastAnchors.length - 1]
-        : null
-    if (!lastAnchor) {
-      this.states.activeNavs = [navs[0]]
-      return
-    }
-
-    // find nav and index is equal last anchor
-    const [matchedNav, matchedNavIndex] = findPair(
-      navs,
-      (nav) => nav.hrefAnchor === lastAnchor
-    )
+    const matchedNav = findNav()
     if (!matchedNav) {
-      this.states.activeNavs = [navs[0]]
+      this.states.activeNavs = []
+      return
+    }
+    const matchedNavIndex = this.book.flattenedNavs.indexOf(matchedNav)
+    if (matchedNavIndex === -1) {
+      this.states.activeNavs = []
       return
     }
 
@@ -981,7 +983,7 @@ export class PlayerIframeController {
     let level = matchedNav.level - 1
     while (index >= 0 && level > 0) {
       const [nav, newIndex] = findLastPair(
-        navs,
+        this.book.flattenedNavs,
         (nav) => nav.level === level,
         index
       )

@@ -1,3 +1,9 @@
+import type { BookViewRes } from '../api/books/view.js'
+
+export interface BookView extends BookViewRes {
+  flattenedNavs: BookNav[]
+}
+
 export type BookNav = {
   /** root (minimun) level is 1 */
   level: number

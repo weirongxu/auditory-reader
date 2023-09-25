@@ -1,9 +1,9 @@
-import type { BookViewRes } from '../../../../core/api/books/view.js'
+import type { BookView } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 
 export type BookContextProps = {
   uuid: string
-  book: BookViewRes
+  book: BookView
   pos: BookTypes.PropertyPosition
   setPos: React.Dispatch<
     React.SetStateAction<BookTypes.PropertyPosition | undefined>

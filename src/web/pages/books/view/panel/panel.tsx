@@ -1,15 +1,14 @@
+import { t } from 'i18next'
 import { useMemo } from 'react'
-import type { BookViewRes } from '../../../../../core/api/books/view.js'
-import type { BookNav } from '../../../../../core/book/book-base.js'
+import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useViewPanelType } from '../../../../store.js'
 import type { Player } from '../player.js'
 import { useBookViewBookmarks } from './bookmarks.js'
 import { useBookViewNav } from './nav.js'
-import { t } from 'i18next'
 
 export function useBookPanel(
-  book: BookViewRes,
+  book: BookView,
   player: Player,
   activeNavs: BookNav[] | undefined,
   pos: BookTypes.PropertyPosition
