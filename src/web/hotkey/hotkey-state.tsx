@@ -5,6 +5,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { isInputElement } from '../../core/util/dom.js'
 import { useKeyEscape } from '../hooks/useEscape.js'
 import styles from './hotkey-state.module.scss'
+import { globalStore } from '../store/global.js'
+import { orderBy } from '../../core/util/collection.js'
+import { capitalize } from '../../core/util/text.js'
 
 type Hotkey =
   | string
@@ -18,12 +21,13 @@ type Hotkey =
 
 type HotkeyCallback = () => void
 type HotkeyCallbackMap = Map<number, HotkeyCallback>
-type HotkeysList = [
+type HotkeyItem = [
   key: string,
   keyDescription: string[],
   description: string,
   callback: HotkeyCallbackMap
-][]
+]
+type HotkeyItemList = HotkeyItem[]
 type HotkeyOption = {
   /**
    * The default value is 1, and the higher the level, the higher the priority.
@@ -32,7 +36,7 @@ type HotkeyOption = {
 }
 
 const sequenceSymbol = ' '
-const hotkeysList: HotkeysList = []
+const hotkeyItemsAtom = atom<HotkeyItemList>([])
 let curKeySeq = ''
 const seqTimeout = 1000
 
@@ -57,68 +61,79 @@ function getHotkeyDesc(hotkey: Hotkey): string[] {
   if (Array.isArray(hotkey)) {
     return hotkey.map(getHotkeyDesc).flat()
   } else if (typeof hotkey === 'string') {
-    return [hotkey]
+    let s = ''
+    if (hotkey.length > 1) s += capitalize(hotkey)
+    else if (hotkey === ' ') s += 'Space'
+    else s += hotkey
+    return [s]
   } else {
     let s = ''
-    if (hotkey.shift) s += 'shift+'
-    if (hotkey.ctrl) s += 'ctrl+'
-    if (hotkey.alt) s += 'alt+'
-    s += hotkey.key
+    const hasModifier = hotkey.shift || hotkey.ctrl || hotkey.alt
+    if (hasModifier) s += '<'
+    if (hotkey.shift) s += 'Shift-'
+    if (hotkey.ctrl) s += 'Ctrl-'
+    if (hotkey.alt) s += 'Alt-'
+    s += getHotkeyDesc(hotkey.key)
+    if (hasModifier) s += '>'
     return [s]
   }
 }
 
 export function useHotkeys() {
-  const addHotkey = useCallback(
-    (
-      hotkeys: Hotkey,
-      description: string,
-      callback: () => void,
-      options: HotkeyOption = {}
-    ) => {
-      const key = getHotkeyKey(hotkeys)
-      const keyDescs = getHotkeyDesc(hotkeys)
-      const level = options.level ?? 1
-
-      let itemOrNil = hotkeysList.find(([k]) => k === key)
-      if (!itemOrNil) {
-        const callbackMap: HotkeyCallbackMap = new Map([[level, callback]])
-        itemOrNil = [key, keyDescs, description, callbackMap]
-        hotkeysList.push(itemOrNil)
-      } else {
-        if (itemOrNil[3].has(level))
-          throw new Error(
-            `Hotkey ${JSON.stringify(hotkeys)} level: ${level} already exists`
-          )
-        itemOrNil[3].set(level, callback)
-      }
-      const item = itemOrNil
-
-      return function dispose() {
-        item[3].delete(level)
-        if (!item[3].size) {
-          const i = hotkeysList.findIndex((it) => it === itemOrNil)
-          if (i !== -1) hotkeysList.splice(i, 1)
-        }
-      }
-    },
-    []
-  )
-
   const addHotkeys = useCallback(
     (
       hotkeys: [hotkey: Hotkey, description: string, callback: () => void][],
       options: HotkeyOption = {}
     ) => {
-      const disposes: (() => void)[] = []
+      const hotkeyItems = globalStore.get(hotkeyItemsAtom)
+      const updatedItems: { item: HotkeyItem; level: number }[] = []
       for (const [hotkey, description, callback] of hotkeys) {
-        disposes.push(addHotkey(hotkey, description, callback, options))
+        const key = getHotkeyKey(hotkey)
+        const keyDescs = getHotkeyDesc(hotkey)
+        const level = options.level ?? 1
+
+        let item = hotkeyItems.find(([k]) => k === key)
+        if (!item) {
+          const callbackMap: HotkeyCallbackMap = new Map([[level, callback]])
+          item = [key, keyDescs, description, callbackMap]
+          hotkeyItems.push(item)
+        } else {
+          if (item[3].has(level))
+            throw new Error(
+              `Hotkey ${JSON.stringify(hotkey)} level: ${level} already exists`
+            )
+          item[3].set(level, callback)
+        }
+        updatedItems.push({ item, level })
       }
-      return function disposeAll() {
-        disposes.forEach((dispose) => dispose())
+      globalStore.set(hotkeyItemsAtom, [...hotkeyItems])
+
+      return function dispose() {
+        const hotkeyItems = globalStore.get(hotkeyItemsAtom)
+        const removeItems: HotkeyItemList = []
+        for (const { item, level } of updatedItems) {
+          item[3].delete(level)
+          if (!item[3].size) removeItems.push(item)
+        }
+        globalStore.set(
+          hotkeyItemsAtom,
+          hotkeyItems.filter((item) => !removeItems.includes(item))
+        )
       }
     },
-    [addHotkey]
+    []
+  )
+
+  const addHotkey = useCallback(
+    (
+      hotkey: Hotkey,
+      description: string,
+      callback: () => void,
+      options: HotkeyOption = {}
+    ) => {
+      return addHotkeys([[hotkey, description, callback]], options)
+    },
+    [addHotkeys]
   )
 
   return { addHotkey, addHotkeys }
@@ -129,6 +144,7 @@ let sequenceTimer: ReturnType<typeof setTimeout> | undefined = undefined
 function getListener() {
   return (e: KeyboardEvent) => {
     if (isInputElement(e.target)) return
+    const hotkeyItems = globalStore.get(hotkeyItemsAtom)
     const hotkey: Hotkey = {
       shift: e.shiftKey,
       ctrl: e.ctrlKey,
@@ -140,8 +156,8 @@ function getListener() {
     console.log('triggered-key:', triggeredKey)
     const fullKey = curKeySeq + triggeredKey
     const fullSubKey = fullKey + sequenceSymbol
-    const targetRet = hotkeysList.find(([key]) => key === fullKey)
-    const hasSubRet = hotkeysList.find(([key]) => key.startsWith(fullSubKey))
+    const targetRet = hotkeyItems.find(([key]) => key === fullKey)
+    const hasSubRet = hotkeyItems.find(([key]) => key.startsWith(fullSubKey))
     if (!targetRet && !hasSubRet) return
     e.preventDefault()
     curKeySeq = ''
@@ -186,10 +202,11 @@ function useHotkeysRegister() {
 export function HotkeysProvider() {
   const [open, setOpen] = useState(false)
   const { addHotkey } = useHotkeys()
+  const [hotkeyItems] = useAtom(hotkeyItemsAtom)
   useHotkeysRegister()
 
   useEffect(() => {
-    addHotkey({ shift: true, key: '?' }, t('hotkey.helper'), () => {
+    return addHotkey({ shift: true, key: '?' }, t('hotkey.helper'), () => {
       setOpen(true)
     })
   }, [addHotkey])
@@ -212,16 +229,18 @@ export function HotkeysProvider() {
       <DialogTitle>{t('hotkey.title')}</DialogTitle>
       <DialogContent>
         <ul className={styles.hotkeyList}>
-          {hotkeysList.map(([, keyDescs, description], i) => (
-            <li key={i}>
-              <div className="keys">
-                {keyDescs.map((k, j) => (
-                  <kbd key={j}>{k}</kbd>
-                ))}
-              </div>
-              <div className="desc">{description}</div>
-            </li>
-          ))}
+          {orderBy(hotkeyItems, 'asc', ([key]) => key).map(
+            ([, keyDescs, description], i) => (
+              <li key={i}>
+                <div className="keys">
+                  {keyDescs.map((k, j) => (
+                    <kbd key={j}>{k}</kbd>
+                  ))}
+                </div>
+                <div className="desc">{description}</div>
+              </li>
+            )
+          )}
         </ul>
       </DialogContent>
     </Dialog>

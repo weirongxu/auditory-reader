@@ -7,20 +7,25 @@
     li {
       display: flex;
       margin-bottom: 2px;
+      line-height: 20px;
     }
     .keys {
       margin-right: 4px;
       min-width: 100px;
       display: flex;
       justify-content: right;
+      align-items: flex-start;
+      align-content: center;
+      gap: 4px;
     }
     kbd {
       border-radius: 4px;
-      padding: 2px 4px;
+      padding: 0px 4px;
+      color: var(--main-fg-highlight);
       background: var(--main-bg-highlight);
       font-size: 12px;
+      font-weight: bold;
       display: flex;
-      align-items: center;
     }
     .desc {
       flex: 1;

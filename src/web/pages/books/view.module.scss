@@ -51,6 +51,8 @@
           display: flex;
           > .text {
             flex: 1;
+            display: flex;
+            justify-content: center;
             &.clickable {
               cursor: pointer;
             }
@@ -75,14 +77,21 @@
       padding: 0 8px;
     }
 
-    .book-bookmarks {
+    .book-bookmarks,
+    .book-nav {
       li {
         > .item {
+          position: relative;
           > .text {
-            &.active-whole {
+            &.active {
               background-color: var(--main-bg-active);
               color: var(--main-fg-active);
             }
+          }
+          > .selected {
+            position: absolute;
+            top: 0;
+            left: -18px;
           }
         }
       }
@@ -94,16 +103,6 @@
         margin-left: 10px;
         padding-left: 10px;
         font-size: 12px;
-      }
-      li {
-        > .item {
-          > .text {
-            &.active {
-              background-color: var(--main-bg-active);
-              color: var(--main-fg-active);
-            }
-          }
-        }
       }
     }
 

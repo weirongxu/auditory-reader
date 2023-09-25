@@ -5,6 +5,8 @@ import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
+import ReactRefreshTypeScript from 'react-refresh-typescript'
 
 const sassRule = (cssmodule) => {
   const moduleTest = /\.module\.s[ac]ss$/i
@@ -33,6 +35,7 @@ export default (env, argv) => {
   const isProd = argv.mode === 'production'
   const isServer = env.app_mode === 'server'
   return {
+    mode: isProd ? 'production' : 'development',
     entry: {
       index: './src/web/index',
     },
@@ -62,11 +65,15 @@ export default (env, argv) => {
           type: 'asset/resource',
         },
         {
-          test: /\.tsx?$/,
+          test: /\.[jt]sx?$/,
           use: {
             loader: 'ts-loader',
             options: {
               configFile: 'tsconfig.build.json',
+              getCustomTransformers: () => ({
+                before: isProd ? [] : [ReactRefreshTypeScript()],
+              }),
+              transpileOnly: !isProd,
             },
           },
           exclude: /node_modules/,
@@ -92,7 +99,7 @@ export default (env, argv) => {
         },
       },
     },
-    devtool: isProd ? undefined : 'eval-source-map',
+    devtool: isProd ? undefined : 'eval-cheap-source-map',
     resolve: {
       extensions: ['.tsx', '.ts', '.js'],
       extensionAlias: { '.js': ['.js', '.ts', '.tsx'] },
@@ -120,6 +127,7 @@ export default (env, argv) => {
         'process.env.APP_MODE': JSON.stringify(env.app_mode),
         'process.env.APP_PUBLIC_PATH': JSON.stringify(env.app_public_path),
       }),
+      ...(isProd ? [] : [new ReactRefreshWebpackPlugin()]),
     ],
   }
 }

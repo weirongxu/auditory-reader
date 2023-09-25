@@ -57,6 +57,7 @@
   "devDependencies": {
     "@babel/core": "^7.22.5",
     "@emotion/react": "^11.11.1",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
     "@raidou/eslint-config-react": "^1.2.0",
     "@types/babel__core": "^7.20.1",
     "@types/dedent": "^0.7.0",
@@ -88,6 +89,8 @@
     "node-polyfill-webpack-plugin": "^2.0.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
+    "react-refresh": "^0.14.0",
+    "react-refresh-typescript": "^2.0.9",
     "sass": "^1.63.4",
     "sass-loader": "^13.3.2",
     "session-file-store": "^1.5.0",

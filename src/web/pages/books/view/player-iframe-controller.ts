@@ -10,6 +10,7 @@ import {
   IMG_MAX_HEIGHT_CLASS,
   IMG_MAX_WIDTH_CLASS,
   PARA_ACTIVE_CLASS,
+  PARA_BOOKMARK_CLASS,
   PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
@@ -135,6 +136,10 @@ export class PlayerIframeController {
       this.updateParagraphActive()
       this.updateActiveNavs()
       this.updateSplitPageResizeToNode()
+    })
+
+    this.states.uiEvents.on('bookmarks', () => {
+      this.updateBookmarks()
     })
 
     let firstSplitPageChanged = true
@@ -616,6 +621,11 @@ export class PlayerIframeController {
         position: fixed;
         user-select: none;
       }
+
+      .${PARA_BOOKMARK_CLASS} {
+        text-decoration: 1px dashed underline;
+        text-underline-offset: 4px;
+      }
     `
     doc.head.appendChild(styleElem)
 
@@ -892,6 +902,7 @@ export class PlayerIframeController {
     this.updateParagraphActive()
     this.updateActiveNavs()
     this.updateSplitPageResizeToNode(true)
+    this.updateBookmarks()
   }
 
   #paragraphLastActive?: ReadablePart
@@ -906,6 +917,18 @@ export class PlayerIframeController {
       this.#paragraphLastActive?.elem.classList.remove(PARA_ACTIVE_CLASS)
       this.#paragraphLastActive = item
       item.elem.classList.add(PARA_ACTIVE_CLASS)
+    }).catch(console.error)
+  }
+
+  protected updateBookmarks() {
+    this.tryManipulateDOM(() => {
+      if (!this.states.bookmarks) return
+      for (const bookmark of this.states.bookmarks) {
+        if (bookmark.section !== this.states.pos.section) continue
+        const item = this.readableParts[bookmark.paragraph]
+        if (!item) continue
+        item.elem.classList.add(PARA_BOOKMARK_CLASS)
+      }
     }).catch(console.error)
   }
 

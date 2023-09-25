@@ -257,7 +257,7 @@ function useHomeHotKeys({
       if (currentBook) void moveBooksTop([currentBook])
     }
 
-    const dispose = addHotkeys([
+    return addHotkeys([
       ['k', t('hotkey.goPrev'), goPrev],
       ['j', t('hotkey.goNext'), goNext],
       ['ArrowUp', t('hotkey.goPrev'), goPrev],
@@ -294,7 +294,6 @@ function useHomeHotKeys({
       [['g', 'g'], t('hotkey.goTop'), goTop],
       [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
     ])
-    return dispose
   }, [
     activedIndex,
     addHotkeys,

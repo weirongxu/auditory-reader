@@ -40,7 +40,7 @@ function Main() {
 
   // hotkey
   useEffect(() => {
-    const dispose = addHotkeys([
+    return addHotkeys([
       [
         '[',
         t('hotkey.speedDown'),
@@ -69,8 +69,7 @@ function Main() {
         },
       ],
     ])
-    return dispose
-  })
+  }, [addHotkeys, openHint, setSpeechSpeed])
 
   return (
     <Routes>

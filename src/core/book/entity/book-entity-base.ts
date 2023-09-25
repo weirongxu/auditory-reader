@@ -1,6 +1,7 @@
 import mime from 'mime-types'
 import { ErrorRequestResponse } from '../../route/session.js'
 import type { BookTypes } from '../types.js'
+import { orderBy } from '../../util/collection.js'
 
 export abstract class BookEntityBase {
   constructor(public readonly entity: BookTypes.Entity) {}
@@ -65,21 +66,28 @@ export abstract class BookEntityBase {
     return prop.bookmarks ?? []
   }
 
+  private sortBookmarks(bookmarks: BookTypes.PropertyBookmark[]) {
+    return orderBy(bookmarks, 'asc', (b) => [b.section, b.paragraph])
+  }
+
   async bookmarksAdd(bookmarks: BookTypes.PropertyBookmark[]) {
     const prop = await this.readProp()
     prop.bookmarks ??= []
     for (const bookmark of bookmarks) {
       prop.bookmarks.push(bookmark)
     }
+    prop.bookmarks = this.sortBookmarks(prop.bookmarks)
     await this.writeProp(prop)
   }
 
   async bookmarksDelete(bookmarkUuids: string[]) {
     const prop = await this.readProp()
-    if (prop.bookmarks)
+    if (prop.bookmarks) {
       prop.bookmarks = prop.bookmarks.filter(
         (b) => !bookmarkUuids.includes(b.uuid)
       )
+      prop.bookmarks = this.sortBookmarks(prop.bookmarks)
+    }
     await this.writeProp(prop)
   }
 

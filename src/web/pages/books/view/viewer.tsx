@@ -35,6 +35,27 @@ export function useViewer(props: BookContextProps) {
     player.iframeCtrler.updateColorTheme(theme.palette.mode)
   }, [player.iframeCtrler, theme.palette.mode])
 
+  const MainContent = useMemo(
+    () => (
+      <Stack flex={1} position="relative">
+        {loading && (
+          <Stack position="absolute" zIndex={2}>
+            <CircularProgress></CircularProgress>
+          </Stack>
+        )}
+        <iframe title="viewer" ref={iframeRef}></iframe>
+      </Stack>
+    ),
+    [loading]
+  )
+
+  const { BookPanelView, toggleBookmark } = usePlayerUI({
+    ...props,
+    player,
+    started,
+    activeNavs,
+  })
+
   // hotkey
   useEffect(() => {
     const jumpPrevPage = () => player.prevPage(1, true)
@@ -46,7 +67,7 @@ export function useViewer(props: BookContextProps) {
     const prevParagraph = () => player.prevParagraph()
     const nextParagraph = () => player.nextParagraph()
 
-    const dispose = addHotkeys([
+    return addHotkeys([
       [' ', t('hotkey.playToggle'), () => player.toggle()],
       [
         't',
@@ -79,29 +100,7 @@ export function useViewer(props: BookContextProps) {
       ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
       ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
-    return dispose
-  })
-
-  const MainContent = useMemo(
-    () => (
-      <Stack flex={1} position="relative">
-        {loading && (
-          <Stack position="absolute" zIndex={2}>
-            <CircularProgress></CircularProgress>
-          </Stack>
-        )}
-        <iframe title="viewer" ref={iframeRef}></iframe>
-      </Stack>
-    ),
-    [loading]
-  )
-
-  const { BookPanelView, toggleBookmark } = usePlayerUI({
-    ...props,
-    player,
-    started,
-    activeNavs,
-  })
+  }, [addHotkeys, nav, player, setViewPanelType, toggleBookmark])
 
   // leave
   useUnmountEffect(() => {

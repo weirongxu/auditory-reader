@@ -16,11 +16,8 @@ export function useBookPanel(
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
-  const { BookmarkView, toggleBookmark, activeBookmark } = useBookViewBookmarks(
-    book,
-    player,
-    pos
-  )
+  const { bookmarks, BookmarkView, toggleBookmark, activeBookmark } =
+    useBookViewBookmarks(book, player, pos)
 
   const BookPanelView = useMemo(
     () =>
@@ -45,7 +42,13 @@ export function useBookPanel(
   )
 
   return useMemo(
-    () => ({ BookPanelView, setViewPanelType, toggleBookmark, activeBookmark }),
-    [BookPanelView, setViewPanelType, toggleBookmark, activeBookmark]
+    () => ({
+      bookmarks,
+      BookPanelView,
+      setViewPanelType,
+      toggleBookmark,
+      activeBookmark,
+    }),
+    [bookmarks, BookPanelView, setViewPanelType, toggleBookmark, activeBookmark]
   )
 }

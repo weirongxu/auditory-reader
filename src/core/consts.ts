@@ -2,6 +2,7 @@ export const PARA_BOX_CLASS = '__para_box__'
 export const PARA_IGNORE_CLASS = '__para_ignore__'
 export const PARA_HIGHLIGHT_CLASS = '__para_highlight__'
 export const PARA_ACTIVE_CLASS = '__para_active__'
+export const PARA_BOOKMARK_CLASS = '__para_bookmark__'
 
 export const IMG_MAX_WIDTH_CLASS = '__img_max_width__'
 export const IMG_MAX_HEIGHT_CLASS = '__img_max_height__'

@@ -163,8 +163,13 @@ export function usePlayerUI(
 ) {
   const { book, player, pos, started, activeNavs } = props
   const nav = useNavigate()
-  const { BookPanelView, setViewPanelType, toggleBookmark, activeBookmark } =
-    useBookPanel(book, player, activeNavs, pos)
+  const {
+    bookmarks,
+    BookPanelView,
+    setViewPanelType,
+    toggleBookmark,
+    activeBookmark,
+  } = useBookPanel(book, player, activeNavs, pos)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
@@ -176,6 +181,7 @@ export function usePlayerUI(
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerSyncUI(player, {
+      bookmarks,
       autoNextSection,
       isPersonReplace,
       speechSpeed,

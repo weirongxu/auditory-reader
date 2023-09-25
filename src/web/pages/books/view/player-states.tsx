@@ -15,6 +15,7 @@ type PlayerStates = {
 }
 
 type PlayerReadonlyStates = {
+  bookmarks: BookTypes.PropertyBookmark[] | undefined
   isPersonReplace: boolean
   speechSpeed: number
   voice: null | SpeechSynthesisVoice
@@ -66,15 +67,20 @@ export class PlayerStatesManager {
   }
 
   #readonlyStates: PlayerReadonlyStates = {
-    voice: null,
+    bookmarks: [],
     isPersonReplace: false,
     speechSpeed: 1,
+    voice: null,
     autoNextSection: false,
     paragraphRepeat: 1,
     splitPage: 'double',
   }
 
   uiEvents = new ChangedEmitter<PlayerReadonlyStates>()
+
+  get bookmarks() {
+    return this.#readonlyStates.bookmarks
+  }
 
   get voice() {
     return this.#readonlyStates.voice
@@ -158,7 +164,12 @@ export function usePlayerSyncUI(player: Player, props: PlayerReadonlyStates) {
     autoNextSection,
     paragraphRepeat,
     splitPage,
+    bookmarks,
   } = props
+
+  useEffect(() => {
+    player.states.syncUIState('bookmarks', bookmarks)
+  }, [player, bookmarks])
 
   useEffect(() => {
     player.states.syncUIState('isPersonReplace', isPersonReplace)
