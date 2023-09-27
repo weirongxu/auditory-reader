@@ -165,6 +165,7 @@ function useHomeHotKeys({
   dataBooks,
   selectTo,
   selectAll,
+  selectedBooks,
   setLoading,
   reload,
   moveBooksTop,
@@ -174,6 +175,7 @@ function useHomeHotKeys({
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
   selectAll: () => void
+  selectedBooks: BookTypes.Entity[]
   setLoading: Dispatch<SetStateAction<boolean>>
   reload: () => void
   moveBooksTop: (books: BookTypes.Entity[]) => Promise<void>
@@ -218,11 +220,19 @@ function useHomeHotKeys({
       }
     }
 
+    const pageFirst = () => {
+      if (dataBooks) setPage(1)
+    }
+
     const pageNext = () => {
       if (dataBooks) {
         setPage((page) => (page < dataBooks.pageCount ? page + 1 : 1))
         goTop()
       }
+    }
+
+    const pageLast = () => {
+      if (dataBooks) setPage(dataBooks.pageCount)
     }
 
     const movePrev = async () => {
@@ -250,11 +260,11 @@ function useHomeHotKeys({
     }
 
     const removeBook = () => {
-      if (currentBook) removeBooks([currentBook])
+      if (currentBook) removeBooks(selectedBooks)
     }
 
     const moveBookTop = () => {
-      if (currentBook) void moveBooksTop([currentBook])
+      if (currentBook) void moveBooksTop(selectedBooks)
     }
 
     return addHotkeys([
@@ -293,6 +303,8 @@ function useHomeHotKeys({
       [['d', 'd'], t('hotkey.remove'), removeBook],
       [['g', 'g'], t('hotkey.goTop'), goTop],
       [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
+      [{ shift: true, key: 'h' }, t('hotkey.goPageFirst'), pageFirst],
+      [{ shift: true, key: 'l' }, t('hotkey.goPageLast'), pageLast],
     ])
   }, [
     activedIndex,
@@ -305,6 +317,7 @@ function useHomeHotKeys({
     removeBooks,
     selectAll,
     selectTo,
+    selectedBooks,
     setLoading,
     setPage,
   ])
@@ -528,6 +541,7 @@ export function BookList() {
     reload,
     selectTo,
     selectAll,
+    selectedBooks,
     moveBooksTop,
     removeBooks,
   })

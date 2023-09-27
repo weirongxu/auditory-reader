@@ -50,6 +50,8 @@ export const langEn = {
     goBottom: 'Move selection to bottom',
     goPagePrev: 'Go to previous page',
     goPageNext: 'Go to next page',
+    goPageFirst: 'Go to first page',
+    goPageLast: 'Go to last page',
     goMovePrev: 'Move selection to previous',
     goMoveNext: 'Move selection to next',
     goMoveTop: 'Move selection to top',
