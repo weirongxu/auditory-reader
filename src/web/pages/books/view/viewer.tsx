@@ -1,15 +1,16 @@
-import { CircularProgress, Stack, useTheme } from '@mui/material'
+import { CircularProgress, Stack } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
+import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
+import { useUserColorScheme, useViewPanelType } from '../../../store.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
-import { useNavigate } from 'react-router-dom'
-import { useViewPanelType } from '../../../store.js'
-import { t } from 'i18next'
+import { useAppTheme } from '../../../theme.js'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -30,7 +31,7 @@ export function useViewer(props: BookContextProps) {
   })
 
   // dark scheme
-  const theme = useTheme()
+  const theme = useAppTheme()
   useEffect(() => {
     player.iframeCtrler.updateColorTheme(theme.palette.mode)
   }, [player.iframeCtrler, theme.palette.mode])

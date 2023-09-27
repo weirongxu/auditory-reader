@@ -49,7 +49,7 @@ function AppRegistrar() {
     if (theme.palette.mode === 'dark')
       document.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
     else document.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
-  }, [theme.palette.mode])
+  }, [theme])
   useStyle(globalStyle)
 
   return (

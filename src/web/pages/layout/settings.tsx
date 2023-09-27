@@ -25,8 +25,8 @@ import {
   usePersonReplace,
   useSpeechSpeed,
   useUserColorScheme,
-  type ColorScheme,
-  COLOR_SCHEMES,
+  type UserColorscheme,
+  USER_COLOR_SCHEMES,
   useParagraphRepeat,
   useSplitPage,
   type SplitPageType,
@@ -221,10 +221,10 @@ const ColorSchemeSelect = () => {
         <RadioGroup
           defaultValue={userColorScheme}
           onChange={(e) => {
-            setUserColorScheme(e.target.value as ColorScheme)
+            setUserColorScheme(e.target.value as UserColorscheme)
           }}
         >
-          {COLOR_SCHEMES.map((value) => {
+          {USER_COLOR_SCHEMES.map((value) => {
             return (
               <FormControlLabel
                 key={value}
