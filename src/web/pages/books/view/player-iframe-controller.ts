@@ -505,6 +505,7 @@ export class PlayerIframeController {
       this.hookImgs(doc)
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
+      this.updateBookmarks()
     }
   }
 
@@ -889,7 +890,6 @@ export class PlayerIframeController {
     this.updateParagraphActive()
     this.updateActiveNavs()
     this.updateSplitPageResizeToNode(true)
-    this.updateBookmarks()
   }
 
   #paragraphLastActive?: ReadablePart
@@ -909,7 +909,12 @@ export class PlayerIframeController {
 
   protected updateBookmarks() {
     this.tryManipulateDOM(() => {
-      if (!this.states.bookmarks) return
+      if (!this.states.bookmarks || !this.doc) return
+      for (const item of Array.from(
+        this.doc.querySelectorAll(`.${PARA_BOOKMARK_CLASS}`)
+      )) {
+        item.classList.remove(PARA_BOOKMARK_CLASS)
+      }
       for (const bookmark of this.states.bookmarks) {
         if (bookmark.section !== this.states.pos.section) continue
         const item = this.readableParts[bookmark.paragraph]
