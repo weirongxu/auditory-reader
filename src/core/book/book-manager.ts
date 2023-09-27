@@ -12,7 +12,7 @@ import type { BookTypes } from './types.js'
 
 const extractUuid = (
   method: (account: string, uuid: BookTypes.EntityUUID) => unknown,
-  context: ClassMethodDecoratorContext
+  context: ClassMethodDecoratorContext,
 ) => {
   const methodName = context.name
   context.addInitializer(function (this: any) {
@@ -85,13 +85,13 @@ class BookManager {
     } else if (bookEntity.entity.type === 'text') {
       const text = await BookText.read(
         await bookEntity.readFileText(),
-        bookEntity.entity.name
+        bookEntity.entity.name,
       )
       if (!text) throw new ErrorRequestResponse('Parse text error')
       return text
     } else {
       throw new ErrorRequestResponse(
-        `Unsupported type ${bookEntity.entity.type as string}`
+        `Unsupported type ${bookEntity.entity.type as string}`,
       )
     }
   }

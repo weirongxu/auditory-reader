@@ -81,7 +81,7 @@ function useRemoveBooks(reload: () => void) {
         })
         .catch(console.error)
     },
-    [confirm, reload]
+    [confirm, reload],
   )
 
   return removeBooks
@@ -93,12 +93,12 @@ function useSelector(books: BookTypes.Entity[] | null) {
 
   const selectedBooks = useMemo(
     () => books?.filter((book) => selectedUuids.includes(book.uuid)) ?? [],
-    [books, selectedUuids]
+    [books, selectedUuids],
   )
 
   const allSelected = useMemo(
     () => books?.every((book) => selectedUuids.includes(book.uuid)),
-    [books, selectedUuids]
+    [books, selectedUuids],
   )
 
   // if books reload, cancel selected
@@ -143,7 +143,7 @@ function useSelector(books: BookTypes.Entity[] | null) {
         setSelectedUuids(tmpUuids)
       }
     },
-    [books, lastSelectedIndex, selectedUuids]
+    [books, lastSelectedIndex, selectedUuids],
   )
 
   const selectAll = useCallback(() => {
@@ -185,7 +185,7 @@ function useHomeHotKeys({
 
   const currentBook = useMemo(
     () => dataBooks?.items[activedIndex],
-    [activedIndex, dataBooks]
+    [activedIndex, dataBooks],
   )
 
   useEffect(() => {
@@ -193,7 +193,7 @@ function useHomeHotKeys({
 
     const goPrev = () => {
       setActivedIndex((activedIndex) =>
-        activedIndex > 0 ? activedIndex - 1 : 0
+        activedIndex > 0 ? activedIndex - 1 : 0,
       )
     }
 
@@ -203,7 +203,7 @@ function useHomeHotKeys({
 
     const goNext = () => {
       setActivedIndex((activedIndex) =>
-        activedIndex < count - 1 ? activedIndex + 1 : activedIndex
+        activedIndex < count - 1 ? activedIndex + 1 : activedIndex,
       )
     }
 
@@ -446,7 +446,7 @@ function BookRow({
             onClick={() => {
               window.open(
                 `${booksDownloadRouter.fullRoutePath}?uuid=${book.uuid}`,
-                '_blank'
+                '_blank',
               )
             }}
           >
@@ -491,7 +491,7 @@ export function BookList() {
     {
       autoLoad: false,
       clearWhenReload: false,
-    }
+    },
   )
   const [loading, setLoading] = useState<boolean>(false)
 
@@ -518,7 +518,7 @@ export function BookList() {
       setPage(1)
       reload()
     },
-    [reload]
+    [reload],
   )
 
   const { activedIndex } = useHomeHotKeys({
@@ -544,7 +544,7 @@ export function BookList() {
       newBooks.splice(hoverIndex, 0, entityJson)
       setBooks(newBooks)
     },
-    [books]
+    [books],
   )
 
   const onDrop = useCallback(
@@ -560,7 +560,7 @@ export function BookList() {
         setLoading(false)
       })
     },
-    [books, reload]
+    [books, reload],
   )
 
   const onCancel = useCallback(() => {
@@ -574,7 +574,7 @@ export function BookList() {
       if (!book) return
       removeBooks([book])
     },
-    [books, removeBooks, resetBooks]
+    [books, removeBooks, resetBooks],
   )
 
   const OperationBtnGroup = useMemo(() => {
@@ -626,7 +626,7 @@ export function BookList() {
         )}
       </LinkWrap>
     ),
-    []
+    [],
   )
 
   useAppBarSync({

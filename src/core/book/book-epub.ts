@@ -32,7 +32,7 @@ type SpineItem = {
 function* scopeQuerySelectorAll(
   scope: Element,
   childTags: string[],
-  selector?: string
+  selector?: string,
 ): Generator<Element, void, void> {
   if (!childTags.length) {
     if (selector) {
@@ -64,7 +64,7 @@ export const NAV_TOC_SELECTOR = 'nav[epub\\:type="toc"]'
 function scopeQuerySelector(
   scope: Element,
   childTags: string[],
-  selector?: string
+  selector?: string,
 ): Element | null {
   const first = scopeQuerySelectorAll(scope, childTags, selector).next()
   return first.value ?? null
@@ -107,7 +107,7 @@ export class BookEpub extends BookBase {
     protected zip: JSZip,
     protected xmlLoader: XMLDOMLoader,
     protected rootPkg: XMLElem,
-    protected rootDir: string
+    protected rootDir: string,
   ) {
     super()
   }
@@ -183,7 +183,7 @@ export class BookEpub extends BookBase {
             idref,
             linear: item.getAttribute('linear')!,
           }
-        })
+        }),
       )
     }
     return this.#spineItems
@@ -246,7 +246,7 @@ export class BookEpub extends BookBase {
 
   protected getSpineIndexByHref(href: string): number | undefined {
     const spineIndex = this.spineItems.findIndex(
-      (s) => s.manifest.href === href
+      (s) => s.manifest.href === href,
     )
     if (spineIndex === -1) return
     return spineIndex
@@ -268,7 +268,7 @@ export class BookEpub extends BookBase {
       Array.from(scopeQuerySelectorAll(dom, ['li'])).map(
         (el): BookNav | undefined => {
           const elem = Array.from(el.children).find(
-            (l) => l.tagName.toLowerCase() !== 'ol'
+            (l) => l.tagName.toLowerCase() !== 'ol',
           )
           if (!elem) return
           const label = elem.textContent ?? ''
@@ -294,8 +294,8 @@ export class BookEpub extends BookBase {
             spineIndex,
             children: childOl ? this.parseNav3(childOl, dir, level + 1) : [],
           }
-        }
-      )
+        },
+      ),
     )
 
     return nav
@@ -337,7 +337,7 @@ export class BookEpub extends BookBase {
           spineIndex,
           children: this.parseNav2(el, dir, level + 1),
         }
-      })
+      }),
     )
 
     return nav

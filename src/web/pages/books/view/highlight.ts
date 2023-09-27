@@ -19,7 +19,7 @@ export class Highlight {
 
   constructor(
     protected iframeCtrl: PlayerIframeController,
-    protected states: PlayerStatesManager
+    protected states: PlayerStatesManager,
   ) {}
 
   get doc() {
@@ -84,7 +84,7 @@ export class Highlight {
 
   #findRangePos(
     node: Node,
-    index: number
+    index: number,
   ):
     | { type: FindRangePosType.found; node: Node; index: number }
     | { type: FindRangePosType.skip; remainIndex: number } {
@@ -130,7 +130,7 @@ export class Highlight {
 
   #getChildAndIndex(
     node: Node,
-    index: number
+    index: number,
   ): { node: Node; index: number } | null {
     const result = this.#findRangePos(node, index)
     if (result.type === FindRangePosType.found) {

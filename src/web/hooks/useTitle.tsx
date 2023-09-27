@@ -40,7 +40,7 @@ export function usePushTitle() {
     (title: string) => {
       setTitleStack((stack) => [{ title, id }, ...stack])
     },
-    [id, setTitleStack]
+    [id, setTitleStack],
   )
 
   return pushTitle

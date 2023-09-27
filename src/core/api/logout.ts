@@ -9,5 +9,5 @@ export const logoutRouter = new URouter<void, LogoutRes>('logout').route(
     const session = req.session
     await session.userLogout()
     return { ok: true }
-  }
+  },
 )

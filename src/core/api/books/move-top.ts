@@ -6,7 +6,7 @@ export type BookMoveTopItQuery = {
 }
 
 export const booksMoveTopRouter = new URouter<BookMoveTopItQuery>(
-  'books/move-top'
+  'books/move-top',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const book = bookManager.list(userInfo.account)

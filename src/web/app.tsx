@@ -26,7 +26,7 @@ import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
 
-function AppRegistrar() {
+function AppEntry() {
   const theme = useAppTheme()
   const [loadedStatus, setLoadedStatus] = useState<boolean | string>(false)
 
@@ -65,22 +65,28 @@ function AppRegistrar() {
   )
 }
 
-export function App() {
+function AppProvider() {
   const theme = useAppTheme()
   return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <DndProvider backend={HTML5Backend}>
+        <AppEntry></AppEntry>
+        <SnackbarPrivider></SnackbarPrivider>
+        <HintTextProvider></HintTextProvider>
+        <PreviewImageProvider></PreviewImageProvider>
+        <ConfirmProvider></ConfirmProvider>
+        <TitleProvider></TitleProvider>
+        <HotkeysProvider></HotkeysProvider>
+      </DndProvider>
+    </ThemeProvider>
+  )
+}
+
+export function App() {
+  return (
     <Provider store={globalStore}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <DndProvider backend={HTML5Backend}>
-          <AppRegistrar></AppRegistrar>
-          <SnackbarPrivider></SnackbarPrivider>
-          <HintTextProvider></HintTextProvider>
-          <PreviewImageProvider></PreviewImageProvider>
-          <ConfirmProvider></ConfirmProvider>
-          <TitleProvider></TitleProvider>
-          <HotkeysProvider></HotkeysProvider>
-        </DndProvider>
-      </ThemeProvider>
+      <AppProvider></AppProvider>
     </Provider>
   )
 }

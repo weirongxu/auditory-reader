@@ -116,7 +116,7 @@ export class PlayerStatesManager {
 
   syncUIState<K extends keyof PlayerReadonlyStates>(
     name: K,
-    state: PlayerReadonlyStates[K]
+    state: PlayerReadonlyStates[K],
   ) {
     this.#readonlyStates[name] = state
     this.uiEvents.fire(name, state)
@@ -130,7 +130,7 @@ export function usePlayerSync(
     setStarted: Dispatch<boolean>
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
-  }
+  },
 ) {
   const { setPos, setStarted, setActiveNavs, setLoading } = props
 
@@ -197,19 +197,19 @@ export function usePlayerSyncUI(player: Player, props: PlayerReadonlyStates) {
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,
-    [player.isFirstSection]
+    [player.isFirstSection],
   )
   const isLastSection = useMemo(
     () => player.isLastSection,
-    [player.isLastSection]
+    [player.isLastSection],
   )
   const isFirstParagraph = useMemo(
     () => player.isFirstParagraph,
-    [player.isFirstParagraph]
+    [player.isFirstParagraph],
   )
   const isLastParagraph = useMemo(
     () => player.isLastParagraph,
-    [player.isLastParagraph]
+    [player.isLastParagraph],
   )
 
   return { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph }

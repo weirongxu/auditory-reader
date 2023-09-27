@@ -1,7 +1,7 @@
 export function range(
   start: number,
   end: number,
-  step = start < end ? 1 : -1
+  step = start < end ? 1 : -1,
 ): number[] {
   const result = []
   if (step > 0)
@@ -16,7 +16,7 @@ export function range(
 }
 
 export function compact<T>(
-  list: (T | '' | 0 | false | null | undefined)[]
+  list: (T | '' | 0 | false | null | undefined)[],
 ): T[] {
   return list.filter((it): it is T => !!it)
 }
@@ -24,7 +24,7 @@ export function compact<T>(
 export function findPair<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex = 0
+  startIndex = 0,
 ): [item: T, index: number] | [undefined, undefined] {
   let index = startIndex
   while (index < list.length) {
@@ -41,7 +41,7 @@ export function findPair<T>(
 export function findIndex<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex?: number
+  startIndex?: number,
 ): number | undefined {
   return findPair(list, predicate, startIndex)[1]
 }
@@ -49,7 +49,7 @@ export function findIndex<T>(
 export function find<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex?: number
+  startIndex?: number,
 ): T | undefined {
   return findPair(list, predicate, startIndex)[0]
 }
@@ -57,7 +57,7 @@ export function find<T>(
 export function findLastPair<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex = list.length - 1
+  startIndex = list.length - 1,
 ): [item: T, index: number] | [undefined, undefined] {
   let index = startIndex
   while (index >= 0) {
@@ -74,7 +74,7 @@ export function findLastPair<T>(
 export function findLastIndex<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex?: number
+  startIndex?: number,
 ): number | undefined {
   return findLastPair(list, predicate, startIndex)[1]
 }
@@ -82,14 +82,14 @@ export function findLastIndex<T>(
 export function findLast<T>(
   list: T[],
   predicate: (value: T, index: number, list: T[]) => boolean,
-  startIndex?: number
+  startIndex?: number,
 ): T | undefined {
   return findLastPair(list, predicate, startIndex)[0]
 }
 
 export function maxIndexBy<T>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => number
+  getValue: (value: T, index: number, list: T[]) => number,
 ): number {
   let maxValue: number | null = null
   let maxIndex: number | null = null
@@ -106,7 +106,7 @@ export function maxIndexBy<T>(
 
 export function maxBy<T>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => number
+  getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = maxIndexBy(list, getValue)
   return list[index]
@@ -114,7 +114,7 @@ export function maxBy<T>(
 
 export function minIndexBy<T>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => number
+  getValue: (value: T, index: number, list: T[]) => number,
 ): number {
   let minValue: number | null = null
   let minIndex: number | null = null
@@ -131,7 +131,7 @@ export function minIndexBy<T>(
 
 export function minBy<T>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => number
+  getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = minIndexBy(list, getValue)
   return list[index]
@@ -139,7 +139,7 @@ export function minBy<T>(
 
 export function uniqBy<T, V>(
   list: T[],
-  getValue: (value: T, index: number, list: T[]) => V
+  getValue: (value: T, index: number, list: T[]) => V,
 ): T[] {
   const map = new Map<V, T>()
   for (const [index, it] of list.entries()) {
@@ -158,7 +158,7 @@ type OrderTypes = number | string | boolean | OrderTypes[]
 export function orderBy<T>(
   list: T[],
   order: 'asc' | 'desc',
-  getValue: (value: T, index: number, list: T[]) => OrderTypes
+  getValue: (value: T, index: number, list: T[]) => OrderTypes,
 ): T[] {
   const listEntries = [...list.entries()]
   const getDiff = <T extends OrderTypes>(va: T, vb: T): number => {
@@ -191,7 +191,7 @@ export function orderBy<T>(
 
 export function groupToMap<T, A>(
   list: T[],
-  getKey: (item: T, index: number, list: T[]) => A
+  getKey: (item: T, index: number, list: T[]) => A,
 ): Map<A, T[]> {
   const map = new Map<A, T[]>()
   for (const [index, item] of list.entries()) {

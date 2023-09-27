@@ -32,7 +32,7 @@ self.addEventListener('fetch', (event) => {
   )
     return
   const router = ROUTERS.find((r) =>
-    r.isMatch({ method: req.method, pathname: url.pathname })
+    r.isMatch({ method: req.method, pathname: url.pathname }),
   )
 
   if (router?.handler) {
@@ -42,10 +42,10 @@ self.addEventListener('fetch', (event) => {
         router.handler({
           req: URequest.fromBrowser<any>(
             req,
-            router.getDynamicPaths(url.pathname)
+            router.getDynamicPaths(url.pathname),
           ),
           res: UResponse.fromBrowser(resH),
-        })
+        }),
       )
         .then((body: any) => {
           const data = isPlainObject(body) ? JSON.stringify(body) : body
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
               headers: resH.headers,
             })
           }
-        })
+        }),
     )
   }
 })

@@ -17,7 +17,7 @@ export type BookCreate = {
 }
 
 export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
-  'books/create'
+  'books/create',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const buf = Buffer.from(body.bufferBase64, 'base64')

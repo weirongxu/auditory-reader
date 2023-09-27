@@ -34,7 +34,7 @@ function Bookmarks(props: {
     const nextBookmark = () => {
       bookmarks &&
         setSelectedIndex((idx) =>
-          idx >= bookmarks.length - 1 ? bookmarks.length - 1 : idx + 1
+          idx >= bookmarks.length - 1 ? bookmarks.length - 1 : idx + 1,
         )
     }
     const gotoBookmark = () => {
@@ -128,7 +128,7 @@ function Bookmarks(props: {
 export function useBookViewBookmarks(
   book: BookView,
   player: Player,
-  pos: BookTypes.PropertyPosition
+  pos: BookTypes.PropertyPosition,
 ) {
   const uuid = book.item.uuid
   const { data: bookmarks, reload } = useAction(booksBookmarksRouter, {
@@ -137,7 +137,7 @@ export function useBookViewBookmarks(
 
   const activeBookmarkIndex = useMemo(() => {
     const idx = bookmarks?.findIndex(
-      (b) => b.section === pos.section && b.paragraph === pos.paragraph
+      (b) => b.section === pos.section && b.paragraph === pos.paragraph,
     )
     return idx === -1 ? undefined : idx
   }, [bookmarks, pos.paragraph, pos.section])
@@ -147,7 +147,7 @@ export function useBookViewBookmarks(
       activeBookmarkIndex !== undefined
         ? bookmarks?.[activeBookmarkIndex]
         : undefined,
-    [bookmarks, activeBookmarkIndex]
+    [bookmarks, activeBookmarkIndex],
   )
 
   const addBookmark = useCallback(() => {
@@ -201,7 +201,7 @@ export function useBookViewBookmarks(
         })
         .catch(console.error)
     },
-    [reload, uuid]
+    [reload, uuid],
   )
 
   const toggleBookmark = useCallback(() => {

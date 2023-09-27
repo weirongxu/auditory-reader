@@ -27,7 +27,7 @@ export function useConfirm() {
         setConfirm({ ...options, okCallback: resolve })
       })
     },
-    [setConfirm]
+    [setConfirm],
   )
 
   return confirm
@@ -63,7 +63,7 @@ function ConfirmDialog() {
         () => {
           onOk()
         },
-        { level: 100 }
+        { level: 100 },
       )
     }
   }, [addHotkey, confirm, onClose, onOk])

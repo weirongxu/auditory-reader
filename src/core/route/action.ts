@@ -52,7 +52,7 @@ type ActionOptions = {
 export function useAction<Req, Res>(
   router: URouter<Req, Res>,
   arg: Req,
-  options?: ActionOptions
+  options?: ActionOptions,
 ) {
   const navigate = useNavigate()
   const refArg = useRef<Req>(arg)
@@ -80,7 +80,7 @@ export function useAction<Req, Res>(
           }
         })
     },
-    [navigate, router]
+    [navigate, router],
   )
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export function useAction<Req, Res>(
       }
       load(options?.signal ?? new AbortController().signal)
     },
-    [load]
+    [load],
   )
 
   return { data, reload, error }

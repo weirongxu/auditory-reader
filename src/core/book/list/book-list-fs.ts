@@ -44,7 +44,7 @@ export class BookListFS extends BookListBase {
   }
 
   protected entity2bookEntity(
-    entityJson: BookTypes.EntityJson
+    entityJson: BookTypes.EntityJson,
   ): BookEntityBase {
     return new BookEntityFS(this.allBooksDir, this.toEntity(entityJson))
   }

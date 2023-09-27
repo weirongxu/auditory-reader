@@ -33,7 +33,7 @@ const isIgnoreVerticalAlign = (elem: HTMLElement) => {
 }
 
 const getParentBlockElem = (
-  elem: HTMLElement | null
+  elem: HTMLElement | null,
 ): HTMLElement | undefined => {
   if (!elem) return
   if (isBlockElem(elem)) {
@@ -99,9 +99,12 @@ export class ReadableExtractor {
   #alias: TextAlias[] = []
   #navAnchorSet: Set<string>
 
-  constructor(private doc: Document, private flattenedNavs: BookNav[]) {
+  constructor(
+    private doc: Document,
+    private flattenedNavs: BookNav[],
+  ) {
     this.#navAnchorSet = new Set(
-      compact(this.flattenedNavs.map((n) => n.hrefAnchor))
+      compact(this.flattenedNavs.map((n) => n.hrefAnchor)),
     )
     this.walk()
   }
@@ -222,7 +225,7 @@ export class ReadableExtractor {
     const addTextPart = (
       blockElem: HTMLElement,
       anchors: string[] | undefined,
-      navAnchors: string[] | undefined
+      navAnchors: string[] | undefined,
     ) => {
       blockElem.classList.add(PARA_BOX_CLASS)
       const textContent = this.getContentText(blockElem)

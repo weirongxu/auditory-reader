@@ -9,5 +9,5 @@ export const userRouter = new URouter<null, UserRes>('user').route(
   ({ req }) => {
     const info = req.session.userInfo()
     return { info }
-  }
+  },
 )

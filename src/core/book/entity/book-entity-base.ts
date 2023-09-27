@@ -84,7 +84,7 @@ export abstract class BookEntityBase {
     const prop = await this.readProp()
     if (prop.bookmarks) {
       prop.bookmarks = prop.bookmarks.filter(
-        (b) => !bookmarkUuids.includes(b.uuid)
+        (b) => !bookmarkUuids.includes(b.uuid),
       )
       prop.bookmarks = this.sortBookmarks(prop.bookmarks)
     }

@@ -31,7 +31,7 @@ export function isImageElement(node: any): node is HTMLImageElement {
 export async function HTMLImgs2DataURL(
   urlStr: string,
   element: HTMLElement,
-  options: { referrer?: string } = {}
+  options: { referrer?: string } = {},
 ) {
   const url = new URL(urlStr)
   const imgs = [...element.querySelectorAll('img')]
@@ -52,7 +52,7 @@ export async function HTMLImgs2DataURL(
       const contentType = res.headers.get('Content-Type')
       const buf = await res.arrayBuffer()
       img.src = `data:${contentType};base64,${Buffer.from(buf).toString(
-        'base64'
+        'base64',
       )}`
     } catch (err) {
       console.error(err)
@@ -62,7 +62,7 @@ export async function HTMLImgs2DataURL(
 
 export async function SVGImgs2DataURL(
   svgElement: SVGSVGElement,
-  options: { referrer?: string; baseURL?: string } = {}
+  options: { referrer?: string; baseURL?: string } = {},
 ) {
   const imgs = [...svgElement.querySelectorAll('image')]
   const headers = new Headers({
@@ -82,7 +82,7 @@ export async function SVGImgs2DataURL(
       const buf = await res.arrayBuffer()
       img.setAttribute(
         'href',
-        `data:${contentType};base64,${Buffer.from(buf).toString('base64')}`
+        `data:${contentType};base64,${Buffer.from(buf).toString('base64')}`,
       )
     } catch (err) {
       console.error(err)

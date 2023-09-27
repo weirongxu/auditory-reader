@@ -107,13 +107,13 @@ export class PlayerIframeController {
   constructor(
     protected player: Player,
     protected states: PlayerStatesManager,
-    protected iframeRef: RefObject<HTMLIFrameElement>
+    protected iframeRef: RefObject<HTMLIFrameElement>,
   ) {
     this.mainContentRootPath = getBooksRenderPath(this.book.item.uuid, '')
 
     this.mainContentRootUrl = new URL(
       this.mainContentRootPath,
-      location.href
+      location.href,
     ).toString()
 
     this.states.events.on('pos', () => {
@@ -152,7 +152,7 @@ export class PlayerIframeController {
       const paragraph = this.states.pos.paragraph
       const curSplitPageIndex = findLastIndex(
         this.splitPageList,
-        (page) => !!page.top && page.top.paragraph <= paragraph
+        (page) => !!page.top && page.top.paragraph <= paragraph,
       )
       if (
         this.splitPageCurScrollIndex === undefined ||
@@ -229,7 +229,7 @@ export class PlayerIframeController {
       duration = 20,
       animated = true,
       abortCtrl,
-    }: ScrollOptions = {}
+    }: ScrollOptions = {},
   ) {
     const container = this.scrollContainer
     if (!container) return
@@ -238,7 +238,7 @@ export class PlayerIframeController {
 
     const finalLeft = findLast(
       this.splitPageList,
-      (page) => page.scrollLeft <= left
+      (page) => page.scrollLeft <= left,
     )?.scrollLeft
     if (finalLeft === undefined) return
 
@@ -307,12 +307,12 @@ export class PlayerIframeController {
       if (offsetPage < 0) {
         paragraph = findLast(
           this.splitPageList,
-          (page) => !!page.top && page.scrollLeft <= goalLeft
+          (page) => !!page.top && page.scrollLeft <= goalLeft,
         )?.top?.paragraph
       } else {
         paragraph = find(
           this.splitPageList,
-          (page) => !!page.top && page.scrollLeft >= goalLeft
+          (page) => !!page.top && page.scrollLeft >= goalLeft,
         )?.top?.paragraph
       }
       if (paragraph === undefined || paragraph === this.states.pos.paragraph)
@@ -348,7 +348,7 @@ export class PlayerIframeController {
       /** @default false */
       animated?: boolean
     },
-    force = false
+    force = false,
   ) {
     const iframe = this.iframe
     if (!iframe) return
@@ -378,7 +378,7 @@ export class PlayerIframeController {
             () => {
               resolve()
             },
-            { once: true }
+            { once: true },
           )
         })
         iframe.src = getBooksRenderPath(this.book.item.uuid, absPath)
@@ -394,7 +394,7 @@ export class PlayerIframeController {
         // load readableParts & alias
         const readableExtractor = new ReadableExtractor(
           doc,
-          this.book.flattenedNavs
+          this.book.flattenedNavs,
         )
         this.readableParts = readableExtractor.toReadableParts()
         this.alias = readableExtractor.alias()
@@ -493,7 +493,7 @@ export class PlayerIframeController {
                 })
               this.player.utterer.hl.reCreateRoot(doc)
             })
-          })
+          }),
         )
 
         this.hookPageTouch()
@@ -765,7 +765,7 @@ export class PlayerIframeController {
       if (!this.splitPageWidth) return
 
       this.splitPageCurScrollIndex = Math.round(
-        scrollContainer.scrollLeft / this.splitPageWidth
+        scrollContainer.scrollLeft / this.splitPageWidth,
       )
       this.splitPageCurScrollNode =
         this.splitPageList?.[this.splitPageCurScrollIndex]
@@ -781,7 +781,7 @@ export class PlayerIframeController {
   protected async splitPageCalcuate(
     win: Window,
     doc: Document,
-    scrollContainer: HTMLElement
+    scrollContainer: HTMLElement,
   ) {
     // Make sure the width is loaded correctly
     // scrollContainer.offsetWidth
@@ -853,7 +853,7 @@ export class PlayerIframeController {
           img.classList.add(
             img.naturalWidth / img.naturalHeight > pageWHRate
               ? IMG_MAX_WIDTH_CLASS
-              : IMG_MAX_HEIGHT_CLASS
+              : IMG_MAX_HEIGHT_CLASS,
           )
       }
     }
@@ -875,7 +875,7 @@ export class PlayerIframeController {
         rect.left + readablePart.elem.offsetWidth / 2 - parentLeft
       const page = findLast(
         this.splitPageList,
-        (page) => page.scrollLeft <= scrollLeft
+        (page) => page.scrollLeft <= scrollLeft,
       )
       if (page && !page.top)
         page.top = {
@@ -911,7 +911,7 @@ export class PlayerIframeController {
     this.tryManipulateDOM(() => {
       if (!this.states.bookmarks || !this.doc) return
       for (const item of Array.from(
-        this.doc.querySelectorAll(`.${PARA_BOOKMARK_CLASS}`)
+        this.doc.querySelectorAll(`.${PARA_BOOKMARK_CLASS}`),
       )) {
         item.classList.remove(PARA_BOOKMARK_CLASS)
       }
@@ -931,7 +931,7 @@ export class PlayerIframeController {
 
     // same spineIndex navs
     const navs = this.book.flattenedNavs.filter(
-      (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section
+      (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section,
     )
 
     const findNav = (): BookNav | undefined => {
@@ -939,7 +939,7 @@ export class PlayerIframeController {
       if (navs.length === 0) {
         const lastNav = findLast(
           this.book.flattenedNavs,
-          (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section
+          (nav) => !!nav.spineIndex && nav.spineIndex < this.states.pos.section,
         )
         return lastNav
       }
@@ -948,7 +948,7 @@ export class PlayerIframeController {
       const readableParts = this.readableParts
       const lastAnchors = findLast(
         readableParts.slice(0, this.states.pos.paragraph + 1),
-        (part) => !!part.navAnchorIds
+        (part) => !!part.navAnchorIds,
       )?.navAnchorIds
       const lastAnchor =
         lastAnchors && lastAnchors.length > 0
@@ -990,7 +990,7 @@ export class PlayerIframeController {
       const [nav, newIndex] = findLastPair(
         this.book.flattenedNavs,
         (nav) => nav.level === level,
-        index
+        index,
       )
       if (nav) {
         index = newIndex - 1

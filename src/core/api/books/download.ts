@@ -20,7 +20,7 @@ export const booksDownloadRouter = new URouter<
   res.header('Content-Type', contentType)
   res.header(
     'Content-Disposition',
-    `attachment; filename="${encodeURI(filename)}"`
+    `attachment; filename="${encodeURI(filename)}"`,
   )
   return buffer
 })

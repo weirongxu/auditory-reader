@@ -14,7 +14,7 @@ export class EpubGen {
       date: Date
       publisher: string
       sourceURL?: string
-    }
+    },
   ) {
     this.zip = new JSZip()
   }
@@ -29,7 +29,7 @@ export class EpubGen {
             <rootfile full-path="content.opf" media-type="application/oebps-package+xml"/>
           </rootfiles>
         </container>
-      `
+      `,
     )
   }
 
@@ -60,7 +60,7 @@ export class EpubGen {
             <itemref idref="html-content"/>
           </spine>
         </package>
-      `
+      `,
     )
   }
 
@@ -72,7 +72,7 @@ export class EpubGen {
           margin-bottom: 5pt;
           margin-top: 5pt
         }
-      `
+      `,
     )
     this.zip.file(
       'stylesheet.css',
@@ -83,7 +83,7 @@ export class EpubGen {
         img {
           max-width: 100%;
         }
-      `
+      `,
     )
   }
 
@@ -113,7 +113,7 @@ export class EpubGen {
             ${this.options.htmlContent}
           </body>
         </html>
-      `
+      `,
     )
   }
 

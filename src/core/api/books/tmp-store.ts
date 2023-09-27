@@ -17,7 +17,7 @@ export type BookCreate = {
 }
 
 export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
-  'books/tmp-store'
+  'books/tmp-store',
 ).routeLogined(async ({ userInfo }) => {
   const bookEntityTmp = await bookManager.entity(userInfo.account, TMP_UUID)
   const uuid = uuidv1()

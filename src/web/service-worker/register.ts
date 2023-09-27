@@ -23,7 +23,7 @@ export async function registerAPI() {
     new URL('./api', import.meta.url),
     {
       scope: env.appPublicRoot,
-    }
+    },
   )
   await navigator.serviceWorker.ready
   if (service.active) {

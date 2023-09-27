@@ -8,7 +8,7 @@ export type BookUpdateQuery = {
 }
 
 export const booksUpdateRouter = new URouter<BookUpdateQuery, object>(
-  'books/update'
+  'books/update',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   await bookManager.list(userInfo.account).update(body.uuid, body.update)

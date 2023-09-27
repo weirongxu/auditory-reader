@@ -15,7 +15,7 @@ type ApiContext<R, P, M> = {
 } & M
 
 type ApiHandler<R = any, P = any, M = object> = (
-  context: ApiContext<R, P, M>
+  context: ApiContext<R, P, M>,
 ) => P | Promise<P>
 
 type RouterMethod = 'get' | 'post'
@@ -41,7 +41,7 @@ export class URouter<Req = any, Res = any> {
       method = 'post',
       responseType = 'json',
       isDynamic = false,
-    }: RouterOptions = {}
+    }: RouterOptions = {},
   ) {
     this.fullRoutePath = getActionPath(routePath)
     this.method = method

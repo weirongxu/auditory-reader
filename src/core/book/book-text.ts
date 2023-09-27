@@ -22,7 +22,10 @@ export class BookText extends BookBase {
     return new BookText(text, html)
   }
 
-  constructor(public readonly text: string, public readonly html: string) {
+  constructor(
+    public readonly text: string,
+    public readonly html: string,
+  ) {
     super()
   }
 

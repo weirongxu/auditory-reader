@@ -22,7 +22,7 @@ export class BookListIndexedDB extends BookListBase {
   }
 
   protected entity2bookEntity(
-    entityJson: BookTypes.EntityJson
+    entityJson: BookTypes.EntityJson,
   ): BookEntityBase {
     return new BookEntityIndexedDB(this.toEntity(entityJson))
   }

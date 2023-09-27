@@ -11,11 +11,7 @@ import { ROUTERS } from '../core/api/index.js'
 import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'
 import { ErrorRequestResponse } from '../core/route/session.js'
-import fetch, { Headers } from 'node-fetch'
-
-// @ts-ignore
-global.fetch = fetch
-global.Headers = Headers
+import 'isomorphic-fetch'
 
 const app = express()
 
@@ -38,7 +34,7 @@ app.use(
       secure: false,
       maxAge: 60 * 60 * 1000 * 24 * 7,
     },
-  })
+  }),
 )
 
 // eslint-disable-next-line no-console

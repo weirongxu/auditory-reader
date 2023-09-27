@@ -14,7 +14,7 @@ export type BookPage = {
 }
 
 export const booksPageRouter = new URouter<BookPost, BookPage>(
-  'books/page'
+  'books/page',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const page = body.page ?? 1

@@ -78,7 +78,7 @@ export class Utterer {
   constructor(
     public player: Player,
     states: PlayerStatesManager,
-    iframeCtrler: PlayerIframeController
+    iframeCtrler: PlayerIframeController,
   ) {
     this.states = states
     this.hl = new Highlight(iframeCtrler, states)
@@ -151,13 +151,13 @@ export class Utterer {
             ? (event) => {
                 const startOffset = findLast(
                   highlightOffsetTable,
-                  ([i]) => i <= event.charIndex
+                  ([i]) => i <= event.charIndex,
                 )
                 if (!startOffset) return event
                 const charEndIndex = event.charIndex + event.charLength
                 const endOffset = findLast(
                   highlightOffsetTable,
-                  ([i]) => i <= charEndIndex
+                  ([i]) => i <= charEndIndex,
                 )
                 if (!endOffset) return event
                 const charIndex = event.charIndex + (startOffset[1] ?? 0)
@@ -189,7 +189,7 @@ export class Utterer {
 
   async speakText(
     text: string,
-    { onAlias }: { onAlias?: (aliasResult: AliasResult) => () => void } = {}
+    { onAlias }: { onAlias?: (aliasResult: AliasResult) => () => void } = {},
   ): Promise<SpeakResult> {
     this.state = 'speaking'
     text = this.states.isPersonReplace ? replacePersonText(text) : text
@@ -207,7 +207,7 @@ export class Utterer {
       // quote & rain
       const quotePosIndex = findLastIndex(
         quotePostions,
-        (p) => p.charIndex <= event.charIndex
+        (p) => p.charIndex <= event.charIndex,
       )
       if (quotePosIndex === undefined) return rainStop()
       const posPass = quotePostions.slice(0, quotePosIndex + 1)
@@ -230,7 +230,7 @@ export class Utterer {
         () => {
           resolve(this.state === 'cancel' ? 'cancel' : 'done')
         },
-        { once: true }
+        { once: true },
       )
       this.utterance.addEventListener(
         'error',
@@ -238,7 +238,7 @@ export class Utterer {
           if (this.state === 'cancel') resolve('cancel')
           else reject(error)
         },
-        { once: true }
+        { once: true },
       )
     })
 

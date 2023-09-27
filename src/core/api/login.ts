@@ -17,5 +17,5 @@ export const loginRouter = new URouter<LoginReq, LoginRes>('login').route(
     return {
       ok: logined,
     }
-  }
+  },
 )

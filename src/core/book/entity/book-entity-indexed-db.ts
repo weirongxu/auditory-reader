@@ -41,7 +41,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
       {
         data: file,
       },
-      this.uid
+      this.uid,
     )
   }
 

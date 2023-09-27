@@ -5,12 +5,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
-import { useUserColorScheme, useViewPanelType } from '../../../store.js'
+import { useViewPanelType } from '../../../store.js'
+import { useAppTheme } from '../../../theme.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
-import { useAppTheme } from '../../../theme.js'
 
 export function useViewer(props: BookContextProps) {
   const { book, pos, setPos } = props
@@ -47,7 +47,7 @@ export function useViewer(props: BookContextProps) {
         <iframe title="viewer" ref={iframeRef}></iframe>
       </Stack>
     ),
-    [loading]
+    [loading],
   )
 
   const { BookPanelView, toggleBookmark } = usePlayerUI({

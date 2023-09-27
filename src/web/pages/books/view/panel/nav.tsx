@@ -72,7 +72,7 @@ function NavTree(props: {
       setSelectedIndex((idx) =>
         idx >= book.flattenedNavs.length - 1
           ? book.flattenedNavs.length - 1
-          : idx + 1
+          : idx + 1,
       )
     }
     const gotoNav = () => {
@@ -134,7 +134,7 @@ function NavTree(props: {
 export function useBookViewNav(
   book: BookView,
   player: Player,
-  activeNavs?: BookNav[]
+  activeNavs?: BookNav[],
 ) {
   return {
     NavTreeView: (

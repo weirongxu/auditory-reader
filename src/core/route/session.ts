@@ -26,7 +26,7 @@ export class USession {
 
   constructor(
     public readonly nodeSession: SessionNode | null,
-    public readonly browserUser: UserInfo | null
+    public readonly browserUser: UserInfo | null,
   ) {}
 
   userInfo(): UserInfo | undefined {
@@ -76,7 +76,7 @@ export function createUserStore(session: SessionNode) {
       if (
         session &&
         env.accounts.find(
-          (a) => a.account === account && a.password === password
+          (a) => a.account === account && a.password === password,
         )
       ) {
         session.user = account

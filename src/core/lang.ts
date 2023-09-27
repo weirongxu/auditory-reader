@@ -203,7 +203,7 @@ export const langList = langSet as unknown as LangItem[]
 export const langCodes: LangCode[] = langSet.map((l) => l.code)
 
 export const parseLangCode = (
-  lang: string | null | undefined
+  lang: string | null | undefined,
 ): LangCode | undefined => {
   if (!lang) return
   if (lang.includes('-')) lang = lang.split('-')[0]
@@ -216,7 +216,7 @@ export const parseLangCode = (
 export const useUserLanguages = (): LangCode[] => {
   const userLanguages = useMemo(
     () => (global.navigator?.languages ?? []) as LangCode[],
-    []
+    [],
   )
   return userLanguages
 }
@@ -226,7 +226,7 @@ export const useOrderedLangs = () => {
 
   const langs = useMemo(() => {
     return orderBy(langList, 'asc', (l) =>
-      userLanguages.indexOf(l.code) === -1 ? 0 : 1
+      userLanguages.indexOf(l.code) === -1 ? 0 : 1,
     )
   }, [userLanguages])
 

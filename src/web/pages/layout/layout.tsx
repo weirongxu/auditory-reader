@@ -42,9 +42,9 @@ export const Layout = (props: { children?: React.ReactNode }) => {
             },
           },
         },
-        theme
+        theme,
       ),
-    [theme]
+    [theme],
   )
 
   const appBar = (

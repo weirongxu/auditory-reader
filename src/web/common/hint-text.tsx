@@ -14,7 +14,7 @@ export function useHintText() {
       options: {
         /** seconds */
         timeout?: number
-      } = {}
+      } = {},
     ) => {
       clearTimeout(timer)
       const timeout = options.timeout ?? 3
@@ -23,7 +23,7 @@ export function useHintText() {
         setHint(null)
       }, timeout * 1000)
     },
-    [setHint]
+    [setHint],
   )
 
   return useMemo(() => ({ openHint }), [openHint])

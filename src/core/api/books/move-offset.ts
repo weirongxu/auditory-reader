@@ -7,7 +7,7 @@ export type BookMoveOffsetItQuery = {
 }
 
 export const booksMoveOffsetRouter = new URouter<BookMoveOffsetItQuery>(
-  'books/move-offset'
+  'books/move-offset',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const book = bookManager.list(userInfo.account)

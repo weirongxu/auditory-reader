@@ -120,7 +120,7 @@ export abstract class BookListBase {
 
   async add(
     entity: BookTypes.Entity,
-    file: ArrayBuffer
+    file: ArrayBuffer,
   ): Promise<BookTypes.EntityJson> {
     const entityJson: BookTypes.EntityJson = {
       name: entity.name,
@@ -171,7 +171,7 @@ export abstract class BookListBase {
   }
 
   protected abstract entity2bookEntity(
-    entity: BookTypes.EntityJson
+    entity: BookTypes.EntityJson,
   ): BookEntityBase
 
   abstract bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void>

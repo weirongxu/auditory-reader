@@ -109,7 +109,7 @@ export function parseXML(xmlText: string) {
           reject(error)
         },
       },
-      { xmlMode: true }
+      { xmlMode: true },
     )
 
     parser.write(xmlText)
@@ -146,8 +146,8 @@ export class XMLElem {
   children(): XMLElem[] {
     return compact(
       this.node.children?.map((n) =>
-        typeof n === 'object' ? new XMLElem(n) : undefined
-      ) ?? []
+        typeof n === 'object' ? new XMLElem(n) : undefined,
+      ) ?? [],
     )
   }
 

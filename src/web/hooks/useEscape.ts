@@ -4,7 +4,7 @@ import { t } from 'i18next'
 
 export function useKeyEscape(
   callback: () => void,
-  options: { enable?: boolean; level?: number } = {}
+  options: { enable?: boolean; level?: number } = {},
 ) {
   const { enable = true, level = 100 } = options
   const refCallback = useRef(callback)
@@ -22,7 +22,7 @@ export function useKeyEscape(
         () => {
           refCallback.current()
         },
-        { level }
+        { level },
       )
     }
   }, [addHotkey, enable, level])

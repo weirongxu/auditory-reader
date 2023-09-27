@@ -1,6 +1,6 @@
 export function debounceFn<A extends Array<any>>(
   delay: number,
-  fn: (...args: A) => void
+  fn: (...args: A) => void,
 ): (...args: A) => void {
   let timer: NodeJS.Timeout | undefined
   return (...args: A) => {
@@ -11,7 +11,7 @@ export function debounceFn<A extends Array<any>>(
 
 export function throttleFn<A extends Array<any>, R>(
   delay: number,
-  fn: (...args: A) => R
+  fn: (...args: A) => R,
 ): (...args: A) => R | void {
   let isThrottled = false
   return (...args: A) => {

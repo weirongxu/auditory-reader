@@ -25,7 +25,7 @@ type HotkeyItem = [
   key: string,
   keyDescription: string[],
   description: string,
-  callback: HotkeyCallbackMap
+  callback: HotkeyCallbackMap,
 ]
 type HotkeyItemList = HotkeyItem[]
 type HotkeyOption = {
@@ -57,15 +57,19 @@ function getHotkeyKey(hotkey: Hotkey): string {
   }
 }
 
+function getKeyDesc(key: string): string {
+  let s = ''
+  if (key.length > 1) s += capitalize(key)
+  else if (key === ' ') s += 'Space'
+  else s += key
+  return s
+}
+
 function getHotkeyDesc(hotkey: Hotkey): string[] {
   if (Array.isArray(hotkey)) {
     return hotkey.map(getHotkeyDesc).flat()
   } else if (typeof hotkey === 'string') {
-    let s = ''
-    if (hotkey.length > 1) s += capitalize(hotkey)
-    else if (hotkey === ' ') s += 'Space'
-    else s += hotkey
-    return [s]
+    return [getKeyDesc(hotkey)]
   } else {
     let s = ''
     const hasModifier = hotkey.shift || hotkey.ctrl || hotkey.alt
@@ -73,7 +77,7 @@ function getHotkeyDesc(hotkey: Hotkey): string[] {
     if (hotkey.shift) s += 'Shift-'
     if (hotkey.ctrl) s += 'Ctrl-'
     if (hotkey.alt) s += 'Alt-'
-    s += getHotkeyDesc(hotkey.key)
+    s += getKeyDesc(hotkey.key)
     if (hasModifier) s += '>'
     return [s]
   }
@@ -83,7 +87,7 @@ export function useHotkeys() {
   const addHotkeys = useCallback(
     (
       hotkeys: [hotkey: Hotkey, description: string, callback: () => void][],
-      options: HotkeyOption = {}
+      options: HotkeyOption = {},
     ) => {
       const hotkeyItems = globalStore.get(hotkeyItemsAtom)
       const updatedItems: { item: HotkeyItem; level: number }[] = []
@@ -100,7 +104,7 @@ export function useHotkeys() {
         } else {
           if (item[3].has(level))
             throw new Error(
-              `Hotkey ${JSON.stringify(hotkey)} level: ${level} already exists`
+              `Hotkey ${JSON.stringify(hotkey)} level: ${level} already exists`,
             )
           item[3].set(level, callback)
         }
@@ -117,11 +121,11 @@ export function useHotkeys() {
         }
         globalStore.set(
           hotkeyItemsAtom,
-          hotkeyItems.filter((item) => !removeItems.includes(item))
+          hotkeyItems.filter((item) => !removeItems.includes(item)),
         )
       }
     },
-    []
+    [],
   )
 
   const addHotkey = useCallback(
@@ -129,11 +133,11 @@ export function useHotkeys() {
       hotkey: Hotkey,
       description: string,
       callback: () => void,
-      options: HotkeyOption = {}
+      options: HotkeyOption = {},
     ) => {
       return addHotkeys([[hotkey, description, callback]], options)
     },
-    [addHotkeys]
+    [addHotkeys],
   )
 
   return { addHotkey, addHotkeys }
@@ -215,7 +219,7 @@ export function HotkeysProvider() {
     () => {
       setOpen(false)
     },
-    { enable: open, level: 200 }
+    { enable: open, level: 200 },
   )
 
   return (
@@ -239,7 +243,7 @@ export function HotkeysProvider() {
                 </div>
                 <div className="desc">{description}</div>
               </li>
-            )
+            ),
           )}
         </ul>
       </DialogContent>

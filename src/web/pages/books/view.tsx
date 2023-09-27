@@ -53,7 +53,7 @@ export const useBookView = (uuid: string) => {
     (pos: SetStateAction<BookTypes.PropertyPosition | undefined>) => {
       setPosOrigin(pos)
     },
-    []
+    [],
   )
 
   const book = useBook(bookData)

@@ -8,7 +8,7 @@ type SyncPositionPost = {
 }
 
 export const booksSyncPositionRouter = new URouter<SyncPositionPost, any>(
-  'books/sync-position'
+  'books/sync-position',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)

@@ -159,7 +159,7 @@ export function usePlayerUI(
     started: boolean
     player: Player
     activeNavs?: BookNav[]
-  }
+  },
 ) {
   const { book, player, pos, started, activeNavs } = props
   const nav = useNavigate()
@@ -291,7 +291,7 @@ export function usePlayerUI(
         label: v.name,
         value: v.voiceURI,
       })),
-    [allSortedVoices]
+    [allSortedVoices],
   )
   const SelectVoices = useMemo(() => {
     return (

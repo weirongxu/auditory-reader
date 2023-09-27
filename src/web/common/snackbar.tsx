@@ -27,7 +27,7 @@ export function SnackbarPrivider() {
     (item: SnackbarItem) => {
       setList(list.filter((it) => it !== item))
     },
-    [list, setList]
+    [list, setList],
   )
 
   return (

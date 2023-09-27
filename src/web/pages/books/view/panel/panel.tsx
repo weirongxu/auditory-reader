@@ -11,7 +11,7 @@ export function useBookPanel(
   book: BookView,
   player: Player,
   activeNavs: BookNav[] | undefined,
-  pos: BookTypes.PropertyPosition
+  pos: BookTypes.PropertyPosition,
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
@@ -37,7 +37,7 @@ export function useBookPanel(
         </div>
       ) : null,
 
-    [BookmarkView, NavTreeView, viewPanelType]
+    [BookmarkView, NavTreeView, viewPanelType],
   )
 
   return useMemo(
@@ -48,6 +48,12 @@ export function useBookPanel(
       toggleBookmark,
       activeBookmark,
     }),
-    [bookmarks, BookPanelView, setViewPanelType, toggleBookmark, activeBookmark]
+    [
+      bookmarks,
+      BookPanelView,
+      setViewPanelType,
+      toggleBookmark,
+      activeBookmark,
+    ],
   )
 }

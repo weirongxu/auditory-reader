@@ -14,7 +14,7 @@ export type BookViewRes = {
 }
 
 export const booksViewRouter = new URouter<BookViewQuery, BookViewRes>(
-  'books/view'
+  'books/view',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)

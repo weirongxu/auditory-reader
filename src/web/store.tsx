@@ -41,7 +41,7 @@ function createStore<T>(options: {
         if (writeValue) localStorage.setItem(storeKey, writeValue)
         else localStorage.removeItem(storeKey)
       },
-      [inner, setInner]
+      [inner, setInner],
     )
     return [inner, setValue]
   }
@@ -68,7 +68,7 @@ const useLastVoiceURI = (book: BookTypes.Entity) => {
 
   const lastURI = useMemo(
     () => dict[book.langCode] ?? null,
-    [book.langCode, dict]
+    [book.langCode, dict],
   )
 
   const setLastURI = useCallback(
@@ -78,7 +78,7 @@ const useLastVoiceURI = (book: BookTypes.Entity) => {
       else delete newDict[book.langCode]
       setDict(newDict)
     },
-    [book.langCode, dict, setDict]
+    [book.langCode, dict, setDict],
   )
 
   return [lastURI, setLastURI] as const
@@ -114,7 +114,7 @@ export const useVoice = (book: BookTypes.Entity) => {
       setDict(newDict)
       setLastVoiceURI(voiceURI)
     },
-    [book.uuid, dict, setDict, setLastVoiceURI]
+    [book.uuid, dict, setDict, setLastVoiceURI],
   )
 
   const voice = useMemo(() => {
@@ -131,7 +131,7 @@ export const useVoice = (book: BookTypes.Entity) => {
     (voice: SpeechSynthesisVoice | null) => {
       setVoiceURI(voice?.voiceURI ?? null)
     },
-    [setVoiceURI]
+    [setVoiceURI],
   )
 
   return { voiceURI, setVoiceURI, voice, setVoice, allSortedVoices }

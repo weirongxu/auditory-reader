@@ -6,7 +6,7 @@ export type BookRemoveQuery = {
 }
 
 export const booksRemoveRouter = new URouter<BookRemoveQuery>(
-  'books/remove'
+  'books/remove',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   await bookManager.delete(userInfo.account, body.uuid)

@@ -5,7 +5,7 @@ export class Emitter<T extends Record<string, any>> {
 
   on<K extends keyof T & string>(
     name: K,
-    callback: (value: T[K]) => void | Promise<void>
+    callback: (value: T[K]) => void | Promise<void>,
   ): Disposable {
     let listeners = this.#listeners.get(name)
     if (!listeners) {

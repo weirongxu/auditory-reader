@@ -7,7 +7,7 @@ interface BookAddBookmark extends BookViewQuery {
 }
 
 export const booksDeleteBookmarksRouter = new URouter<BookAddBookmark, any>(
-  'books/delete-bookmarks'
+  'books/delete-bookmarks',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)

@@ -32,7 +32,7 @@ it('parseXML', async () => {
   expect(
     compact(
       doc.children?.map((c) => (typeof c === 'object' ? c.name : undefined)) ??
-        []
-    )
+        [],
+    ),
   ).toEqual(['head', 'docTitle', 'navMap'])
 })

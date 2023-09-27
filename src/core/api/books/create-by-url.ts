@@ -52,7 +52,7 @@ export const booksCreateByUrlRouter = new URouter<
     await HTMLImgs2DataURL(body.url, articleDoc.body)
 
   const htmlContent = new articleJsdom.window.XMLSerializer().serializeToString(
-    articleDoc.body
+    articleDoc.body,
   )
 
   const epubBuf = await new EpubGen({

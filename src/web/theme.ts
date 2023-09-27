@@ -1,6 +1,5 @@
-import { createTheme, useMediaQuery, type Theme } from '@mui/material'
-import { atom, useAtom } from 'jotai'
-import { useEffect } from 'react'
+import { createTheme, useMediaQuery } from '@mui/material'
+import { useMemo } from 'react'
 import { useUserColorScheme, type ColorScheme } from './store.js'
 
 const createAppTheme = (mode: ColorScheme) =>
@@ -72,24 +71,24 @@ const createAppTheme = (mode: ColorScheme) =>
     },
   })
 
-const themeAtom = atom<Theme>(createTheme())
+const lightTheme = createAppTheme('light')
+const darkTheme = createAppTheme('dark')
 
 export const useAppTheme = () => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
-  const [theme, setTheme] = useAtom(themeAtom)
   const [userColorScheme] = useUserColorScheme()
 
-  useEffect(() => {
-    setTheme(
-      createAppTheme(
-        userColorScheme === 'system'
-          ? prefersDarkMode
-            ? 'dark'
-            : 'light'
-          : userColorScheme
-      )
-    )
-  }, [prefersDarkMode, setTheme, userColorScheme])
+  const mode =
+    userColorScheme === 'system'
+      ? prefersDarkMode
+        ? 'dark'
+        : 'light'
+      : userColorScheme
+
+  const theme = useMemo(
+    () => (mode === 'light' ? lightTheme : darkTheme),
+    [mode],
+  )
 
   return theme
 }

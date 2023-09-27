@@ -19,7 +19,7 @@ export class Player {
   constructor(
     public book: BookView,
     initPos: BookTypes.PropertyPosition,
-    iframeRef: RefObject<HTMLIFrameElement>
+    iframeRef: RefObject<HTMLIFrameElement>,
   ) {
     this.states = new PlayerStatesManager()
     this.states.pos = initPos
@@ -197,7 +197,7 @@ export class Player {
 export function usePlayer(
   book: BookView,
   pos: BookTypes.PropertyPosition,
-  iframeRef: RefObject<HTMLIFrameElement>
+  iframeRef: RefObject<HTMLIFrameElement>,
 ) {
   const player = useRef<Player>()
   if (!player.current) {
