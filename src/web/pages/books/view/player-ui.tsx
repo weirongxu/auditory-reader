@@ -112,7 +112,7 @@ function TimerRemainBadge(props: {
     const usedSeconds = refUsedSeconds.current ?? 0
 
     const startAt = Date.now() / 1000
-    let timer: NodeJS.Timer | null = null
+    let timer: NodeJS.Timeout | null = null
     const fn = () => {
       const used = Date.now() / 1000 - startAt + usedSeconds
       refUsedSeconds.current = used
