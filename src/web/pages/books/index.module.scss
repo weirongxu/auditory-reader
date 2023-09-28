@@ -2,5 +2,6 @@
   cursor: pointer;
   &:hover {
     background-color: var(--main-bg-hover);
+    color: var(--main-fg-hover);
   }
 }

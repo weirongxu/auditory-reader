@@ -53,8 +53,9 @@ export abstract class BookListBase {
     const list = await this.list()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
-    const [entityJson] = list.splice(entityIndex, 1)
     const targetIndex = entityIndex + offset
+    if (targetIndex < 0 || targetIndex >= list.length) return
+    const [entityJson] = list.splice(entityIndex, 1)
     list.splice(targetIndex, 0, entityJson)
     await this.write()
   }

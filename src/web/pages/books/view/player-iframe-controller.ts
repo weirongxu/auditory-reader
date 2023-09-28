@@ -599,8 +599,7 @@ export class PlayerIframeController {
       }
 
       .${PARA_BOX_CLASS}:hover {
-        background: var(--main-bg-hover);
-        outline: 5px solid var(--main-bg-hover);
+        outline: 1px dashed var(--main-fg-hover);
       }
 
       .${PARA_HIGHLIGHT_CLASS} > div {
@@ -611,7 +610,9 @@ export class PlayerIframeController {
       }
 
       .${PARA_BOOKMARK_CLASS} {
-        text-decoration: 1px dashed underline;
+        text-decoration-line: underline;
+        text-decoration-style: dashed;
+        text-decoration-thickness: 1px;
         text-underline-offset: 4px;
       }
     `
