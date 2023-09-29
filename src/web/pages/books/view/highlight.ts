@@ -39,6 +39,15 @@ export class Highlight {
     doc.body.appendChild(this.#hlRoot)
     this.#cacheHlRectMap.clear()
   }
+
+  #highlightHide() {
+    const hlRoot = this.#hlRoot
+    if (!hlRoot) return
+    Array.from(hlRoot.children).forEach((div) => {
+      ;(div as HTMLDivElement).style.display = 'none'
+    })
+  }
+
   #highlightCharsByRects(range: Range) {
     const doc = this.doc
     const hlRoot = this.#hlRoot
@@ -55,9 +64,7 @@ export class Highlight {
     }
 
     const rects = [...range.getClientRects()]
-    ;[...hlRoot.children].forEach((div) => {
-      ;(div as HTMLDivElement).style.display = 'none'
-    })
+    this.#highlightHide()
     for (const [idx, rect] of rects.entries()) {
       const div = getRectDiv(idx)
       div.style.display = 'block'
@@ -165,6 +172,14 @@ export class Highlight {
     this.iframeCtrl
       .tryManipulateDOM(() => {
         this.#highlightChars(node, charIndex, charLength)
+      })
+      .catch(console.error)
+  }
+
+  highlightHide() {
+    this.iframeCtrl
+      .tryManipulateDOM(() => {
+        this.#highlightHide()
       })
       .catch(console.error)
   }

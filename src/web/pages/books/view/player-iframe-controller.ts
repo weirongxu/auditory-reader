@@ -122,6 +122,12 @@ export class PlayerIframeController {
       this.updateSplitPageResizeToNode()
     })
 
+    this.states.events.on('started', (started) => {
+      if (!started) {
+        this.player.utterer.hl.highlightHide()
+      }
+    })
+
     this.states.uiEvents.on('bookmarks', () => {
       this.updateBookmarks()
     })
@@ -491,7 +497,7 @@ export class PlayerIframeController {
                 await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
                   animated: false,
                 })
-              this.player.utterer.hl.reCreateRoot(doc)
+              this.player.utterer.hl.highlightHide()
             })
           }),
         )
