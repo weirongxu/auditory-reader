@@ -13,11 +13,13 @@ export type SnackbarItem = {
   message: string
 }
 
-const snackbarAtom = atom<SnackbarItem[]>([])
+const snackbarAtom = atom<(SnackbarItem & { id: number })[]>([])
+let id = 0
 
 export function pushSnackbar(item: SnackbarItem) {
   const list = globalStore.get(snackbarAtom)
-  globalStore.set(snackbarAtom, [...list, item])
+  id += 1
+  globalStore.set(snackbarAtom, [...list, { ...item, id }])
 }
 
 export function SnackbarPrivider() {
@@ -25,16 +27,16 @@ export function SnackbarPrivider() {
 
   const removeItem = useCallback(
     (item: SnackbarItem) => {
-      setList(list.filter((it) => it !== item))
+      setList((list) => list.filter((it) => it !== item))
     },
-    [list, setList],
+    [setList],
   )
 
   return (
     <>
-      {list.map((it, index) => (
+      {list.map((it) => (
         <Snackbar
-          key={index}
+          key={it.id}
           open={true}
           autoHideDuration={it.duration ?? 5000}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
