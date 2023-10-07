@@ -28,6 +28,10 @@ export class Emitter<T extends Record<string, any>> {
       Promise.resolve(listener.call(null, value)).catch(console.error)
     }
   }
+
+  off<K extends keyof T & string>(name: K) {
+    this.#listeners.delete(name)
+  }
 }
 
 /**

@@ -34,6 +34,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
+import { Emitter } from '../../../../core/util/emitter.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -76,6 +77,7 @@ export class PlayerIframeController {
     paragraph: number
     readablePart: ReadablePart
   }
+  protected events = new Emitter<{ resize: void }>()
   protected win?: Window
   public doc?: Document
   public scrollContainer?: HTMLElement
@@ -376,8 +378,11 @@ export class PlayerIframeController {
     try {
       // load iframe
       if (isLoadNewPath) {
+        // hidden
         if (!this.#debugLoading) iframe.style.visibility = 'hidden'
         this.states.loading = true
+        this.events.off('resize')
+
         const loaded = new Promise<void>((resolve) => {
           iframe.addEventListener(
             'load',
@@ -404,6 +409,9 @@ export class PlayerIframeController {
         )
         this.readableParts = readableExtractor.toReadableParts()
         this.alias = readableExtractor.alias()
+
+        // loaded
+        await this.onLoaded(iframe)
       }
 
       // goto pos
@@ -425,13 +433,11 @@ export class PlayerIframeController {
         paragraph,
       }
       await this.scrollToCurParagraph(locate.animated ?? false)
-
-      // loaded
-      if (isLoadNewPath) {
-        await this.onLoaded(iframe)
-        if (!this.#debugLoading) iframe.style.visibility = 'visible'
-      }
     } finally {
+      // loaded
+      if (isLoadNewPath)
+        if (!this.#debugLoading) iframe.style.visibility = 'visible'
+
       this.states.loading = false
     }
   }
@@ -481,7 +487,7 @@ export class PlayerIframeController {
       this.injectCSS(doc)
       if (this.isSplitPage) {
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
-        win.addEventListener(
+        this.events.on(
           'resize',
           debounceFn(300, () => {
             async(async () => {
@@ -512,6 +518,9 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.updateBookmarks()
+      win.addEventListener('resize', () => {
+        this.events.fire('resize', undefined)
+      })
     }
   }
 

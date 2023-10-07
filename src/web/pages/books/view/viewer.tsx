@@ -39,11 +39,17 @@ export function useViewer(props: BookContextProps) {
   const MainContent = useMemo(
     () => (
       <Stack flex={1} position="relative">
-        {loading && (
-          <Stack position="absolute" zIndex={2}>
-            <CircularProgress></CircularProgress>
-          </Stack>
-        )}
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 2,
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          {loading && <CircularProgress></CircularProgress>}
+        </div>
         <iframe title="viewer" ref={iframeRef}></iframe>
       </Stack>
     ),
