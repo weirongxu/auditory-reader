@@ -81,12 +81,15 @@ export class Highlight {
     const container = this.iframeCtrl.scrollContainer
     if (!rects.length || !container) return
 
-    const leftList: number[] = []
-    for (const rect of rects) {
-      leftList.push(rect.left)
+    if (this.iframeCtrl.isSplitPage) {
+      const left =
+        sum(rects.map((r) => r.left)) / rects.length + container.scrollLeft
+      this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)
+    } else {
+      const top =
+        sum(rects.map((r) => r.top)) / rects.length + container.scrollTop
+      this.iframeCtrl.scrollToTop(top).catch(console.error)
     }
-    const left = sum(leftList) / leftList.length + container.scrollLeft
-    this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)
   })
 
   #findRangePos(

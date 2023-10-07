@@ -20,7 +20,5 @@ export const globalStyle = `
     --main-fg-active: #ccc;
     --main-fg-hover: #ccc;
     --main-border: #777;
-    --main-bg-highlight: rgba(255, 255, 255, 0.9);
-    --main-fg-highlight: rgba(100, 100, 100, 0.8);
   }
 `

@@ -1,4 +1,3 @@
-import type { ClassType } from 'react'
 import { isUrl } from './url.js'
 
 export function isInputElement(element: any): element is Element {

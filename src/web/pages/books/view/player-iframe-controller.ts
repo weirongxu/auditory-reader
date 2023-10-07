@@ -23,7 +23,11 @@ import {
 } from '../../../../core/util/collection.js'
 import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
 import { async, sleep } from '../../../../core/util/promise.js'
-import { debounceFn } from '../../../../core/util/timer.js'
+import {
+  debounceFn,
+  iterateAnimate,
+  type IterateAnimateOptions,
+} from '../../../../core/util/timer.js'
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
 import { pushSnackbar } from '../../../common/snackbar.js'
@@ -34,7 +38,6 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { Emitter } from '../../../../core/util/emitter.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -46,9 +49,7 @@ type SplitPageNode = {
   scrollLeft: number
 }
 
-type ScrollOptions = {
-  iteration?: number
-  duration?: number
+interface ScrollOptions extends IterateAnimateOptions {
   /**
    * @default true
    */
@@ -57,7 +58,6 @@ type ScrollOptions = {
    * @default 'center'
    */
   position?: 'center' | 'nearest'
-  abortCtrl?: AbortController
 }
 
 export class PlayerIframeController {
@@ -178,10 +178,8 @@ export class PlayerIframeController {
     }
   }
 
-  public async tryManipulateDOM(callback: () => any) {
-    setTimeout(() => {
-      Promise.resolve(callback()).catch(console.error)
-    }, 100)
+  public async tryManipulateDOM(callback: () => unknown) {
+    await Promise.race([callback(), sleep(100)])
   }
 
   protected getReadablePartIndexByAnchorId(anchorId: string): number | null {
@@ -210,10 +208,7 @@ export class PlayerIframeController {
   public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
     await this.tryManipulateDOM(async () => {
       if (!this.isSplitPage) {
-        element.scrollIntoView({
-          behavior: options.animated ?? true ? 'smooth' : 'auto',
-          block: options.position ?? 'center',
-        })
+        await this.scrollToTop(element.offsetTop, options)
         return
       }
 
@@ -227,13 +222,54 @@ export class PlayerIframeController {
   }
 
   /**
+   * scroll to top offset with animation
+   */
+  public async scrollToTop(
+    top: number,
+    {
+      iteration = 10,
+      duration = 100,
+      animated = true,
+      abortCtrl,
+      position = 'center',
+    }: ScrollOptions = {},
+  ) {
+    if (!this.win) return
+    const container = this.scrollContainer
+    if (!container) return
+
+    // get center top
+    const finalTop =
+      position === 'center' ? Math.max(0, top - this.win?.innerHeight / 2) : top
+
+    if (!animated) {
+      container.scrollTop = finalTop
+      return
+    }
+
+    const startTop = container.scrollTop
+    const offset = finalTop - startTop
+    const unit = offset / iteration
+    await iterateAnimate(
+      {
+        duration,
+        iteration,
+        abortCtrl,
+      },
+      (index) => {
+        container.scrollTop = startTop + index * unit
+      },
+    )
+  }
+
+  /**
    * scroll to page by left offset with animation
    */
   public async scrollToPageByLeft(
     left: number,
     {
       iteration = 10,
-      duration = 20,
+      duration = 100,
       animated = true,
       abortCtrl,
     }: ScrollOptions = {},
@@ -254,20 +290,19 @@ export class PlayerIframeController {
       return
     }
 
-    let aborted = false
-    abortCtrl?.signal.addEventListener('abort', () => {
-      aborted = true
-    })
-
     const startLeft = container.scrollLeft
     const offset = finalLeft - startLeft
     const unit = offset / iteration
-    const unitTime = duration / iteration
-    for (const i of range(0, iteration + 1)) {
-      await sleep(unitTime)
-      if (aborted) break
-      container.scrollLeft = startLeft + i * unit
-    }
+    await iterateAnimate(
+      {
+        duration,
+        iteration,
+        abortCtrl,
+      },
+      (index) => {
+        container.scrollLeft = startLeft + index * unit
+      },
+    )
   }
 
   #pushSplitPageLast?: {
@@ -617,7 +652,7 @@ export class PlayerIframeController {
       }
 
       .${PARA_HIGHLIGHT_CLASS} > div {
-        background-color: var(--main-bg-highlight);
+        background-color: var(--main-bg-highlight) !important;
         color: var(--main-fg-highlight) !important;
         position: fixed;
         user-select: none;
