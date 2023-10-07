@@ -209,15 +209,14 @@ export class PlayerIframeController {
     await this.tryManipulateDOM(async () => {
       if (!this.isSplitPage) {
         await this.scrollToTop(element.offsetTop, options)
-        return
+      } else {
+        if (!this.doc) return
+        const body = this.doc.body
+        const bodyLeft = body.getBoundingClientRect().left
+        const rect = element.getBoundingClientRect()
+        const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
+        await this.scrollToPageByLeft(endLeft, options)
       }
-
-      if (!this.doc) return
-      const body = this.doc.body
-      const bodyLeft = body.getBoundingClientRect().left
-      const rect = element.getBoundingClientRect()
-      const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
-      await this.scrollToPageByLeft(endLeft, options)
     })
   }
 
@@ -519,7 +518,7 @@ export class PlayerIframeController {
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       win.addEventListener('resize', () => {
-        if (!this.states.loading) return
+        if (this.states.loading) return
         this.onResize(win, doc)
       })
       if (this.isSplitPage) {
@@ -537,7 +536,7 @@ export class PlayerIframeController {
     }
   }
 
-  onResize = debounceFn(300, (win: Window, doc: Document) => {
+  protected onResize = debounceFn(300, (win: Window, doc: Document) => {
     async(async () => {
       this.parsePageResizeImgs(win, doc)
       if (this.isSplitPage) {
