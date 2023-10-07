@@ -5,13 +5,17 @@ import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 
-function NavList(props: {
+function NavList({
+  navs,
+  activeNavs,
+  selectedNav,
+  player,
+}: {
   navs: BookNav[]
   activeNavs: BookNav[]
   selectedNav: BookNav | undefined
   player: Player
 }) {
-  const { navs, activeNavs, selectedNav, player } = props
   if (!navs.length) return null
 
   return (
@@ -49,12 +53,15 @@ function NavList(props: {
   )
 }
 
-function NavTree(props: {
+function NavTree({
+  book,
+  activeNavs,
+  player,
+}: {
   book: BookView
   activeNavs?: BookNav[]
   player: Player
 }) {
-  const { book, activeNavs, player } = props
   const { addHotkeys } = useHotkeys()
   const refNav = useRef<HTMLDivElement>(null)
   const [selectedIndex, setSelectedIndex] = useState<number>(0)

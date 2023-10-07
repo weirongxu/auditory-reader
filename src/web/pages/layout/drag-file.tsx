@@ -59,7 +59,7 @@ function filterFileOrUrl(event: React.DragEvent<HTMLDivElement>) {
   })
 }
 
-export function DragFile(props: { children: React.ReactNode }) {
+export function DragFile({ children }: { children: React.ReactNode }) {
   const [dragOver, setDragOver] = useState(0)
   const [dragItem, setDragItem] = useState<DragItem | null>(null)
   const [isInputLangCode, setIsInputLangCode] = useState(false)
@@ -228,7 +228,7 @@ export function DragFile(props: { children: React.ReactNode }) {
           ></Autocomplete>
         </Stack>
       )}
-      {props.children}
+      {children}
     </Stack>
   )
 }

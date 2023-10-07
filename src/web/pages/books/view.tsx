@@ -77,9 +77,13 @@ export const useBookView = (uuid: string) => {
   }
 }
 
-function BookViewContent(props: BookContextProps) {
-  const { book } = props
-  const { BookPanelView, MainContent, activeNavs } = useViewer(props)
+function BookViewContent({ uuid, book, pos, setPos }: BookContextProps) {
+  const { BookPanelView, MainContent, activeNavs } = useViewer({
+    uuid,
+    book,
+    pos,
+    setPos,
+  })
   const pushTitle = usePushTitle()
 
   const lastNav = useMemo(() => activeNavs?.at(-1), [activeNavs])
@@ -98,8 +102,7 @@ function BookViewContent(props: BookContextProps) {
   )
 }
 
-function BookViewReq(props: { uuid: string }) {
-  const { uuid } = props
+function BookViewReq({ uuid }: { uuid: string }) {
   const { error, pos, setPos, book } = useBookView(uuid)
 
   if (error) return <NotFound title="book"></NotFound>

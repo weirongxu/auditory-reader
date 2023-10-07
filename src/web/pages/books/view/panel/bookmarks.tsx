@@ -11,13 +11,17 @@ import { pushSnackbar } from '../../../../common/snackbar.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 
-function Bookmarks(props: {
+function Bookmarks({
+  bookmarks,
+  activeBookmarkIndex,
+  player,
+  removeBookmark,
+}: {
   bookmarks: BookTypes.PropertyBookmark[] | undefined | null
   activeBookmarkIndex: number | undefined
   player: Player
   removeBookmark: (bookmark: BookTypes.PropertyBookmark) => void
 }) {
-  const { bookmarks, activeBookmarkIndex, player, removeBookmark } = props
   const { addHotkeys } = useHotkeys()
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const refBookmark = useRef<HTMLDivElement>(null)

@@ -125,15 +125,18 @@ export class PlayerStatesManager {
 
 export function usePlayerSync(
   player: Player,
-  props: {
+  {
+    setPos,
+    setStarted,
+    setActiveNavs,
+    setLoading,
+  }: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
   },
 ) {
-  const { setPos, setStarted, setActiveNavs, setLoading } = props
-
   useEffect(() => {
     const events = player.states.events
     const disposes = [
@@ -156,8 +159,9 @@ export function usePlayerSync(
   }, [player, setPos, setStarted, setActiveNavs, setLoading])
 }
 
-export function usePlayerSyncUI(player: Player, props: PlayerReadonlyStates) {
-  const {
+export function usePlayerUISync(
+  player: Player,
+  {
     isPersonReplace,
     speechSpeed,
     voice,
@@ -165,8 +169,8 @@ export function usePlayerSyncUI(player: Player, props: PlayerReadonlyStates) {
     paragraphRepeat,
     splitPage,
     bookmarks,
-  } = props
-
+  }: PlayerReadonlyStates,
+) {
   useEffect(() => {
     player.states.syncUIState('bookmarks', bookmarks)
   }, [player, bookmarks])

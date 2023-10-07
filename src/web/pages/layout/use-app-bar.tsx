@@ -16,14 +16,19 @@ export const appBarStatesAtom = atom<{
   bottomRight: null,
 })
 
-export const useAppBarSync = (props: {
+export const useAppBarSync = ({
+  topLeft,
+  topRight,
+  settings,
+  bottomLeft,
+  bottomRight,
+}: {
   topLeft?: React.ReactNode
   topRight?: React.ReactNode
   settings?: React.ReactNode
   bottomLeft?: React.ReactNode
   bottomRight?: React.ReactNode
 }) => {
-  const { topLeft, topRight, settings, bottomLeft, bottomRight } = props
   const [, setAppBarStates] = useAtom(appBarStatesAtom)
 
   useEffect(() => {

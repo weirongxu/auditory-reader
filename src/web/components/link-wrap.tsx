@@ -5,7 +5,7 @@ export type LinkWrapProps = {
   children: (href: string) => JSX.Element
 }
 
-export function LinkWrap(props: LinkWrapProps) {
-  const href = useHref(props.to)
-  return props.children(href)
+export function LinkWrap({ to, children }: LinkWrapProps) {
+  const href = useHref(to)
+  return children(href)
 }

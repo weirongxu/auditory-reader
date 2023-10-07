@@ -12,8 +12,7 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 
-export function useViewer(props: BookContextProps) {
-  const { book, pos, setPos } = props
+export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
@@ -57,7 +56,10 @@ export function useViewer(props: BookContextProps) {
   )
 
   const { BookPanelView, toggleBookmark } = usePlayerUI({
-    ...props,
+    uuid,
+    book,
+    pos,
+    setPos,
     player,
     started,
     activeNavs,

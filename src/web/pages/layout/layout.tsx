@@ -24,7 +24,7 @@ import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
 import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 
-export const Layout = (props: { children?: React.ReactNode }) => {
+export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const title = useTitle()
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
@@ -162,7 +162,7 @@ export const Layout = (props: { children?: React.ReactNode }) => {
             overflowY: 'auto',
           }}
         >
-          {props.children}
+          {children}
         </div>
         {appBarBottom}
       </Stack>

@@ -33,7 +33,7 @@ import {
   SPLIT_PAGE_TYPES,
 } from '../../store.js'
 
-export function SettingLine(props: { children: React.ReactNode }) {
+export function SettingLine({ children }: { children: React.ReactNode }) {
   return (
     <Stack
       direction="row"
@@ -42,20 +42,19 @@ export function SettingLine(props: { children: React.ReactNode }) {
         alignItems: 'center',
       }}
     >
-      {props.children}
+      {children}
     </Stack>
   )
 }
 
-export function SettingLabel(props: {
+export function SettingLabel({
+  sx,
+  children,
+}: {
   sx?: SxProps<Theme>
   children: React.ReactNode
 }) {
-  return (
-    <Typography sx={{ alignSelf: 'start', ...props.sx }}>
-      {props.children}
-    </Typography>
-  )
+  return <Typography sx={{ alignSelf: 'start', ...sx }}>{children}</Typography>
 }
 
 const AutoSectionCheckBox = () => {
@@ -110,11 +109,13 @@ const TimerInput = () => {
   )
 }
 
-function PersonReplaceCheckBox(props: {
+function PersonReplaceCheckBox({
+  checked,
+  onChange,
+}: {
   checked: boolean
   onChange: (checked: boolean) => void
 }) {
-  const { checked, onChange } = props
   const [personReplaceOpened, setPersonReplaceOpened] = useState<boolean>(false)
   const [anchor, setAnchor] = useState<any>()
 

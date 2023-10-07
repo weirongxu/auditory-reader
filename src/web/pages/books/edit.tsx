@@ -17,8 +17,7 @@ import { async } from '../../../core/util/promise.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { NotFound } from '../not-found.js'
 
-function UpdateForm(props: { book: BookTypes.Entity }) {
-  const { book } = props
+function UpdateForm({ book }: { book: BookTypes.Entity }) {
   const nav = useNavigate()
   const langOptions = useOrderedLangOptions()
   const [name, setName] = useState<string>(book.name)
@@ -81,8 +80,7 @@ function UpdateForm(props: { book: BookTypes.Entity }) {
   )
 }
 
-function BookEditReq(props: { uuid: string }) {
-  const { uuid } = props
+function BookEditReq({ uuid }: { uuid: string }) {
   const { data: bookItem } = useAction(booksShowRouter, { uuid })
 
   if (!bookItem) return <CircularProgress></CircularProgress>

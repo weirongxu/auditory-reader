@@ -3,7 +3,11 @@ import { Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import styles from './input-file.module.scss'
 
-export const InputFile = (props: {
+export const InputFile = ({
+  accept,
+  prompt,
+  onChange,
+}: {
   accept?: string
   prompt?: string
   onChange?: (files: File[]) => void
@@ -13,13 +17,13 @@ export const InputFile = (props: {
     <label className={styles.inputFile}>
       <input
         hidden
-        accept={props.accept}
+        accept={accept}
         multiple
         type="file"
         onChange={(event) => {
           const files = [...(event.target.files ?? [])]
           setAcceptedFiles(files)
-          props.onChange?.(files)
+          onChange?.(files)
         }}
       />
       {acceptedFiles.length ? (
@@ -35,8 +39,8 @@ export const InputFile = (props: {
         </Stack>
       ) : (
         <Stack spacing={2} justifyContent="center">
-          {props.prompt && (
-            <Typography sx={{ textAlign: 'center' }}>{props.prompt}</Typography>
+          {prompt && (
+            <Typography sx={{ textAlign: 'center' }}>{prompt}</Typography>
           )}
         </Stack>
       )}

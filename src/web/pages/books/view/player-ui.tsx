@@ -42,20 +42,22 @@ import {
 import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
-import { usePlayerSyncUI } from './player-states.js'
+import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
 
-function SettingLine(props: { children: React.ReactNode }) {
-  return <Stack direction="row">{props.children}</Stack>
+function SettingLine({ children }: { children: React.ReactNode }) {
+  return <Stack direction="row">{children}</Stack>
 }
 
-function TooltipButton(props: {
+function TooltipButton({
+  tooltip,
+  ...btnProps
+}: {
   tooltip: React.ReactNode
   disabled?: boolean
   onClick: React.MouseEventHandler | undefined
   children: React.ReactNode
 }) {
-  const { tooltip, ...btnProps } = props
   const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState<HTMLSpanElement>()
   return (
@@ -92,13 +94,17 @@ function TooltipButton(props: {
   )
 }
 
-function TimerRemainBadge(props: {
+function TimerRemainBadge({
+  started,
+  player,
+  stopTimerEnabled,
+  stopTimerSeconds,
+}: {
   started: boolean
   player: Player
   stopTimerEnabled: boolean
   stopTimerSeconds: number
 }) {
-  const { started, player, stopTimerEnabled, stopTimerSeconds } = props
   const refUsedSeconds = useRef<number>()
   const [resetCount, setResetCount] = useState<number>(0)
   const [remainSeconds, setRemainSeconds] = useState<number>(stopTimerSeconds)
@@ -154,14 +160,17 @@ function TimerRemainBadge(props: {
   )
 }
 
-export function usePlayerUI(
-  props: BookContextProps & {
-    started: boolean
-    player: Player
-    activeNavs?: BookNav[]
-  },
-) {
-  const { book, player, pos, started, activeNavs } = props
+export function usePlayerUI({
+  book,
+  player,
+  pos,
+  started,
+  activeNavs,
+}: BookContextProps & {
+  started: boolean
+  player: Player
+  activeNavs?: BookNav[]
+}) {
   const nav = useNavigate()
   const {
     bookmarks,
@@ -180,7 +189,7 @@ export function usePlayerUI(
   const [splitPage] = useSplitPage()
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
-    usePlayerSyncUI(player, {
+    usePlayerUISync(player, {
       bookmarks,
       autoNextSection,
       isPersonReplace,
