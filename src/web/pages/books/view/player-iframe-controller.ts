@@ -483,18 +483,17 @@ export class PlayerIframeController {
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
+      win.addEventListener('resize', () => {
+        if (!this.states.loading) return
+        this.onResize(win, doc)
+      })
       if (this.isSplitPage) {
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
-        win.addEventListener('resize', () => {
-          if (!this.states.loading) return
-          this.onResize(win, doc)
-        })
-
         this.hookPageTouch()
         this.hookPageWheel()
         this.hookPageScroll()
       }
-      this.parsePageResizeImgs(doc)
+      this.parsePageResizeImgs(win, doc)
       this.hookALinks(doc)
       this.hookImgs(doc)
       this.hookParagraphClick()
@@ -505,19 +504,22 @@ export class PlayerIframeController {
 
   onResize = debounceFn(300, (win: Window, doc: Document) => {
     async(async () => {
-      if (!this.scrollContainer) return
-      await this.splitPageCalcuate(win, doc, this.scrollContainer)
-      const resizeToNode =
-        this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
-      if (resizeToNode)
-        await this.scrollToElem(resizeToNode.readablePart.elem, {
-          animated: false,
-        })
-      else
-        await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
-          animated: false,
-        })
-      this.player.utterer.hl.highlightHide()
+      this.parsePageResizeImgs(win, doc)
+      if (this.isSplitPage) {
+        if (!this.scrollContainer) return
+        await this.splitPageCalcuate(win, doc, this.scrollContainer)
+        const resizeToNode =
+          this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
+        if (resizeToNode)
+          await this.scrollToElem(resizeToNode.readablePart.elem, {
+            animated: false,
+          })
+        else
+          await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
+            animated: false,
+          })
+        this.player.utterer.hl.highlightHide()
+      }
     })
   })
 
@@ -842,21 +844,22 @@ export class PlayerIframeController {
     this.parseSplitPageTopReadableParts(scrollContainer)
   }
 
-  protected parsePageResizeImgs(doc: Document) {
+  protected parsePageResizeImgs(win: Window, doc: Document) {
     const imgClasses = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
     const imgs = doc.querySelectorAll('img')
+
+    // remove classes
     for (const img of imgs) {
       img.classList.remove(...imgClasses)
     }
-    if (!this.splitPageWidth) return
 
     if (this.splitPageType() === 'none') {
-      const width = this.splitPageWidth
+      const width = win.innerWidth
       for (const img of imgs) {
         if (img.width > width) img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     } else {
-      if (!this.win) return
+      if (!this.win || !this.splitPageWidth) return
       const width =
         this.splitPageWidth / (this.splitPageType() === 'double' ? 2 : 1)
       const height = this.win.innerHeight
