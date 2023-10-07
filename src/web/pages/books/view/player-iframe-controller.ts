@@ -77,7 +77,6 @@ export class PlayerIframeController {
     paragraph: number
     readablePart: ReadablePart
   }
-  protected events = new Emitter<{ resize: void }>()
   protected win?: Window
   public doc?: Document
   public scrollContainer?: HTMLElement
@@ -381,7 +380,6 @@ export class PlayerIframeController {
         // hidden
         if (!this.#debugLoading) iframe.style.visibility = 'hidden'
         this.states.loading = true
-        this.events.off('resize')
 
         const loaded = new Promise<void>((resolve) => {
           iframe.addEventListener(
@@ -487,26 +485,10 @@ export class PlayerIframeController {
       this.injectCSS(doc)
       if (this.isSplitPage) {
         await this.splitPageCalcuate(win, doc, this.scrollContainer)
-        this.events.on(
-          'resize',
-          debounceFn(300, () => {
-            async(async () => {
-              if (!this.win || !this.scrollContainer) return
-              await this.splitPageCalcuate(win, doc, this.scrollContainer)
-              const resizeToNode =
-                this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
-              if (resizeToNode)
-                await this.scrollToElem(resizeToNode.readablePart.elem, {
-                  animated: false,
-                })
-              else
-                await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
-                  animated: false,
-                })
-              this.player.utterer.hl.highlightHide()
-            })
-          }),
-        )
+        win.addEventListener('resize', () => {
+          if (!this.states.loading) return
+          this.onResize(win, doc)
+        })
 
         this.hookPageTouch()
         this.hookPageWheel()
@@ -518,11 +500,26 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.updateBookmarks()
-      win.addEventListener('resize', () => {
-        this.events.fire('resize', undefined)
-      })
     }
   }
+
+  onResize = debounceFn(300, (win: Window, doc: Document) => {
+    async(async () => {
+      if (!this.scrollContainer) return
+      await this.splitPageCalcuate(win, doc, this.scrollContainer)
+      const resizeToNode =
+        this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
+      if (resizeToNode)
+        await this.scrollToElem(resizeToNode.readablePart.elem, {
+          animated: false,
+        })
+      else
+        await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
+          animated: false,
+        })
+      this.player.utterer.hl.highlightHide()
+    })
+  })
 
   protected injectCSS(doc: Document) {
     const styleElem = doc.createElement('style')
