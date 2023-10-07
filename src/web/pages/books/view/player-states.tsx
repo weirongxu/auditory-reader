@@ -4,7 +4,7 @@ import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
-import type { SplitPageType } from '../../../store.js'
+import type { PageListType } from '../../../store.js'
 import type { Player } from './player.js'
 
 type PlayerStates = {
@@ -21,7 +21,7 @@ type PlayerReadonlyStates = {
   voice: null | SpeechSynthesisVoice
   autoNextSection: boolean
   paragraphRepeat: number
-  splitPage: SplitPageType
+  pageList: PageListType
 }
 
 export class PlayerStatesManager {
@@ -73,7 +73,7 @@ export class PlayerStatesManager {
     voice: null,
     autoNextSection: false,
     paragraphRepeat: 1,
-    splitPage: 'double',
+    pageList: 'double',
   }
 
   uiEvents = new ChangedEmitter<PlayerReadonlyStates>()
@@ -102,8 +102,8 @@ export class PlayerStatesManager {
     return this.#readonlyStates.paragraphRepeat
   }
 
-  get splitPage() {
-    return this.#readonlyStates.splitPage
+  get pageList() {
+    return this.#readonlyStates.pageList
   }
 
   get docVisible() {
@@ -167,7 +167,7 @@ export function usePlayerUISync(
     voice,
     autoNextSection,
     paragraphRepeat,
-    splitPage,
+    pageList,
     bookmarks,
   }: PlayerReadonlyStates,
 ) {
@@ -196,8 +196,8 @@ export function usePlayerUISync(
   }, [player, paragraphRepeat])
 
   useEffect(() => {
-    player.states.syncUIState('splitPage', splitPage)
-  }, [player, splitPage])
+    player.states.syncUIState('pageList', pageList)
+  }, [player, pageList])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,

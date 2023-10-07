@@ -81,7 +81,7 @@ export class Highlight {
     const container = this.iframeCtrl.scrollContainer
     if (!rects.length || !container) return
 
-    if (this.iframeCtrl.isSplitPage) {
+    if (this.iframeCtrl.enabledPageList) {
       const left =
         sum(rects.map((r) => r.left)) / rects.length + container.scrollLeft
       this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)

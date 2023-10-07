@@ -280,8 +280,9 @@ export class Utterer {
     while (true) {
       if (!this.states.started) return
       try {
-        const node =
-          this.player.iframeCtrler.readableParts[this.states.pos.paragraph]
+        const node = this.player.iframeCtrler.readableParts.at(
+          this.states.pos.paragraph,
+        )
         if (node) {
           if (node.type === 'text') {
             let isCancel = false

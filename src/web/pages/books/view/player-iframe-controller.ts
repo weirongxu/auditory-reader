@@ -41,8 +41,8 @@ import { ReadableExtractor } from './utils/readable.js'
 
 type ColorScheme = 'light' | 'dark'
 
-type SplitPageNode = {
-  top?: {
+type PageListNode = {
+  topmost?: {
     paragraph: number
     readablePart: ReadablePart
   }
@@ -58,6 +58,10 @@ interface ScrollOptions extends IterateAnimateOptions {
    * @default 'center'
    */
   position?: 'center' | 'nearest'
+  /**
+   * @default true
+   */
+  userOperator?: boolean
 }
 
 export class PlayerIframeController {
@@ -68,15 +72,14 @@ export class PlayerIframeController {
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
   protected colorScheme: ColorScheme = 'light'
-  protected splitPageCount?: number
-  protected splitPageWidth?: number
-  protected splitPageList?: SplitPageNode[]
-  protected splitPageCurScrollIndex?: number
-  protected splitPageCurScrollNode?: SplitPageNode
-  protected splitPageResizeToNode?: {
-    paragraph: number
-    readablePart: ReadablePart
-  }
+  protected pageList?: PageListNode[]
+  protected pageListCount?: number
+  /** page list: single page width */
+  protected pageListWidth?: number
+  /** page list: current index */
+  protected pageListCurIndex?: number
+  /** page list: focus to part after resize */
+  protected pageListResizeFocusPart?: ReadablePart
   protected win?: Window
   public doc?: Document
   public scrollContainer?: HTMLElement
@@ -90,19 +93,18 @@ export class PlayerIframeController {
     return this.iframeRef.current
   }
 
-  get isSplitPage() {
-    if (this.states.splitPage === 'none') return false
+  get enabledPageList() {
+    if (this.states.pageList === 'none') return false
     return !this.#isVertical
   }
 
-  get isFirstSplitPage() {
-    return this.splitPageCurScrollIndex === 0
+  get isFirstPageList() {
+    return this.pageListCurIndex === 0
   }
 
-  get isLastSplitPage() {
-    if (this.splitPageCurScrollIndex === undefined || !this.splitPageCount)
-      return true
-    return this.splitPageCurScrollIndex >= this.splitPageCount - 1
+  get isLastPageList() {
+    if (this.pageListCurIndex === undefined || !this.pageListCount) return true
+    return this.pageListCurIndex >= this.pageListCount - 1
   }
 
   constructor(
@@ -120,7 +122,6 @@ export class PlayerIframeController {
     this.states.events.on('pos', () => {
       this.updateParagraphActive()
       this.updateActiveNavs()
-      this.updateSplitPageResizeToNode()
     })
 
     this.states.events.on('started', (started) => {
@@ -133,49 +134,39 @@ export class PlayerIframeController {
       this.updateBookmarks()
     })
 
-    let firstSplitPageChanged = true
-    this.states.uiEvents.on('splitPage', async () => {
-      if (firstSplitPageChanged) {
-        firstSplitPageChanged = false
+    let firstPageListChanged = true
+    this.states.uiEvents.on('pageList', async () => {
+      if (firstPageListChanged) {
+        firstPageListChanged = false
         return
       }
       if (this.iframe) await this.load(true)
     })
+
+    this.player.onUnmount(() => this.triggerUnmount())
   }
 
-  protected splitPageType(): 'none' | 'double' | 'single' {
-    if (this.states.splitPage === 'auto') {
+  #onUnmountCallbacks: (() => void)[] = []
+  onUnmount(callback: () => void) {
+    this.#onUnmountCallbacks.push(callback)
+  }
+
+  triggerUnmount() {
+    for (const callback of this.#onUnmountCallbacks) {
+      callback()
+    }
+    this.#onUnmountCallbacks = []
+  }
+
+  protected pageListType(): 'none' | 'double' | 'single' {
+    if (this.states.pageList === 'auto') {
       if (this.win) {
         return this.win.innerWidth > 700 ? 'double' : 'single'
       } else {
         return 'single'
       }
     }
-    return this.states.splitPage
-  }
-
-  protected updateSplitPageResizeToNode(first = false) {
-    if (this.splitPageList) {
-      const paragraph = this.states.pos.paragraph
-      const curSplitPageIndex = findLastIndex(
-        this.splitPageList,
-        (page) => !!page.top && page.top.paragraph <= paragraph,
-      )
-      if (
-        this.splitPageCurScrollIndex === undefined ||
-        first ||
-        curSplitPageIndex === this.splitPageCurScrollIndex
-      ) {
-        // use the pos paragraph as resize to node
-        this.splitPageResizeToNode = {
-          paragraph,
-          readablePart: this.readableParts[paragraph],
-        }
-      } else if (this.splitPageCurScrollNode?.top) {
-        // use the current scroll offset as resize to node
-        this.splitPageResizeToNode = this.splitPageCurScrollNode?.top
-      }
-    }
+    return this.states.pageList
   }
 
   public async tryManipulateDOM(callback: () => unknown) {
@@ -200,21 +191,24 @@ export class PlayerIframeController {
 
   public async scrollToCurParagraph(animated = true) {
     // goto paragraph
-    const item = this.readableParts[this.states.pos.paragraph]
+    const item = this.readableParts.at(this.states.pos.paragraph)
     if (!item) return
     await this.scrollToElem(item.elem, { animated })
   }
 
   public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
     await this.tryManipulateDOM(async () => {
-      if (!this.isSplitPage) {
-        await this.scrollToTop(element.offsetTop, options)
+      if (!this.doc) return
+      const body = this.doc.body
+      const bodyRect = body.getBoundingClientRect()
+      const elemRect = element.getBoundingClientRect()
+      if (!this.enabledPageList) {
+        const bodyTop = bodyRect.top
+        const endTop = elemRect.top - bodyTop
+        await this.scrollToTop(endTop, options)
       } else {
-        if (!this.doc) return
-        const body = this.doc.body
-        const bodyLeft = body.getBoundingClientRect().left
-        const rect = element.getBoundingClientRect()
-        const endLeft = rect.left + element.offsetWidth / 2 - bodyLeft
+        const bodyLeft = bodyRect.left
+        const endLeft = elemRect.left + element.offsetWidth / 2 - bodyLeft
         await this.scrollToPageByLeft(endLeft, options)
       }
     })
@@ -243,22 +237,21 @@ export class PlayerIframeController {
 
     if (!animated) {
       container.scrollTop = finalTop
-      return
+    } else {
+      const startTop = container.scrollTop
+      const offset = finalTop - startTop
+      const unit = offset / iteration
+      await iterateAnimate(
+        {
+          duration,
+          iteration,
+          abortCtrl,
+        },
+        (index) => {
+          container.scrollTop = startTop + index * unit
+        },
+      )
     }
-
-    const startTop = container.scrollTop
-    const offset = finalTop - startTop
-    const unit = offset / iteration
-    await iterateAnimate(
-      {
-        duration,
-        iteration,
-        abortCtrl,
-      },
-      (index) => {
-        container.scrollTop = startTop + index * unit
-      },
-    )
   }
 
   /**
@@ -271,90 +264,93 @@ export class PlayerIframeController {
       duration = 100,
       animated = true,
       abortCtrl,
+      userOperator = true,
     }: ScrollOptions = {},
   ) {
     const container = this.scrollContainer
     if (!container) return
-    if (!this.isSplitPage) return
-    if (!this.splitPageList) return
+    if (!this.enabledPageList) return
+    if (!this.pageList) return
 
-    const finalLeft = findLast(
-      this.splitPageList,
-      (page) => page.scrollLeft <= left,
-    )?.scrollLeft
+    const finalLeft = findLast(this.pageList, (page) => page.scrollLeft <= left)
+      ?.scrollLeft
     if (finalLeft === undefined) return
 
     if (!animated) {
       container.scrollLeft = finalLeft
-      return
+    } else {
+      const startLeft = container.scrollLeft
+      const offset = finalLeft - startLeft
+      const unit = offset / iteration
+      await iterateAnimate(
+        {
+          duration,
+          iteration,
+          abortCtrl,
+        },
+        (index) => {
+          container.scrollLeft = startLeft + index * unit
+        },
+      )
     }
 
-    const startLeft = container.scrollLeft
-    const offset = finalLeft - startLeft
-    const unit = offset / iteration
-    await iterateAnimate(
-      {
-        duration,
-        iteration,
-        abortCtrl,
-      },
-      (index) => {
-        container.scrollLeft = startLeft + index * unit
-      },
-    )
+    if (this.pageListWidth)
+      this.pageListCurIndex = Math.round(
+        container.scrollLeft / this.pageListWidth,
+      )
+    if (userOperator) this.updatePageListFocus()
   }
 
-  #pushSplitPageLast?: {
+  #pushPageListLast?: {
     abortCtrl: AbortController
     page: number
   }
-  public async pushSplitPageAdjust(offsetPage: number, jump: boolean) {
-    if (!this.splitPageWidth) return
+  public async pushPageListAdjust(offsetPage: number, jump: boolean) {
+    if (!this.pageListWidth) return
     if (offsetPage === 0) return
-    if (this.splitPageCurScrollIndex === undefined) return
-    if (!this.splitPageCount) return
-    if (!this.splitPageList) return
+    if (this.pageListCurIndex === undefined) return
+    if (!this.pageListCount) return
+    if (!this.pageList) return
 
     let goalPage: number
-    if (this.#pushSplitPageLast) {
-      goalPage = this.#pushSplitPageLast.page + offsetPage
+    if (this.#pushPageListLast) {
+      goalPage = this.#pushPageListLast.page + offsetPage
     } else {
-      goalPage = this.splitPageCurScrollIndex + offsetPage
+      goalPage = this.pageListCurIndex + offsetPage
     }
 
     // exceed section range
     if (jump) {
       if (goalPage < 0) {
         return await this.player.prevSection(-1)
-      } else if (goalPage >= this.splitPageCount) {
+      } else if (goalPage >= this.pageListCount) {
         return await this.player.nextSection()
       }
     } else {
       if (goalPage < 0) goalPage = 0
-      else if (goalPage >= this.splitPageCount)
-        goalPage = this.splitPageCount - 1
+      else if (goalPage >= this.pageListCount) goalPage = this.pageListCount - 1
     }
 
-    this.#pushSplitPageLast?.abortCtrl.abort()
+    this.#pushPageListLast?.abortCtrl.abort()
     const abortCtrl = new AbortController()
-    this.#pushSplitPageLast = {
+    this.#pushPageListLast = {
       abortCtrl,
       page: goalPage,
     }
 
-    const goalLeft = goalPage * this.splitPageWidth
+    const goalLeft = goalPage * this.pageListWidth
     if (jump) {
       let paragraph: number | undefined = undefined
       if (offsetPage < 0) {
         paragraph = findLast(
-          this.splitPageList,
-          (page) => !!page.top && page.scrollLeft <= goalLeft,
-        )?.top?.paragraph
+          this.pageList,
+          (page) => !!page.topmost && page.scrollLeft <= goalLeft,
+        )?.topmost?.paragraph
       } else {
         paragraph = find(
-          this.splitPageList,
-          (page) => !!page.top && page.scrollLeft >= goalLeft,
-        )?.top?.paragraph
+          this.pageList,
+          (page) => !!page.topmost && page.scrollLeft >= goalLeft,
+        )?.topmost?.paragraph
       }
       if (paragraph === undefined || paragraph === this.states.pos.paragraph)
         // paragraph is undefined
@@ -371,9 +367,7 @@ export class PlayerIframeController {
       await this.scrollToPageByLeft(goalLeft, { abortCtrl })
     }
 
-    this.updateSplitPageResizeToNode()
-
-    this.#pushSplitPageLast = undefined
+    this.#pushPageListLast = undefined
   }
 
   #curAbsPath?: string
@@ -414,6 +408,8 @@ export class PlayerIframeController {
         // hidden
         if (!this.#debugLoading) iframe.style.visibility = 'hidden'
         this.states.loading = true
+
+        this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
           iframe.addEventListener(
@@ -521,11 +517,10 @@ export class PlayerIframeController {
         if (this.states.loading) return
         this.onResize(win, doc)
       })
-      if (this.isSplitPage) {
-        await this.splitPageCalcuate(win, doc, this.scrollContainer)
+      if (this.enabledPageList) {
+        await this.pageListCalcuate(win, doc, this.scrollContainer)
         this.hookPageTouch()
         this.hookPageWheel()
-        this.hookPageScroll()
       }
       this.parsePageResizeImgs(win, doc)
       this.hookALinks(doc)
@@ -539,18 +534,19 @@ export class PlayerIframeController {
   protected onResize = debounceFn(300, (win: Window, doc: Document) => {
     async(async () => {
       this.parsePageResizeImgs(win, doc)
-      if (this.isSplitPage) {
+      if (this.enabledPageList) {
         if (!this.scrollContainer) return
-        await this.splitPageCalcuate(win, doc, this.scrollContainer)
-        const resizeToNode =
-          this.splitPageResizeToNode ?? this.splitPageCurScrollNode?.top
-        if (resizeToNode)
-          await this.scrollToElem(resizeToNode.readablePart.elem, {
+        await this.pageListCalcuate(win, doc, this.scrollContainer)
+        const resizeFocusPart = this.pageListResizeFocusPart
+        if (resizeFocusPart)
+          await this.scrollToElem(resizeFocusPart.elem, {
             animated: false,
+            userOperator: false,
           })
         else
           await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
             animated: false,
+            userOperator: false,
           })
         this.player.utterer.hl.highlightHide()
       }
@@ -574,7 +570,7 @@ export class PlayerIframeController {
     ]
 
     let pageStyle = ''
-    if (this.isSplitPage) {
+    if (this.enabledPageList) {
       pageStyle = `
         /* split page */
         html {
@@ -773,7 +769,7 @@ export class PlayerIframeController {
     doc.addEventListener('touchend', endlistener, {
       passive: false,
     })
-    this.player.onUnmount(() => {
+    this.onUnmount(() => {
       doc.documentElement.removeEventListener('touchstart', startlistener)
       doc.documentElement.removeEventListener('touchmove', movelistener)
       doc.documentElement.removeEventListener('touchend', endlistener)
@@ -798,36 +794,12 @@ export class PlayerIframeController {
     doc.documentElement.addEventListener('wheel', listener, {
       passive: false,
     })
-    this.player.onUnmount(() => {
+    this.onUnmount(() => {
       doc.documentElement.removeEventListener('wheel', listener)
     })
   }
 
-  protected hookPageScroll() {
-    const win = this.win
-    const scrollContainer = this.scrollContainer
-    if (!win || !scrollContainer) return
-    const doc = this.doc
-    if (!doc) return
-
-    const listener = () => {
-      if (!this.splitPageWidth) return
-
-      this.splitPageCurScrollIndex = Math.round(
-        scrollContainer.scrollLeft / this.splitPageWidth,
-      )
-      this.splitPageCurScrollNode =
-        this.splitPageList?.[this.splitPageCurScrollIndex]
-    }
-    listener()
-
-    win.addEventListener('scroll', listener)
-    this.player.onUnmount(() => {
-      win.removeEventListener('scroll', listener)
-    })
-  }
-
-  protected async splitPageCalcuate(
+  protected async pageListCalcuate(
     win: Window,
     doc: Document,
     scrollContainer: HTMLElement,
@@ -836,11 +808,11 @@ export class PlayerIframeController {
     // scrollContainer.offsetWidth
 
     const html = doc.documentElement
-    const splitPageType = this.splitPageType()
+    const pageListType = this.pageListType()
     const width = win.innerWidth
 
     // update column count
-    const columnCount = splitPageType === 'single' ? 1 : 2
+    const columnCount = pageListType === 'single' ? 1 : 2
     const columnWidth = width / columnCount
     html.style.setProperty('--main-column-count', columnCount.toString())
     html.style.setProperty('--main-column-width', `${columnWidth}px`)
@@ -850,7 +822,7 @@ export class PlayerIframeController {
 
     // update split page width
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
-    if (splitPageType === 'double') {
+    if (pageListType === 'double') {
       // fix column double last page
       pageCount = Math.round((2 * scrollWidth) / width)
       if (pageCount % 2 === 1) {
@@ -866,16 +838,16 @@ export class PlayerIframeController {
       pageCount = Math.round(scrollWidth / width)
     }
 
-    this.splitPageWidth = width
-    this.splitPageCount = pageCount
+    this.pageListWidth = width
+    this.pageListCount = pageCount
     // eslint-disable-next-line no-console
     console.debug(`scrollWidth: ${scrollWidth}`)
     // eslint-disable-next-line no-console
-    console.debug(`splitPageWidth: ${this.splitPageWidth}`)
+    console.debug(`pageListWidth: ${this.pageListWidth}`)
     // eslint-disable-next-line no-console
-    console.debug(`splitPageCount: ${this.splitPageCount}`)
+    console.debug(`pageListCount: ${this.pageListCount}`)
 
-    this.parseSplitPageTopReadableParts(scrollContainer)
+    this.parsePageList(scrollContainer)
   }
 
   protected parsePageResizeImgs(win: Window, doc: Document) {
@@ -887,15 +859,15 @@ export class PlayerIframeController {
       img.classList.remove(...imgClasses)
     }
 
-    if (this.splitPageType() === 'none') {
+    if (this.pageListType() === 'none') {
       const width = win.innerWidth
       for (const img of imgs) {
         if (img.width > width) img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     } else {
-      if (!this.win || !this.splitPageWidth) return
+      if (!this.win || !this.pageListWidth) return
       const width =
-        this.splitPageWidth / (this.splitPageType() === 'double' ? 2 : 1)
+        this.pageListWidth / (this.pageListType() === 'double' ? 2 : 1)
       const height = this.win.innerHeight
       const pageWHRate = width / height
       for (const img of imgs) {
@@ -909,12 +881,12 @@ export class PlayerIframeController {
     }
   }
 
-  protected parseSplitPageTopReadableParts(scrollContainer: HTMLElement) {
-    const width = this.splitPageWidth
+  protected parsePageList(scrollContainer: HTMLElement) {
+    const width = this.pageListWidth
     if (!width) return
-    if (!this.splitPageCount) return
+    if (!this.pageListCount) return
 
-    this.splitPageList = range(0, this.splitPageCount)
+    this.pageList = range(0, this.pageListCount)
       .map((i) => i * width)
       .map((scrollLeft) => ({ scrollLeft }))
 
@@ -924,14 +896,33 @@ export class PlayerIframeController {
       const scrollLeft =
         rect.left + readablePart.elem.offsetWidth / 2 - parentLeft
       const page = findLast(
-        this.splitPageList,
+        this.pageList,
         (page) => page.scrollLeft <= scrollLeft,
       )
-      if (page && !page.top)
-        page.top = {
+      if (page && !page.topmost)
+        page.topmost = {
           readablePart,
           paragraph,
         }
+    }
+  }
+
+  protected updatePageListFocus() {
+    if (!this.pageList || this.pageListCurIndex === undefined) return
+
+    // update focus part
+    const paragraph = this.states.pos.paragraph
+    const pageListPosIndex = findLastIndex(
+      this.pageList,
+      (page) => !!page.topmost && page.topmost.paragraph <= paragraph,
+    )
+    if (pageListPosIndex === this.pageListCurIndex) {
+      // use the pos paragraph as resize focus
+      this.pageListResizeFocusPart = this.readableParts.at(paragraph)
+    } else {
+      // use pageListCurIndex as resize focus
+      this.pageListResizeFocusPart = this.pageList.at(this.pageListCurIndex)
+        ?.topmost?.readablePart
     }
   }
 
@@ -939,13 +930,12 @@ export class PlayerIframeController {
     await this.loadByPos({}, force)
     this.updateParagraphActive()
     this.updateActiveNavs()
-    this.updateSplitPageResizeToNode(true)
   }
 
   #paragraphLastActive?: ReadablePart
   protected updateParagraphActive() {
     this.tryManipulateDOM(() => {
-      const item = this.readableParts[this.states.pos.paragraph]
+      const item = this.readableParts.at(this.states.pos.paragraph)
       if (
         !item ||
         (this.#paragraphLastActive && item === this.#paragraphLastActive)
@@ -967,7 +957,7 @@ export class PlayerIframeController {
       }
       for (const bookmark of this.states.bookmarks) {
         if (bookmark.section !== this.states.pos.section) continue
-        const item = this.readableParts[bookmark.paragraph]
+        const item = this.readableParts.at(bookmark.paragraph)
         if (!item) continue
         item.elem.classList.add(PARA_BOOKMARK_CLASS)
       }

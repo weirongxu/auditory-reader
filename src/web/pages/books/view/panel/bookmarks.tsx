@@ -155,7 +155,7 @@ export function useBookViewBookmarks(
   )
 
   const addBookmark = useCallback(() => {
-    const node = player.iframeCtrler.readableParts[pos.paragraph]
+    const node = player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text')
       return pushSnackbar({

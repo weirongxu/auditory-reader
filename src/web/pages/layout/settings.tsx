@@ -28,8 +28,8 @@ import {
   type UserColorscheme,
   USER_COLOR_SCHEMES,
   useParagraphRepeat,
-  useSplitPage,
-  type SplitPageType,
+  usePageList,
+  type PageListType,
   SPLIT_PAGE_TYPES,
 } from '../../store.js'
 
@@ -259,24 +259,24 @@ const ParagraphRepeatInput = () => {
   )
 }
 
-function SplitPageCheckBox() {
-  const [splitPage, setSplitPage] = useSplitPage()
+function PageListCheckBox() {
+  const [pageList, setPageList] = usePageList()
   return (
     <SettingLine>
       <SettingLabel sx={{ paddingTop: 1 }}>
-        {t('setting.splitPage')}
+        {t('setting.pageList')}
       </SettingLabel>
       <RadioGroup
-        defaultValue={splitPage}
+        defaultValue={pageList}
         onChange={(e) => {
-          setSplitPage(e.target.value as SplitPageType)
+          setPageList(e.target.value as PageListType)
         }}
       >
         {SPLIT_PAGE_TYPES.map((value) => {
           return (
             <FormControlLabel
               key={value}
-              label={t(`setting.splitPageType.${value}`)}
+              label={t(`setting.pageListType.${value}`)}
               value={value}
               control={<Radio></Radio>}
             ></FormControlLabel>
@@ -296,7 +296,7 @@ export const GlobalSettings = () => {
       <PlaySpeed></PlaySpeed>
       <ColorSchemeSelect></ColorSchemeSelect>
       <ParagraphRepeatInput></ParagraphRepeatInput>
-      <SplitPageCheckBox></SplitPageCheckBox>
+      <PageListCheckBox></PageListCheckBox>
     </>
   )
 }

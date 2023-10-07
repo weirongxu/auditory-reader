@@ -34,7 +34,7 @@ import {
   useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
-  useSplitPage,
+  usePageList,
   useStopTimer,
   useStopTimerSeconds,
   useVoice,
@@ -186,7 +186,7 @@ export function usePlayerUI({
   const [stopTimerSeconds] = useStopTimerSeconds()
   const [speechSpeed] = useSpeechSpeed()
   const [paragraphRepeat] = useParagraphRepeat()
-  const [splitPage] = useSplitPage()
+  const [pageList] = usePageList()
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerUISync(player, {
@@ -196,7 +196,7 @@ export function usePlayerUI({
       speechSpeed,
       voice,
       paragraphRepeat,
-      splitPage,
+      pageList,
     })
 
   const PlayerCtrlGroup = useMemo(() => {

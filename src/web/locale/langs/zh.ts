@@ -7,8 +7,8 @@ export const langZh = {
     speed: '$t(speed)',
     userColorScheme: '颜色主题',
     paragraphRepeat: '段落重复',
-    splitPage: '分页',
-    splitPageType: {
+    pageList: '分页',
+    pageListType: {
       none: '无',
       auto: '自动',
       single: '单页',

@@ -185,13 +185,11 @@ export const useParagraphRepeat = createStore<number>({
 })
 
 export const SPLIT_PAGE_TYPES = ['none', 'auto', 'single', 'double'] as const
-export type SplitPageType = (typeof SPLIT_PAGE_TYPES)[number]
+export type PageListType = (typeof SPLIT_PAGE_TYPES)[number]
 
-export const useSplitPage = createStore<SplitPageType>({
-  storeKey: 'splitPage',
+export const usePageList = createStore<PageListType>({
+  storeKey: 'pageList',
   read: (v) =>
-    SPLIT_PAGE_TYPES.includes(v as SplitPageType)
-      ? (v as SplitPageType)
-      : 'auto',
+    SPLIT_PAGE_TYPES.includes(v as PageListType) ? (v as PageListType) : 'auto',
   write: (v) => v,
 })

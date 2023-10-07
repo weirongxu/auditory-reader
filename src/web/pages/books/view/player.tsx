@@ -55,6 +55,7 @@ export class Player {
     for (const callback of this.#onUnmountCallbacks) {
       callback()
     }
+    this.#onUnmountCallbacks = []
   }
 
   start() {
@@ -153,19 +154,19 @@ export class Player {
   }
 
   get isFirstPage() {
-    return this.iframeCtrler.isFirstSplitPage
+    return this.iframeCtrler.isFirstPageList
   }
 
   get isLastPage() {
-    return this.iframeCtrler.isLastSplitPage
+    return this.iframeCtrler.isLastPageList
   }
 
   async prevPage(count: number, jump: boolean) {
-    await this.iframeCtrler.pushSplitPageAdjust(-count, jump)
+    await this.iframeCtrler.pushPageListAdjust(-count, jump)
   }
 
   async nextPage(count: number, jump: boolean) {
-    await this.iframeCtrler.pushSplitPageAdjust(count, jump)
+    await this.iframeCtrler.pushPageListAdjust(count, jump)
   }
 
   get isFirstParagraph() {
