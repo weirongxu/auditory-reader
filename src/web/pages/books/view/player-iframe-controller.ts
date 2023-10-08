@@ -750,14 +750,14 @@ export class PlayerIframeController {
     }
 
     const endlistener = (event: TouchEvent) => {
-      if (startX === undefined) return
+      if (startX === undefined || !this.win) return
       const touch = event.changedTouches[0]
       if (!touch) return
       const deltaX = touch.clientX - startX
-      if (deltaX === 0) return
-      if (deltaX < 0) {
+      const minX = this.win.innerWidth / 4
+      if (deltaX < -minX) {
         void this.player.nextPage(1, true)
-      } else {
+      } else if (deltaX > minX) {
         void this.player.prevPage(1, true)
       }
     }
