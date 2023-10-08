@@ -17,6 +17,8 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>()
+  const [pageListCount, setPageListCount] = useState<number | undefined>()
+  const [pageListCurIndex, setPageListCurIndex] = useState<number | undefined>()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
@@ -27,6 +29,8 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
     setStarted,
     setActiveNavs,
     setLoading,
+    setPageListCount,
+    setPageListCurIndex,
   })
 
   // dark scheme
@@ -50,9 +54,31 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
           {loading && <CircularProgress></CircularProgress>}
         </div>
         <iframe title="viewer" ref={iframeRef}></iframe>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            zIndex: 1,
+            height: '4px',
+            width: '100%',
+            background: 'var(--main-bg)',
+          }}
+        >
+          <div
+            style={{
+              width: `${
+                pageListCurIndex && pageListCount
+                  ? ((pageListCurIndex / pageListCount) * 100).toFixed(2)
+                  : 0
+              }%`,
+              height: '100%',
+              background: 'var(--main-fg)',
+            }}
+          ></div>
+        </div>
       </Stack>
     ),
-    [loading],
+    [loading, pageListCount, pageListCurIndex],
   )
 
   const { BookPanelView, toggleBookmark } = usePlayerUI({

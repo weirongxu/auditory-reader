@@ -12,6 +12,9 @@ type PlayerStates = {
   pos: BookTypes.PropertyPosition
   activeNavs: BookNav[]
   loading: boolean
+  pageListCount: number | undefined
+  /** page list: current index */
+  pageListCurIndex: number | undefined
 }
 
 type PlayerReadonlyStates = {
@@ -30,6 +33,8 @@ export class PlayerStatesManager {
     pos: { section: 0, paragraph: 0 },
     activeNavs: [],
     loading: false,
+    pageListCount: undefined,
+    pageListCurIndex: undefined,
   }
 
   events = new ChangedEmitter<PlayerStates>()
@@ -64,6 +69,24 @@ export class PlayerStatesManager {
   set loading(loading: boolean) {
     this.#states.loading = loading
     this.events.fire('loading', loading)
+  }
+
+  get pageListCount() {
+    return this.#states.pageListCount
+  }
+
+  set pageListCount(pageListCount: number | undefined) {
+    this.#states.pageListCount = pageListCount
+    this.events.fire('pageListCount', pageListCount)
+  }
+
+  get pageListCurIndex() {
+    return this.#states.pageListCurIndex
+  }
+
+  set pageListCurIndex(pageListCurIndex: number | undefined) {
+    this.#states.pageListCurIndex = pageListCurIndex
+    this.events.fire('pageListCurIndex', pageListCurIndex)
   }
 
   #readonlyStates: PlayerReadonlyStates = {
@@ -130,11 +153,15 @@ export function usePlayerSync(
     setStarted,
     setActiveNavs,
     setLoading,
+    setPageListCount,
+    setPageListCurIndex,
   }: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
+    setPageListCount: Dispatch<number | undefined>
+    setPageListCurIndex: Dispatch<number | undefined>
   },
 ) {
   useEffect(() => {
@@ -152,11 +179,25 @@ export function usePlayerSync(
       events.on('loading', (loading) => {
         setLoading(loading)
       }),
+      events.on('pageListCount', (pageListCount) => {
+        setPageListCount(pageListCount)
+      }),
+      events.on('pageListCurIndex', (pageListCurIndex) => {
+        setPageListCurIndex(pageListCurIndex)
+      }),
     ]
     return () => {
       disposes.forEach((dispose) => dispose())
     }
-  }, [player, setPos, setStarted, setActiveNavs, setLoading])
+  }, [
+    player,
+    setPos,
+    setStarted,
+    setActiveNavs,
+    setLoading,
+    setPageListCount,
+    setPageListCurIndex,
+  ])
 }
 
 export function usePlayerUISync(
