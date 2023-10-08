@@ -65,8 +65,6 @@ interface ScrollOptions extends IterateAnimateOptions {
 }
 
 export class PlayerIframeController {
-  #debugLoading = false
-
   readableParts: ReadablePart[] = []
   alias: TextAlias[] = []
   protected mainContentRootPath: string
@@ -405,10 +403,7 @@ export class PlayerIframeController {
     try {
       // load iframe
       if (isLoadNewPath) {
-        // hidden
-        if (!this.#debugLoading) iframe.style.visibility = 'hidden'
         this.states.loading = true
-
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -462,10 +457,6 @@ export class PlayerIframeController {
       }
       await this.scrollToCurParagraph(locate.animated ?? false)
     } finally {
-      // loaded
-      if (isLoadNewPath)
-        if (!this.#debugLoading) iframe.style.visibility = 'visible'
-
       this.states.loading = false
     }
   }
@@ -572,14 +563,13 @@ export class PlayerIframeController {
     let pageStyle = ''
     if (this.enabledPageList) {
       pageStyle = `
-        /* split page */
+        /* page list */
         html {
           height: 100%;
           width: auto;
           overflow-y: hidden;
           overflow-x: auto;
-          columns: var(--main-column-count, 1) auto;
-          /* columns: auto var(--main-column-width); */
+          columns: auto var(--main-column-width);
           column-gap: 0;
           margin: 0;
           padding: 0;
@@ -601,6 +591,11 @@ export class PlayerIframeController {
     styleElem.innerHTML = `
       ${globalStyle}
       ${pageStyle}
+
+      /* scrollbar */
+      ::-webkit-scrollbar-thumb {
+        background: var(--main-fg);
+      }
 
       /* wrap */
       pre {
@@ -820,7 +815,7 @@ export class PlayerIframeController {
     let scrollWidth = scrollContainer.scrollWidth
     let pageCount: number
 
-    // update split page width
+    // update page list width
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
       // fix column double last page
