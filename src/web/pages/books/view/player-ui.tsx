@@ -5,11 +5,13 @@ import {
   Bookmarks,
   FastForward,
   FastRewind,
+  FirstPage,
   Pause,
   PlayArrow,
   Save,
   SkipNext,
   SkipPrevious,
+  Start,
 } from '@mui/icons-material'
 import {
   Autocomplete,
@@ -187,6 +189,7 @@ export function usePlayerUI({
   const [speechSpeed] = useSpeechSpeed()
   const [paragraphRepeat] = useParagraphRepeat()
   const [pageList] = usePageList()
+  const [collapsed, setCollapsed] = useState(isMobile)
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerUISync(player, {
@@ -223,24 +226,28 @@ export function usePlayerUI({
         >
           {activeBookmark ? <Bookmark /> : <BookmarkBorder />}
         </Button>
-        <TooltipButton
-          tooltip={<span>shift + ←</span>}
-          disabled={isFirstSection}
-          onClick={() => {
-            player.prevSection().catch(console.error)
-          }}
-        >
-          <SkipPrevious />
-        </TooltipButton>
-        <TooltipButton
-          tooltip={<span>↑</span>}
-          disabled={isFirstSection && isFirstParagraph}
-          onClick={() => {
-            player.prevParagraph().catch(console.error)
-          }}
-        >
-          <FastRewind />
-        </TooltipButton>
+        {!collapsed && (
+          <>
+            <TooltipButton
+              tooltip={<span>shift + ←</span>}
+              disabled={isFirstSection}
+              onClick={() => {
+                player.prevSection().catch(console.error)
+              }}
+            >
+              <SkipPrevious />
+            </TooltipButton>
+            <TooltipButton
+              tooltip={<span>↑</span>}
+              disabled={isFirstSection && isFirstParagraph}
+              onClick={() => {
+                player.prevParagraph().catch(console.error)
+              }}
+            >
+              <FastRewind />
+            </TooltipButton>
+          </>
+        )}
         <TooltipButton
           tooltip={<span>Space</span>}
           onClick={() => {
@@ -250,28 +257,42 @@ export function usePlayerUI({
         >
           {started ? <Pause /> : <PlayArrow />}
         </TooltipButton>
-        <TooltipButton
-          tooltip={<span>↓</span>}
-          disabled={isLastSection && isLastParagraph}
-          onClick={() => {
-            player.nextParagraph().catch(console.error)
-          }}
-        >
-          <FastForward />
-        </TooltipButton>
-        <TooltipButton
-          tooltip={<span>shift + →</span>}
-          disabled={isLastSection}
-          onClick={() => {
-            player.nextSection().catch(console.error)
-          }}
-        >
-          <SkipNext />
-        </TooltipButton>
+        {!collapsed && (
+          <>
+            <TooltipButton
+              tooltip={<span>↓</span>}
+              disabled={isLastSection && isLastParagraph}
+              onClick={() => {
+                player.nextParagraph().catch(console.error)
+              }}
+            >
+              <FastForward />
+            </TooltipButton>
+            <TooltipButton
+              tooltip={<span>shift + →</span>}
+              disabled={isLastSection}
+              onClick={() => {
+                player.nextSection().catch(console.error)
+              }}
+            >
+              <SkipNext />
+            </TooltipButton>
+          </>
+        )}
+        {isMobile && (
+          <Button
+            onClick={() => {
+              setCollapsed((c) => !c)
+            }}
+          >
+            {collapsed ? <Start /> : <FirstPage />}
+          </Button>
+        )}
       </ButtonGroup>
     )
   }, [
     activeBookmark,
+    collapsed,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
