@@ -301,7 +301,7 @@ export class PlayerIframeController {
 
   #pushPageListLast?: {
     abortCtrl: AbortController
-    page: number
+    pageIndex: number
   }
   public async pushPageListAdjust(offsetPage: number, jump: boolean) {
     if (!this.pageListWidth) return
@@ -310,33 +310,34 @@ export class PlayerIframeController {
     if (!this.pageListCount) return
     if (!this.pageList) return
 
-    let goalPage: number
+    let goalPageIndex: number
     if (this.#pushPageListLast) {
-      goalPage = this.#pushPageListLast.page + offsetPage
+      goalPageIndex = this.#pushPageListLast.pageIndex + offsetPage
     } else {
-      goalPage = this.pageListCurIndex + offsetPage
+      goalPageIndex = this.pageListCurIndex + offsetPage
     }
 
     // exceed section range
     if (jump) {
-      if (goalPage < 0) {
+      if (goalPageIndex < 0) {
         return await this.player.prevSection(-1)
-      } else if (goalPage >= this.pageListCount) {
+      } else if (goalPageIndex >= this.pageListCount) {
         return await this.player.nextSection()
       }
     } else {
-      if (goalPage < 0) goalPage = 0
-      else if (goalPage >= this.pageListCount) goalPage = this.pageListCount - 1
+      if (goalPageIndex < 0) goalPageIndex = 0
+      else if (goalPageIndex >= this.pageListCount)
+        goalPageIndex = this.pageListCount - 1
     }
 
     this.#pushPageListLast?.abortCtrl.abort()
     const abortCtrl = new AbortController()
     this.#pushPageListLast = {
       abortCtrl,
-      page: goalPage,
+      pageIndex: goalPageIndex,
     }
 
-    const goalLeft = goalPage * this.pageListWidth
+    const goalLeft = goalPageIndex * this.pageListWidth
     if (jump) {
       let paragraph: number | undefined = undefined
       if (offsetPage < 0) {
@@ -498,7 +499,10 @@ export class PlayerIframeController {
       const body = doc.body
       const html = doc.documentElement
       this.scrollContainer =
-        body.clientHeight === body.scrollHeight ? html : body
+        body.scrollHeight > body.clientWidth ||
+        body.scrollWidth > body.clientWidth
+          ? body
+          : html
       // eslint-disable-next-line no-console
       console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
 
@@ -508,12 +512,12 @@ export class PlayerIframeController {
         if (this.states.loading) return
         this.onResize(win, doc)
       })
+      this.parsePageResizeImgs(win, doc)
       if (this.enabledPageList) {
         await this.pageListCalcuate(win, doc, this.scrollContainer)
         this.hookPageTouch()
         this.hookPageWheel()
       }
-      this.parsePageResizeImgs(win, doc)
       this.hookALinks(doc)
       this.hookImgs(doc)
       this.hookParagraphClick()
@@ -569,7 +573,10 @@ export class PlayerIframeController {
           width: auto;
           overflow-y: hidden;
           overflow-x: auto;
-          columns: auto var(--main-column-width);
+          /* Safari iOS not support
+            columns: var(--main-column-count) auto;
+          */
+          columns: var(--main-column-count) var(--main-column-width);
           column-gap: 0;
           margin: 0;
           padding: 0;
@@ -749,9 +756,9 @@ export class PlayerIframeController {
       const deltaX = touch.clientX - startX
       if (deltaX === 0) return
       if (deltaX < 0) {
-        void this.player.nextPage(1, false)
+        void this.player.nextPage(1, true)
       } else {
-        void this.player.prevPage(1, false)
+        void this.player.prevPage(1, true)
       }
     }
 
