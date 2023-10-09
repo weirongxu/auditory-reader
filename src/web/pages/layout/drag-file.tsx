@@ -3,7 +3,6 @@ import {
   Autocomplete,
   CircularProgress,
   IconButton,
-  Stack,
   TextField,
   Typography,
 } from '@mui/material'
@@ -15,12 +14,13 @@ import { booksCreateByUrlRouter } from '../../../core/api/books/create-by-url.js
 import { booksCreateRouter } from '../../../core/api/books/create.js'
 import { booksFetchUrlInfoRouter } from '../../../core/api/books/fetch-url-info.js'
 import { BookEpub } from '../../../core/book/book-epub.js'
+import { TMP_UUID } from '../../../core/consts.js'
 import type { LangCode } from '../../../core/lang.js'
 import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
-import { TMP_UUID } from '../../../core/consts.js'
+import { FlexBox } from '../../components/flex-box.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
 
@@ -107,13 +107,13 @@ export function DragFile({ children }: { children: React.ReactNode }) {
   if (loading) return <CircularProgress></CircularProgress>
 
   return (
-    <Stack
-      sx={{
+    <FlexBox
+      style={{
         width: '100%',
         height: '100%',
         position: 'relative',
       }}
-      spacing={0}
+      gap={0}
       onDragEnter={(event) => {
         if (!hasFileOrUrl(event)) return
         setDragOver((c) => c + 1)
@@ -177,8 +177,8 @@ export function DragFile({ children }: { children: React.ReactNode }) {
       }}
     >
       {!!dragOver && (
-        <Stack
-          sx={{
+        <FlexBox
+          style={{
             width: '100%',
             height: '100%',
             position: 'absolute',
@@ -189,21 +189,20 @@ export function DragFile({ children }: { children: React.ReactNode }) {
           }}
         >
           {t('prompt.dropHere')}
-        </Stack>
+        </FlexBox>
       )}
       {isInputLangCode && (
-        <Stack
-          sx={{
+        <div
+          style={{
             width: '100%',
             height: '100%',
             position: 'absolute',
             zIndex: 2,
             backgroundColor: 'var(--main-bg)',
+            padding: 40,
           }}
-          padding={5}
-          spacing={2}
         >
-          <Stack direction="row">
+          <FlexBox dir="row">
             <Typography flex={1}>{t('prompt.selectLanguage')}</Typography>
             <IconButton
               onClick={() => {
@@ -213,7 +212,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
             >
               <Close></Close>
             </IconButton>
-          </Stack>
+          </FlexBox>
           <Autocomplete
             placeholder={t('prompt.selectLanguage')}
             options={langOptions}
@@ -226,9 +225,9 @@ export function DragFile({ children }: { children: React.ReactNode }) {
               <TextField {...params} label={t('language')} required />
             )}
           ></Autocomplete>
-        </Stack>
+        </div>
       )}
       {children}
-    </Stack>
+    </FlexBox>
   )
 }

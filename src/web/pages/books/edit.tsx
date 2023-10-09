@@ -2,7 +2,6 @@ import {
   Autocomplete,
   Button,
   CircularProgress,
-  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -14,6 +13,7 @@ import type { BookTypes } from '../../../core/book/types.js'
 import { useOrderedLangOptions, type LangCode } from '../../../core/lang.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
+import { FlexBox } from '../../components/flex-box.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { NotFound } from '../not-found.js'
 
@@ -49,7 +49,7 @@ function UpdateForm({ book }: { book: BookTypes.Entity }) {
         })
       }}
     >
-      <Stack spacing={2}>
+      <FlexBox gap={8}>
         <TextField
           required
           label={t('bookName')}
@@ -75,7 +75,7 @@ function UpdateForm({ book }: { book: BookTypes.Entity }) {
         <Button fullWidth type="submit">
           {t('update')}
         </Button>
-      </Stack>
+      </FlexBox>
     </form>
   )
 }

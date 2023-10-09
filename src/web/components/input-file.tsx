@@ -1,6 +1,7 @@
 import { FileUpload } from '@mui/icons-material'
-import { Stack, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import { useState } from 'react'
+import { FlexBox } from './flex-box.js'
 import styles from './input-file.module.scss'
 
 export const InputFile = ({
@@ -27,22 +28,22 @@ export const InputFile = ({
         }}
       />
       {acceptedFiles.length ? (
-        <Stack direction="column" spacing={2}>
+        <FlexBox gap={2}>
           {acceptedFiles.map((file, i) => {
             return (
-              <Stack key={i} direction="row" spacing={2}>
+              <FlexBox key={i} dir="row" gap={2}>
                 <FileUpload></FileUpload>
                 <div>{file.name}</div>
-              </Stack>
+              </FlexBox>
             )
           })}
-        </Stack>
+        </FlexBox>
       ) : (
-        <Stack spacing={2} justifyContent="center">
+        <FlexBox gap={2} style={{ justifyContent: 'center' }}>
           {prompt && (
             <Typography sx={{ textAlign: 'center' }}>{prompt}</Typography>
           )}
-        </Stack>
+        </FlexBox>
       )}
     </label>
   )

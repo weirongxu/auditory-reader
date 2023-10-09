@@ -1,4 +1,4 @@
-import { Stack, TextField, Autocomplete, Button } from '@mui/material'
+import { Autocomplete, Button, TextField } from '@mui/material'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
 import { splitLines } from '../../../../core/util/text.js'
+import { FlexBox } from '../../../components/flex-box.js'
 
 export function AddText() {
   const nav = useNavigate()
@@ -39,7 +40,7 @@ export function AddText() {
         })
       }}
     >
-      <Stack spacing={2}>
+      <FlexBox gap={8}>
         <TextField
           required
           label={t('bookName')}
@@ -84,7 +85,7 @@ export function AddText() {
         <Button fullWidth type="submit">
           {t('add')}
         </Button>
-      </Stack>
+      </FlexBox>
     </form>
   )
 }

@@ -1,4 +1,4 @@
-import { CircularProgress, Stack } from '@mui/material'
+import { CircularProgress } from '@mui/material'
 import {
   useCallback,
   useEffect,
@@ -13,14 +13,15 @@ import {
   booksViewRouter,
   type BookViewRes,
 } from '../../../core/api/books/view.js'
+import type { BookView } from '../../../core/book/book-base.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
+import { FlexBox } from '../../components/flex-box.js'
 import { usePushTitle } from '../../hooks/useTitle.js'
 import { NotFound } from '../not-found.js'
 import styles from './view.module.scss'
 import type { BookContextProps } from './view/types'
 import { useViewer } from './view/viewer.js'
-import type { BookView } from '../../../core/book/book-base.js'
 
 const useBook = (bookRes: BookViewRes | undefined): BookView | undefined => {
   const [book, setBook] = useState<BookView | undefined>()
@@ -95,10 +96,10 @@ function BookViewContent({ uuid, book, pos, setPos }: BookContextProps) {
   }, [book, lastNav, pushTitle])
 
   return (
-    <Stack direction="row" className={styles.contentWrapper}>
+    <FlexBox dir="row" className={styles.contentWrapper}>
       {BookPanelView}
       {MainContent}
-    </Stack>
+    </FlexBox>
   )
 }
 

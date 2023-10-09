@@ -8,7 +8,6 @@ import {
   IconButton,
   Pagination,
   Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -22,6 +21,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
+import { getBooksCoverPath } from '../../../core/api/books/cover.js'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveOffsetRouter } from '../../../core/api/books/move-offset.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
@@ -31,14 +31,14 @@ import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
+import { useConfirm } from '../../common/confirm.js'
+import { previewImgSrcAtom } from '../../common/preview-image.js'
+import { FlexBox } from '../../components/flex-box.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
+import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
-import { getBooksCoverPath } from '../../../core/api/books/cover.js'
-import { globalStore } from '../../store/global.js'
-import { previewImgSrcAtom } from '../../common/preview-image.js'
-import { useConfirm } from '../../common/confirm.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -447,7 +447,7 @@ function BookRow({
         {book.name}
       </TableCell>
       <TableCell>
-        <Stack direction="row">
+        <FlexBox dir="row" gap={4}>
           <LinkWrap to={editPath(book.uuid)}>
             {(href) => (
               <Button color="success" href={href}>
@@ -465,7 +465,7 @@ function BookRow({
           >
             {t('export')}
           </Button>
-        </Stack>
+        </FlexBox>
       </TableCell>
     </TableRow>
   )
@@ -595,27 +595,25 @@ export function BookList() {
     return (
       !!selectedUuids.length && (
         <ButtonGroup>
-          <>
-            <Button
-              color="secondary"
-              onClick={() => {
-                async(async () => {
-                  await moveBooksTop(selectedBooks)
-                  reload()
-                })
-              }}
-            >
-              {t('top')}
-            </Button>
-            <Button
-              color="error"
-              onClick={() => {
-                removeBooks(selectedBooks)
-              }}
-            >
-              {t('remove')}
-            </Button>
-          </>
+          <Button
+            color="secondary"
+            onClick={() => {
+              async(async () => {
+                await moveBooksTop(selectedBooks)
+                reload()
+              })
+            }}
+          >
+            {t('top')}
+          </Button>
+          <Button
+            color="error"
+            onClick={() => {
+              removeBooks(selectedBooks)
+            }}
+          >
+            {t('remove')}
+          </Button>
         </ButtonGroup>
       )
     )

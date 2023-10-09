@@ -1,10 +1,11 @@
-import { Box, Button, Stack, TextField, Typography } from '@mui/material'
+import { Button, TextField, Typography } from '@mui/material'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginRouter } from '../../core/api/login.js'
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
+import { FlexBox } from '../components/flex-box.js'
 
 export function Login() {
   const nav = useNavigate()
@@ -23,7 +24,8 @@ export function Login() {
 
   return (
     <>
-      <Box sx={{ maxWidth: 300, margin: 'auto' }}>
+      <div style={{ maxWidth: 300, margin: '50px auto 0' }}>
+        <h2>Auditory Reader</h2>
         <Typography variant="h4">{t('login')}</Typography>
 
         <form
@@ -42,7 +44,7 @@ export function Login() {
               .catch(console.error)
           }}
         >
-          <Stack spacing={2}>
+          <FlexBox gap={2}>
             <TextField
               required
               name="account"
@@ -69,9 +71,9 @@ export function Login() {
             <Button fullWidth type="submit">
               {t('submit')}
             </Button>
-          </Stack>
+          </FlexBox>
         </form>
-      </Box>
+      </div>
     </>
   )
 }

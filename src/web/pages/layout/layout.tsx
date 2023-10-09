@@ -1,14 +1,12 @@
 import { MenuBook, Settings } from '@mui/icons-material'
 import {
-  Box,
   Button,
-  createTheme,
   Drawer,
   IconButton,
   Link as MuiLink,
-  Stack,
   ThemeProvider,
   Typography,
+  createTheme,
   useTheme,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -17,12 +15,13 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
+import { FlexBox } from '../../components/flex-box.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 import { DragFile } from './drag-file.js'
 import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
-import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 
 export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const title = useTitle()
@@ -48,12 +47,22 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   )
 
   const appBar = (
-    <Stack
+    <FlexBox
       className={[styles.appBar, 'top'].join(' ')}
-      direction="row"
-      justifyContent="end"
+      dir="row"
+      style={{
+        justifyContent: 'end',
+      }}
+      gap={4}
     >
-      <Stack direction="row" overflow="hidden" alignItems="center" spacing={1}>
+      <FlexBox
+        dir="row"
+        style={{
+          overflow: 'hidden',
+          alignItems: 'center',
+        }}
+        gap={4}
+      >
         <LinkWrap to="/books">
           {(href) => (
             <MuiLink href={href}>
@@ -64,29 +73,39 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
         <Typography flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
           {title ?? defaultTitle}
         </Typography>
-      </Stack>
-      <Stack direction="row" alignItems="center" flex={1} spacing={1}>
+      </FlexBox>
+      <FlexBox dir="row" style={{ alignItems: 'center', flex: 1 }} gap={4}>
         {appBarStates.topLeft}
-      </Stack>
-      <Stack direction="row" alignItems="center" spacing={1}>
+      </FlexBox>
+      <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
         {appBarStates.topRight}
-      </Stack>
-    </Stack>
+      </FlexBox>
+    </FlexBox>
   )
 
   const appBarBottom = (
-    <Stack
+    <FlexBox
       className={[styles.appBar, 'bottom'].join(' ')}
-      direction="row"
-      flexWrap="wrap"
-      justifyContent="end"
+      dir="row"
+      style={{
+        flexWrap: 'wrap',
+        justifyContent: 'end',
+      }}
+      gap={4}
     >
-      <Stack direction="row" alignItems="center" flex={1} spacing={1}>
+      <FlexBox
+        dir="row"
+        style={{
+          alignItems: 'center',
+          flex: 1,
+        }}
+        gap={4}
+      >
         {appBarStates.bottomLeft}
-      </Stack>
-      <Stack direction="row" alignItems="center" spacing={1}>
+      </FlexBox>
+      <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
         {appBarStates.bottomRight}
-        <Stack direction="row" alignItems="center">
+        <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
           <IconButton
             onClick={() => {
               setShowSettings((v) => !v)
@@ -99,24 +118,23 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             open={showSettings}
             onClose={() => setShowSettings(false)}
           >
-            <Stack sx={{ flex: 1, padding: 2, minWidth: 300 }}>
-              <Box
+            <FlexBox style={{ flex: 1, padding: 8, minWidth: 300 }}>
+              <FlexBox
                 style={{
-                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-start',
                   padding: 1,
                 }}
               >
                 <h3 style={{ margin: 0 }}>{t('setting.title')}</h3>
-              </Box>
-              <Stack sx={{ flex: 1 }}>
+              </FlexBox>
+              <FlexBox style={{ flex: 1 }}>
                 <ThemeProvider theme={settingsTheme}>
                   {appBarStates.settings}
                   <GlobalSettings></GlobalSettings>
                 </ThemeProvider>
-              </Stack>
-              <Stack>
+              </FlexBox>
+              <FlexBox>
                 {env.appMode === 'server' && (
                   <SettingLine>
                     <Button
@@ -134,24 +152,23 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                     </Button>
                   </SettingLine>
                 )}
-              </Stack>
-            </Stack>
+              </FlexBox>
+            </FlexBox>
           </Drawer>
-        </Stack>
-      </Stack>
-    </Stack>
+        </FlexBox>
+      </FlexBox>
+    </FlexBox>
   )
 
   return (
     <DragFile>
-      <Stack
+      <FlexBox
         style={{
           width: '100%',
           height: '100%',
+          alignContent: 'space-around',
+          justifyContent: 'space-around',
         }}
-        alignContent="space-around"
-        justifyContent="space-around"
-        spacing={1}
       >
         {appBar}
         <div
@@ -165,7 +182,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
           {children}
         </div>
         {appBarBottom}
-      </Stack>
+      </FlexBox>
     </DragFile>
   )
 }

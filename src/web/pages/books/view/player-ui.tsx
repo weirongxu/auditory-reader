@@ -15,13 +15,11 @@ import {
 } from '@mui/icons-material'
 import {
   Autocomplete,
-  Box,
   Button,
   ButtonGroup,
   Chip,
   IconButton,
   Popover,
-  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -33,23 +31,20 @@ import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import {
   useAutoSection,
+  usePageList,
   useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
-  usePageList,
   useStopTimer,
   useStopTimerSeconds,
   useVoice,
 } from '../../../store.js'
+import { SettingLine } from '../../layout/settings.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
-
-function SettingLine({ children }: { children: React.ReactNode }) {
-  return <Stack direction="row">{children}</Stack>
-}
 
 function TooltipButton({
   tooltip,
@@ -87,9 +82,16 @@ function TooltipButton({
           sx={{ pointerEvents: 'none' }}
           open={open}
           anchorEl={anchor}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
         >
-          <Box sx={{ padding: 1 }}>{tooltip}</Box>
+          <div style={{ padding: 4 }}>{tooltip}</div>
         </Popover>
       )}
     </>
@@ -203,93 +205,107 @@ export function usePlayerUI({
     })
 
   const PlayerCtrlGroup = useMemo(() => {
-    return (
-      <ButtonGroup>
-        <Button
-          onClick={() => {
-            setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
-          }}
-        >
-          <AccountTree />
-        </Button>
-        <Button
-          onClick={() => {
-            setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
-          }}
-        >
-          <Bookmarks />
-        </Button>
-        <Button
-          onClick={() => {
-            toggleBookmark()
-          }}
-        >
-          {activeBookmark ? <Bookmark /> : <BookmarkBorder />}
-        </Button>
-        {!collapsed && (
-          <>
-            <TooltipButton
-              tooltip={<span>shift + ←</span>}
-              disabled={isFirstSection}
-              onClick={() => {
-                player.prevSection().catch(console.error)
-              }}
-            >
-              <SkipPrevious />
-            </TooltipButton>
-            <TooltipButton
-              tooltip={<span>↑</span>}
-              disabled={isFirstSection && isFirstParagraph}
-              onClick={() => {
-                player.prevParagraph().catch(console.error)
-              }}
-            >
-              <FastRewind />
-            </TooltipButton>
-          </>
-        )}
+    const buttons: JSX.Element[] = [
+      <Button
+        key="nav"
+        onClick={() => {
+          setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
+        }}
+      >
+        <AccountTree />
+      </Button>,
+      <Button
+        key="bookmarks"
+        onClick={() => {
+          setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
+        }}
+      >
+        <Bookmarks />
+      </Button>,
+      <Button
+        key="bookmark"
+        onClick={() => {
+          toggleBookmark()
+        }}
+      >
+        {activeBookmark ? <Bookmark /> : <BookmarkBorder />}
+      </Button>,
+    ]
+
+    if (!collapsed)
+      buttons.push(
         <TooltipButton
-          tooltip={<span>Space</span>}
+          key="prev-section"
+          tooltip={<span>shift + ←</span>}
+          disabled={isFirstSection}
           onClick={() => {
-            if (started) player.pause()
-            else player.start()
+            player.prevSection().catch(console.error)
           }}
         >
-          {started ? <Pause /> : <PlayArrow />}
-        </TooltipButton>
-        {!collapsed && (
-          <>
-            <TooltipButton
-              tooltip={<span>↓</span>}
-              disabled={isLastSection && isLastParagraph}
-              onClick={() => {
-                player.nextParagraph().catch(console.error)
-              }}
-            >
-              <FastForward />
-            </TooltipButton>
-            <TooltipButton
-              tooltip={<span>shift + →</span>}
-              disabled={isLastSection}
-              onClick={() => {
-                player.nextSection().catch(console.error)
-              }}
-            >
-              <SkipNext />
-            </TooltipButton>
-          </>
-        )}
-        {isMobile && (
-          <Button
-            onClick={() => {
-              setCollapsed((c) => !c)
-            }}
-          >
-            {collapsed ? <Start /> : <FirstPage />}
-          </Button>
-        )}
-      </ButtonGroup>
+          <SkipPrevious />
+        </TooltipButton>,
+        <TooltipButton
+          key="prev-paragraph"
+          tooltip={<span>↑</span>}
+          disabled={isFirstSection && isFirstParagraph}
+          onClick={() => {
+            player.prevParagraph().catch(console.error)
+          }}
+        >
+          <FastRewind />
+        </TooltipButton>,
+      )
+
+    buttons.push(
+      <TooltipButton
+        key="play"
+        tooltip={<span>Space</span>}
+        onClick={() => {
+          if (started) player.pause()
+          else player.start()
+        }}
+      >
+        {started ? <Pause /> : <PlayArrow />}
+      </TooltipButton>,
     )
+
+    if (!collapsed)
+      buttons.push(
+        <TooltipButton
+          key="next-paragraph"
+          tooltip={<span>↓</span>}
+          disabled={isLastSection && isLastParagraph}
+          onClick={() => {
+            player.nextParagraph().catch(console.error)
+          }}
+        >
+          <FastForward />
+        </TooltipButton>,
+        <TooltipButton
+          key="next-section"
+          tooltip={<span>shift + →</span>}
+          disabled={isLastSection}
+          onClick={() => {
+            player.nextSection().catch(console.error)
+          }}
+        >
+          <SkipNext />
+        </TooltipButton>,
+      )
+
+    if (isMobile)
+      buttons.push(
+        <Button
+          key="collapse"
+          onClick={() => {
+            setCollapsed((c) => !c)
+          }}
+        >
+          {collapsed ? <Start /> : <FirstPage />}
+        </Button>,
+      )
+
+    return <ButtonGroup>{buttons}</ButtonGroup>
   }, [
     activeBookmark,
     collapsed,

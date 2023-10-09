@@ -1,7 +1,6 @@
 import { ArrowRight, Help } from '@mui/icons-material'
 import type { SxProps, Theme } from '@mui/material'
 import {
-  Box,
   Checkbox,
   FormControlLabel,
   List,
@@ -10,7 +9,6 @@ import {
   Radio,
   RadioGroup,
   Slider,
-  Stack,
   TextField,
   Typography,
 } from '@mui/material'
@@ -18,32 +16,33 @@ import { t } from 'i18next'
 import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
 import { isMobile } from '../../../core/util/browser.js'
+import { FlexBox } from '../../components/flex-box.js'
 import {
+  SPLIT_PAGE_TYPES,
+  USER_COLOR_SCHEMES,
   useAutoSection,
-  useStopTimer,
-  useStopTimerSeconds,
+  usePageList,
+  useParagraphRepeat,
   usePersonReplace,
   useSpeechSpeed,
+  useStopTimer,
+  useStopTimerSeconds,
   useUserColorScheme,
-  type UserColorscheme,
-  USER_COLOR_SCHEMES,
-  useParagraphRepeat,
-  usePageList,
   type PageListType,
-  SPLIT_PAGE_TYPES,
+  type UserColorscheme,
 } from '../../store.js'
 
 export function SettingLine({ children }: { children: React.ReactNode }) {
   return (
-    <Stack
-      direction="row"
-      spacing={2}
-      sx={{
+    <FlexBox
+      dir="row"
+      gap={8}
+      style={{
         alignItems: 'center',
       }}
     >
       {children}
-    </Stack>
+    </FlexBox>
   )
 }
 
@@ -92,19 +91,17 @@ const TimerInput = () => {
           ></Checkbox>
         }
       ></FormControlLabel>
-      <Box>
-        <TextField
-          type="number"
-          sx={{ width: 80 }}
-          disabled={!stopTimerEnabled}
-          value={Math.floor(stopTimerSeconds / 60)}
-          onChange={(e) => {
-            const f = parseFloat(e.target.value)
-            if (!isNaN(f)) setStopTimerSeconds(Math.floor(f * 60))
-          }}
-          inputProps={{ sx: { textAlign: 'right' } }}
-        ></TextField>
-      </Box>
+      <TextField
+        type="number"
+        sx={{ width: 80 }}
+        disabled={!stopTimerEnabled}
+        value={Math.floor(stopTimerSeconds / 60)}
+        onChange={(e) => {
+          const f = parseFloat(e.target.value)
+          if (!isNaN(f)) setStopTimerSeconds(Math.floor(f * 60))
+        }}
+        inputProps={{ sx: { textAlign: 'right' } }}
+      ></TextField>
     </SettingLine>
   )
 }
@@ -185,7 +182,7 @@ const PlaySpeed = () => {
   return (
     <SettingLine>
       <SettingLabel>{t('setting.speed')}</SettingLabel>
-      <Stack>
+      <FlexBox>
         <Slider
           value={speechSpeed}
           onChange={(_, v) => {
@@ -206,7 +203,7 @@ const PlaySpeed = () => {
             step: '0.1',
           }}
         ></TextField>
-      </Stack>
+      </FlexBox>
     </SettingLine>
   )
 }

@@ -1,10 +1,4 @@
-import {
-  Autocomplete,
-  Button,
-  FormControl,
-  Stack,
-  TextField,
-} from '@mui/material'
+import { Autocomplete, Button, FormControl, TextField } from '@mui/material'
 import { t } from 'i18next'
 import path from 'path'
 import { useState } from 'react'
@@ -18,6 +12,7 @@ import {
 } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
+import { FlexBox } from '../../../components/flex-box.js'
 import { InputFile } from '../../../components/input-file.js'
 
 export function AddFile() {
@@ -63,7 +58,7 @@ export function AddFile() {
         })
       }}
     >
-      <Stack spacing={2}>
+      <FlexBox gap={8}>
         <TextField
           required
           label={t('bookName')}
@@ -114,7 +109,7 @@ export function AddFile() {
         <Button fullWidth type="submit">
           {t('add')}
         </Button>
-      </Stack>
+      </FlexBox>
     </form>
   )
 }

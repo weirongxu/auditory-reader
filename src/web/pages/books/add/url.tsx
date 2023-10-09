@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Stack,
   TextField,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -15,6 +14,7 @@ import { booksCreateByUrlRouter } from '../../../../core/api/books/create-by-url
 import { booksFetchUrlInfoRouter } from '../../../../core/api/books/fetch-url-info.js'
 import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
 import { async } from '../../../../core/util/promise.js'
+import { FlexBox } from '../../../components/flex-box.js'
 
 export function AddUrl() {
   const nav = useNavigate()
@@ -33,9 +33,9 @@ export function AddUrl() {
       >
         <DialogTitle id="alert-dialog-title">Fetching URL</DialogTitle>
         <DialogContent>
-          <Stack alignItems="center">
+          <FlexBox style={{ alignItems: 'center' }}>
             <CircularProgress />
-          </Stack>
+          </FlexBox>
         </DialogContent>
       </Dialog>
       <form
@@ -63,7 +63,7 @@ export function AddUrl() {
           })
         }}
       >
-        <Stack spacing={2}>
+        <FlexBox gap={8}>
           <TextField
             required
             label={t('bookName')}
@@ -86,7 +86,7 @@ export function AddUrl() {
             )}
           ></Autocomplete>
 
-          <Stack direction="row">
+          <FlexBox dir="row" gap={4}>
             <TextField
               required
               label={t('url')}
@@ -111,12 +111,12 @@ export function AddUrl() {
             >
               {t('extractUrlInfo')}
             </Button>
-          </Stack>
+          </FlexBox>
 
           <Button fullWidth type="submit">
             {t('add')}
           </Button>
-        </Stack>
+        </FlexBox>
       </form>
     </>
   )

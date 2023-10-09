@@ -38,6 +38,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
+import { isSafari } from '../../../../core/util/browser.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -406,6 +407,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
+        if (!isSafari) this.iframe.style.visibility = 'hidden'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -459,7 +461,10 @@ export class PlayerIframeController {
       }
       await this.scrollToCurParagraph(locate.animated ?? false)
     } finally {
-      this.states.loading = false
+      if (isLoadNewPath) {
+        this.states.loading = false
+        if (!isSafari) this.iframe.style.visibility = 'visible'
+      }
     }
   }
 
@@ -812,7 +817,7 @@ export class PlayerIframeController {
 
     const html = doc.documentElement
     const pageListType = this.pageListType()
-    const width = win.innerWidth
+    const width = html.getBoundingClientRect().width
 
     // update column count
     const columnCount = pageListType === 'single' ? 1 : 2

@@ -1,9 +1,11 @@
-import { CircularProgress, Stack } from '@mui/material'
+import { CircularProgress } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
+import { isMobile } from '../../../../core/util/browser.js'
+import { FlexBox } from '../../../components/flex-box.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
 import { useAppTheme } from '../../../theme.js'
@@ -16,7 +18,7 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
-  const [loading, setLoading] = useState<boolean>()
+  const [loading, setLoading] = useState<boolean>(false)
   const [pageListCount, setPageListCount] = useState<number | undefined>()
   const [pageListCurIndex, setPageListCurIndex] = useState<number | undefined>()
   const { addHotkeys } = useHotkeys()
@@ -41,42 +43,46 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
 
   const MainContent = useMemo(
     () => (
-      <Stack flex={1} position="relative">
-        <div
-          style={{
-            position: 'absolute',
-            zIndex: 2,
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          {loading && <CircularProgress></CircularProgress>}
-        </div>
-        <iframe title="viewer" ref={iframeRef}></iframe>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            zIndex: 1,
-            height: '4px',
-            width: '100%',
-            background: 'var(--main-bg)',
-          }}
-        >
+      <FlexBox flex={1} style={{ position: 'relative' }}>
+        {loading && (
           <div
             style={{
-              width: `${
-                pageListCurIndex && pageListCount
-                  ? ((pageListCurIndex / pageListCount) * 100).toFixed(2)
-                  : 0
-              }%`,
-              height: '100%',
-              background: 'var(--main-fg)',
+              position: 'absolute',
+              zIndex: 2,
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
             }}
-          ></div>
-        </div>
-      </Stack>
+          >
+            <CircularProgress></CircularProgress>
+          </div>
+        )}
+        <iframe title="viewer" ref={iframeRef}></iframe>
+        {isMobile && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              zIndex: 1,
+              height: '4px',
+              width: '100%',
+              background: 'var(--main-bg)',
+            }}
+          >
+            <div
+              style={{
+                width: `${
+                  pageListCurIndex && pageListCount
+                    ? ((pageListCurIndex / pageListCount) * 100).toFixed(2)
+                    : 0
+                }%`,
+                height: '100%',
+                background: 'var(--main-fg)',
+              }}
+            ></div>
+          </div>
+        )}
+      </FlexBox>
     ),
     [loading, pageListCount, pageListCurIndex],
   )
