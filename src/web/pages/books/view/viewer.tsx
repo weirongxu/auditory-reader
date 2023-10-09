@@ -30,9 +30,6 @@ function ViewProgress({
   return (
     <div
       style={{
-        position: 'absolute',
-        bottom: 0,
-        zIndex: 1,
         height: 8,
         width: '100%',
         overflow: 'hidden',

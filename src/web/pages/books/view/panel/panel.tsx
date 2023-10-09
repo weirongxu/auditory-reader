@@ -19,26 +19,23 @@ export function useBookPanel(
     useBookViewBookmarks(book, player, pos)
 
   const BookPanelView = useMemo(
-    () => (
-      <div>
-        {viewPanelType !== 'none' ? (
-          <div className="book-panel">
-            {viewPanelType === 'nav' && (
-              <>
-                <h3>{t('nav')}</h3>
-                {NavTreeView}
-              </>
-            )}
-            {viewPanelType === 'bookmark' && (
-              <>
-                <h3>{t('bookmark')}</h3>
-                {BookmarkView}
-              </>
-            )}
-          </div>
-        ) : null}
-      </div>
-    ),
+    () =>
+      viewPanelType !== 'none' ? (
+        <div className="book-panel">
+          {viewPanelType === 'nav' && (
+            <>
+              <h3>{t('nav')}</h3>
+              {NavTreeView}
+            </>
+          )}
+          {viewPanelType === 'bookmark' && (
+            <>
+              <h3>{t('bookmark')}</h3>
+              {BookmarkView}
+            </>
+          )}
+        </div>
+      ) : null,
 
     [BookmarkView, NavTreeView, viewPanelType],
   )
