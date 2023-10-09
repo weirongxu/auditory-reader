@@ -174,7 +174,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
         <div
           style={{
             flex: 1,
-            padding: '0 8px',
+            padding: 8,
             overflow: 'hidden',
             overflowY: 'auto',
           }}

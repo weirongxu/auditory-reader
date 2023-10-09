@@ -118,7 +118,7 @@ export class Player {
       await this.iframeCtrler.scrollToCurParagraph(to.animated)
     } else {
       // Change section
-      await this.iframeCtrler.loadByPos({
+      await this.iframeCtrler.load({
         section,
         paragraph: to.paragraph,
         animated: to.animated,

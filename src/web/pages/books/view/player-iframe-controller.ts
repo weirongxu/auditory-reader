@@ -38,7 +38,6 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { isSafari } from '../../../../core/util/browser.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -142,7 +141,7 @@ export class PlayerIframeController {
         firstPageListChanged = false
         return
       }
-      if (this.iframe) await this.load(true)
+      if (this.iframe) await this.load({ force: true })
     })
 
     this.player.onUnmount(() => this.triggerUnmount())
@@ -378,18 +377,20 @@ export class PlayerIframeController {
   /**
    * @param locate default is this.states.pos
    */
-  public async loadByPos(
+  public async load(
     locate: {
       section?: number
       anchorId?: string
       paragraph?: number
       /** @default false */
       animated?: boolean
-    },
-    force = false,
+      /** @default false */
+      force?: boolean
+    } = {},
   ) {
     const iframe = this.iframe
     if (!iframe) return
+    const force = locate.force ?? false
 
     // get spine
     const section = locate.section ?? this.states.pos.section
@@ -400,36 +401,19 @@ export class PlayerIframeController {
         message: 'book spine is empty',
         severity: 'error',
       })
+    // update section
+    this.states.pos = { ...this.states.pos, section }
 
     const absPath = spine.href
 
     const isLoadNewPath = force || absPath !== this.#curAbsPath
     this.#curAbsPath = absPath
 
-    // update pos
-    let paragraph = this.states.pos.paragraph
-    if (locate?.paragraph !== undefined) {
-      paragraph =
-        locate.paragraph < 0
-          ? this.readableParts.length + locate.paragraph
-          : locate.paragraph
-      // if exceeds readablePart range
-      if (paragraph < 0) paragraph = 0
-      else if (paragraph >= this.readableParts.length)
-        paragraph = this.readableParts.length - 1
-    } else if (locate?.anchorId)
-      paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
-
-    this.states.pos = {
-      section,
-      paragraph,
-    }
-
     try {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
-        if (!isSafari) this.iframe.style.visibility = 'hidden'
+        // this.iframe.style.opacity = '0'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -463,12 +447,31 @@ export class PlayerIframeController {
         await this.onLoaded(iframe)
       }
 
-      // scroll to
+      // update paragraph
+      let paragraph = this.states.pos.paragraph
+      if (locate?.paragraph !== undefined) {
+        paragraph =
+          locate.paragraph < 0
+            ? this.readableParts.length + locate.paragraph
+            : locate.paragraph
+        // if exceeds readablePart range
+        if (paragraph < 0) paragraph = 0
+        else if (paragraph >= this.readableParts.length)
+          paragraph = this.readableParts.length - 1
+      } else if (locate?.anchorId)
+        paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
+
+      this.states.pos = {
+        ...this.states.pos,
+        paragraph,
+      }
+
+      // scroll to paragraph
       await this.scrollToCurParagraph(locate.animated ?? false)
     } finally {
       if (isLoadNewPath) {
         this.states.loading = false
-        if (!isSafari) this.iframe.style.visibility = 'visible'
+        // this.iframe.style.opacity = '1'
       }
     }
   }
@@ -477,7 +480,7 @@ export class PlayerIframeController {
     const [urlMain, anchorId] = urlSplitAnchor(path)
     const section = this.book.spines.findIndex((s) => s.href === urlMain)
     if (section === -1) return
-    await this.loadByPos({ section, anchorId })
+    await this.load({ section, anchorId })
   }
 
   public updateColorTheme(colorScheme: ColorScheme) {
@@ -507,13 +510,7 @@ export class PlayerIframeController {
         .getComputedStyle(doc.body)
         .writingMode.startsWith('vertical')
 
-      const body = doc.body
-      const html = doc.documentElement
-      this.scrollContainer =
-        body.scrollHeight > body.clientWidth ||
-        body.scrollWidth > body.clientWidth
-          ? body
-          : html
+      this.scrollContainer = this.detectScrollContainer(doc)
       // eslint-disable-next-line no-console
       console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
 
@@ -526,7 +523,7 @@ export class PlayerIframeController {
       })
       this.resizeImgs(doc)
       if (this.enabledPageList) {
-        await this.pageListCalcuate(doc, this.scrollContainer)
+        await this.pageListCalculate(doc)
         this.hookPageTouch()
         this.hookPageWheel()
       }
@@ -544,7 +541,7 @@ export class PlayerIframeController {
       this.resizeImgs(doc)
       if (this.enabledPageList) {
         if (!this.scrollContainer) return
-        await this.pageListCalcuate(doc, this.scrollContainer)
+        await this.pageListCalculate(doc)
         const resizeFocusPart = this.pageListResizeFocusPart
         if (resizeFocusPart)
           await this.scrollToElem(resizeFocusPart.elem, {
@@ -824,10 +821,16 @@ export class PlayerIframeController {
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
-  protected async pageListCalcuate(
-    doc: Document,
-    scrollContainer: HTMLElement,
-  ) {
+  protected detectScrollContainer(doc: Document) {
+    const body = doc.body
+    const html = doc.documentElement
+    return body.scrollHeight > body.clientHeight ||
+      body.scrollWidth > body.clientWidth
+      ? body
+      : html
+  }
+
+  protected async pageListCalculate(doc: Document) {
     if (!this.viewWidth) return
 
     const html = doc.documentElement
@@ -838,8 +841,10 @@ export class PlayerIframeController {
     const columnWidth = this.viewWidth / columnCount
     html.style.setProperty('--main-column-count', columnCount.toString())
     html.style.setProperty('--main-column-width', `${columnWidth}px`)
+    // re-detect scroll container
+    this.scrollContainer = this.detectScrollContainer(doc)
 
-    let scrollWidth = scrollContainer.scrollWidth
+    let scrollWidth = this.scrollContainer.scrollWidth
     let pageCount: number
 
     // update page list width
@@ -853,7 +858,7 @@ export class PlayerIframeController {
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
-        scrollWidth = scrollContainer.scrollWidth
+        scrollWidth = this.scrollContainer.scrollWidth
       }
       pageCount /= 2
     } else {
@@ -871,7 +876,7 @@ export class PlayerIframeController {
 
     this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
-    this.parsePageList(scrollContainer)
+    this.parsePageList(this.scrollContainer)
   }
 
   protected resizeImgs(doc: Document) {
@@ -951,12 +956,6 @@ export class PlayerIframeController {
         this.states.pageListCurIndex,
       )?.topmost?.readablePart
     }
-  }
-
-  public async load(force = false) {
-    await this.loadByPos({}, force)
-    this.updateParagraphActive()
-    this.updateActiveNavs()
   }
 
   #paragraphLastActive?: ReadablePart
