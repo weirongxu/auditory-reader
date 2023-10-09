@@ -14,6 +14,43 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 
+function ViewProgress({
+  pageListCurIndex,
+  pageListCount,
+}: {
+  pageListCurIndex: number | undefined
+  pageListCount: number | undefined
+}) {
+  if (!isMobile) return <></>
+
+  let progress = '0'
+  if (pageListCurIndex && pageListCount)
+    progress = (((pageListCurIndex + 1) / pageListCount) * 100).toFixed(2)
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        zIndex: 1,
+        height: 8,
+        width: '100%',
+        overflow: 'hidden',
+        borderRadius: 8,
+        background: 'var(--main-bg-active)',
+      }}
+    >
+      <div
+        style={{
+          width: `${progress}%`,
+          height: '100%',
+          background: 'var(--main-fg-active)',
+        }}
+      ></div>
+    </div>
+  )
+}
+
 export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
@@ -58,30 +95,10 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
           </div>
         )}
         <iframe title="viewer" ref={iframeRef}></iframe>
-        {isMobile && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              zIndex: 1,
-              height: '4px',
-              width: '100%',
-              background: 'var(--main-bg)',
-            }}
-          >
-            <div
-              style={{
-                width: `${
-                  pageListCurIndex && pageListCount
-                    ? ((pageListCurIndex / pageListCount) * 100).toFixed(2)
-                    : 0
-                }%`,
-                height: '100%',
-                background: 'var(--main-fg)',
-              }}
-            ></div>
-          </div>
-        )}
+        <ViewProgress
+          pageListCurIndex={pageListCurIndex}
+          pageListCount={pageListCount}
+        ></ViewProgress>
       </FlexBox>
     ),
     [loading, pageListCount, pageListCurIndex],
