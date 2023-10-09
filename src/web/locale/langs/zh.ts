@@ -80,6 +80,7 @@ export const langZh = {
     dropHere: '拖动 .epub 文件、.txt 文件、文本或 URL 到这里',
     dropHereToRemove: '拖放到这里删除',
     uploadBook: '支持 .epub 和 .txt',
+    noBooks: '没有书籍，请添加一本',
   },
   error: {
     login: '$t(account)或$t(password)错误',

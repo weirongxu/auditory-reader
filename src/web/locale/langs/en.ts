@@ -82,6 +82,7 @@ export const langEn = {
     dropHere: 'drop .epub file、.txt file、text or URL to here',
     dropHereToRemove: 'Drop here to remove it',
     uploadBook: 'Support .epub and .txt',
+    noBooks: 'No books, please add one',
   },
   error: {
     login: '$t(account) or $t(password) error',

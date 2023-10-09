@@ -1,5 +1,6 @@
 import { Add, DragIndicator } from '@mui/icons-material'
 import {
+  Alert,
   Button,
   ButtonGroup,
   Checkbox,
@@ -657,6 +658,13 @@ export function BookList() {
         count={dataBooks?.pageCount}
       ></Pagination>
     ) : null
+
+  if (!books.length)
+    return (
+      <>
+        <Alert severity="warning">{t('prompt.noBooks')}</Alert>
+      </>
+    )
 
   return (
     <>
