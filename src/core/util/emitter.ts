@@ -40,6 +40,15 @@ export class Emitter<T extends Record<string, any>> {
 export class ChangedEmitter<T extends Record<string, any>> extends Emitter<T> {
   #lastValues = new Map<string, unknown>()
 
+  on<K extends keyof T & string>(
+    name: K,
+    callback: (value: T[K], prevValue?: T[K]) => void | Promise<void>,
+  ): Disposable {
+    return super.on(name, (value) =>
+      callback(value, this.#lastValues.get(name) as T[K]),
+    )
+  }
+
   fire<K extends keyof T & string>(name: K, value: T[K]) {
     if (value === undefined) return
 

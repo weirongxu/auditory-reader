@@ -71,9 +71,11 @@ export class PlayerIframeController {
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
   protected colorScheme: ColorScheme = 'light'
+  protected viewWidth?: number
+  protected viewHeight?: number
   protected pageList?: PageListNode[]
   /** page list: single page width */
-  protected pageListWidth?: number
+  protected pageListColumnWidth?: number
   /** page list: focus to part after resize */
   protected pageListResizeFocusPart?: ReadablePart
   protected win?: Window
@@ -294,9 +296,9 @@ export class PlayerIframeController {
       )
     }
 
-    if (this.pageListWidth)
+    if (this.viewWidth)
       this.states.pageListCurIndex = Math.round(
-        container.scrollLeft / this.pageListWidth,
+        container.scrollLeft / this.viewWidth,
       )
     if (userOperator) this.updatePageListFocus()
   }
@@ -306,7 +308,7 @@ export class PlayerIframeController {
     pageIndex: number
   }
   public async pushPageListAdjust(offsetPage: number, jump: boolean) {
-    if (!this.pageListWidth) return
+    if (!this.viewWidth) return
     if (offsetPage === 0) return
     if (this.states.pageListCurIndex === undefined) return
     if (!this.states.pageListCount) return
@@ -339,7 +341,7 @@ export class PlayerIframeController {
       pageIndex: goalPageIndex,
     }
 
-    const goalLeft = goalPageIndex * this.pageListWidth
+    const goalLeft = goalPageIndex * this.viewWidth
     if (jump) {
       let paragraph: number | undefined = undefined
       if (offsetPage < 0) {
@@ -389,6 +391,7 @@ export class PlayerIframeController {
     const iframe = this.iframe
     if (!iframe) return
 
+    // get spine
     const section = locate.section ?? this.states.pos.section
     let spine = this.book.spines[section]
     if (!spine) spine = this.book.spines[0]
@@ -402,6 +405,25 @@ export class PlayerIframeController {
 
     const isLoadNewPath = force || absPath !== this.#curAbsPath
     this.#curAbsPath = absPath
+
+    // update pos
+    let paragraph = this.states.pos.paragraph
+    if (locate?.paragraph !== undefined) {
+      paragraph =
+        locate.paragraph < 0
+          ? this.readableParts.length + locate.paragraph
+          : locate.paragraph
+      // if exceeds readablePart range
+      if (paragraph < 0) paragraph = 0
+      else if (paragraph >= this.readableParts.length)
+        paragraph = this.readableParts.length - 1
+    } else if (locate?.anchorId)
+      paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
+
+    this.states.pos = {
+      section,
+      paragraph,
+    }
 
     try {
       // load iframe
@@ -441,24 +463,7 @@ export class PlayerIframeController {
         await this.onLoaded(iframe)
       }
 
-      // goto pos
-      let paragraph = this.states.pos.paragraph
-      if (locate?.paragraph !== undefined) {
-        paragraph =
-          locate.paragraph < 0
-            ? this.readableParts.length + locate.paragraph
-            : locate.paragraph
-        // if exceeds readablePart range
-        if (paragraph < 0) paragraph = 0
-        else if (paragraph >= this.readableParts.length)
-          paragraph = this.readableParts.length - 1
-      } else if (locate?.anchorId)
-        paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
-
-      this.states.pos = {
-        section,
-        paragraph,
-      }
+      // scroll to
       await this.scrollToCurParagraph(locate.animated ?? false)
     } finally {
       if (isLoadNewPath) {
@@ -514,13 +519,14 @@ export class PlayerIframeController {
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
+      this.viewCalculate(doc)
       win.addEventListener('resize', () => {
         if (this.states.loading) return
-        this.onResize(win, doc)
+        this.onResize(doc)
       })
-      this.parsePageResizeImgs(win, doc)
+      this.resizeImgs(doc)
       if (this.enabledPageList) {
-        await this.pageListCalcuate(win, doc, this.scrollContainer)
+        await this.pageListCalcuate(doc, this.scrollContainer)
         this.hookPageTouch()
         this.hookPageWheel()
       }
@@ -532,12 +538,13 @@ export class PlayerIframeController {
     }
   }
 
-  protected onResize = debounceFn(300, (win: Window, doc: Document) => {
+  protected onResize = debounceFn(300, (doc: Document) => {
     async(async () => {
-      this.parsePageResizeImgs(win, doc)
+      this.viewCalculate(doc)
+      this.resizeImgs(doc)
       if (this.enabledPageList) {
         if (!this.scrollContainer) return
-        await this.pageListCalcuate(win, doc, this.scrollContainer)
+        await this.pageListCalcuate(doc, this.scrollContainer)
         const resizeFocusPart = this.pageListResizeFocusPart
         if (resizeFocusPart)
           await this.scrollToElem(resizeFocusPart.elem, {
@@ -807,21 +814,28 @@ export class PlayerIframeController {
     })
   }
 
+  protected viewCalculate(doc: Document) {
+    const htmlRect = doc.documentElement.getBoundingClientRect()
+    this.viewWidth = htmlRect.width
+    this.viewHeight = htmlRect.height
+    // eslint-disable-next-line no-console
+    console.debug(`viewWidth: ${this.viewWidth}`)
+    // eslint-disable-next-line no-console
+    console.debug(`viewHeight: ${this.viewHeight}`)
+  }
+
   protected async pageListCalcuate(
-    win: Window,
     doc: Document,
     scrollContainer: HTMLElement,
   ) {
-    // Make sure the width is loaded correctly
-    // scrollContainer.offsetWidth
+    if (!this.viewWidth) return
 
     const html = doc.documentElement
     const pageListType = this.pageListType()
-    const width = html.getBoundingClientRect().width
 
     // update column count
     const columnCount = pageListType === 'single' ? 1 : 2
-    const columnWidth = width / columnCount
+    const columnWidth = this.viewWidth / columnCount
     html.style.setProperty('--main-column-count', columnCount.toString())
     html.style.setProperty('--main-column-width', `${columnWidth}px`)
 
@@ -832,7 +846,7 @@ export class PlayerIframeController {
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
       // fix column double last page
-      pageCount = Math.round((2 * scrollWidth) / width)
+      pageCount = Math.round((2 * scrollWidth) / this.viewWidth)
       if (pageCount % 2 === 1) {
         // add empty page & update the scrollWidth
         pageCount += 1
@@ -843,22 +857,24 @@ export class PlayerIframeController {
       }
       pageCount /= 2
     } else {
-      pageCount = Math.round(scrollWidth / width)
+      pageCount = Math.round(scrollWidth / this.viewWidth)
     }
 
-    this.pageListWidth = width
+    this.pageListColumnWidth = columnWidth
     this.states.pageListCount = pageCount
     // eslint-disable-next-line no-console
     console.debug(`scrollWidth: ${scrollWidth}`)
     // eslint-disable-next-line no-console
-    console.debug(`pageListWidth: ${this.pageListWidth}`)
+    console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`pageListCount: ${this.states.pageListCount}`)
+
+    this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
     this.parsePageList(scrollContainer)
   }
 
-  protected parsePageResizeImgs(win: Window, doc: Document) {
+  protected resizeImgs(doc: Document) {
     const imgClasses = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
     const imgs = doc.querySelectorAll('img')
 
@@ -867,35 +883,37 @@ export class PlayerIframeController {
       img.classList.remove(...imgClasses)
     }
 
+    if (!this.viewWidth) return
+
     if (this.pageListType() === 'none') {
-      const width = win.innerWidth
       for (const img of imgs) {
-        if (img.width > width) img.classList.add(IMG_MAX_WIDTH_CLASS)
-      }
-    } else {
-      if (!this.win || !this.pageListWidth) return
-      const width =
-        this.pageListWidth / (this.pageListType() === 'double' ? 2 : 1)
-      const height = this.win.innerHeight
-      const pageWHRate = width / height
-      for (const img of imgs) {
-        if (img.width > width || img.height > height)
-          img.classList.add(
-            img.naturalWidth / img.naturalHeight > pageWHRate
-              ? IMG_MAX_WIDTH_CLASS
-              : IMG_MAX_HEIGHT_CLASS,
-          )
+        if (img.width > this.viewWidth) img.classList.add(IMG_MAX_WIDTH_CLASS)
       }
     }
   }
 
+  protected pageListResizeImgs(doc: Document, columnWidth: number) {
+    if (!this.viewHeight) return
+    const imgs = doc.querySelectorAll('img')
+
+    const pageWHRate = columnWidth / this.viewHeight
+    for (const img of imgs) {
+      if (img.width > columnWidth || img.height > this.viewHeight)
+        img.classList.add(
+          img.naturalWidth / img.naturalHeight > pageWHRate
+            ? IMG_MAX_WIDTH_CLASS
+            : IMG_MAX_HEIGHT_CLASS,
+        )
+    }
+  }
+
   protected parsePageList(scrollContainer: HTMLElement) {
-    const width = this.pageListWidth
-    if (!width) return
+    const viewWidth = this.viewWidth
+    if (!viewWidth) return
     if (!this.states.pageListCount) return
 
     this.pageList = range(0, this.states.pageListCount)
-      .map((i) => i * width)
+      .map((i) => i * viewWidth)
       .map((scrollLeft) => ({ scrollLeft }))
 
     const parentLeft = scrollContainer.getBoundingClientRect().left
