@@ -38,6 +38,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
+import { isMobile } from '../../../../core/util/browser.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -603,6 +604,14 @@ export class PlayerIframeController {
         }
       `
     }
+    let hoverStyle = ''
+    if (!isMobile) {
+      hoverStyle = `
+        .${PARA_BOX_CLASS}:hover {
+          outline: 1px dashed var(--main-fg-hover);
+        }
+      `
+    }
 
     styleElem.innerHTML = `
       ${globalStyle}
@@ -653,9 +662,7 @@ export class PlayerIframeController {
         outline: 5px solid var(--main-bg-active);
       }
 
-      .${PARA_BOX_CLASS}:hover {
-        outline: 1px dashed var(--main-fg-hover);
-      }
+      ${hoverStyle}
 
       .${PARA_HIGHLIGHT_CLASS} > div {
         background-color: var(--main-bg-highlight) !important;
@@ -868,6 +875,10 @@ export class PlayerIframeController {
     const columnWidth = this.viewWidth / columnCount
     html.style.setProperty('--main-column-count', columnCount.toString())
     html.style.setProperty('--main-column-width', `${columnWidth}px`)
+    this.pageListColumnWidth = columnWidth
+
+    this.pageListResizeImgs(doc, this.pageListColumnWidth)
+
     // re-detect scroll container
     this.scrollContainer = this.detectScrollContainer(doc)
 
@@ -892,7 +903,6 @@ export class PlayerIframeController {
       pageCount = Math.round(scrollWidth / this.viewWidth)
     }
 
-    this.pageListColumnWidth = columnWidth
     this.states.pageListCount = pageCount
     // eslint-disable-next-line no-console
     console.debug(`scrollWidth: ${scrollWidth}`)
@@ -900,8 +910,6 @@ export class PlayerIframeController {
     console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`pageListCount: ${this.states.pageListCount}`)
-
-    this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
     this.parsePageList(this.scrollContainer)
   }
