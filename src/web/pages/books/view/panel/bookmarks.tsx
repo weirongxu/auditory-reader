@@ -1,13 +1,10 @@
 import { ChevronRight, Delete } from '@mui/icons-material'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { booksAddBookmarksRouter } from '../../../../../core/api/books/add-bookmarks.js'
 import { booksBookmarksRouter } from '../../../../../core/api/books/bookmarks.js'
-import { booksDeleteBookmarksRouter } from '../../../../../core/api/books/delete-bookmarks.js'
 import type { BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
-import { pushSnackbar } from '../../../../common/snackbar.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 
@@ -139,6 +136,13 @@ export function useBookViewBookmarks(
     uuid,
   })
 
+  useEffect(() => {
+    player.bookmarks.reload = reload
+    return () => {
+      player.bookmarks.reload = undefined
+    }
+  }, [player.bookmarks, reload])
+
   const activeBookmarkIndex = useMemo(() => {
     const idx = bookmarks?.findIndex(
       (b) => b.section === pos.section && b.paragraph === pos.paragraph,
@@ -155,57 +159,14 @@ export function useBookViewBookmarks(
   )
 
   const addBookmark = useCallback(() => {
-    const node = player.iframeCtrler.readableParts.at(pos.paragraph)
-    if (!node) return
-    if (node.type !== 'text')
-      return pushSnackbar({
-        severity: 'error',
-        message: t('desc.noSuportedBookmark'),
-      })
-    const brief = node.text.slice(0, 20)
-    booksAddBookmarksRouter
-      .action({
-        bookmarks: [
-          {
-            brief,
-            type: 'text',
-            section: pos.section,
-            paragraph: pos.paragraph,
-          },
-        ],
-        uuid,
-      })
-      .then(() => {
-        reload()
-        return pushSnackbar({
-          message: `${t('desc.addedBookmark')} ${brief}`,
-        })
-      })
-      .catch(console.error)
-  }, [
-    player.iframeCtrler.readableParts,
-    pos.paragraph,
-    pos.section,
-    reload,
-    uuid,
-  ])
+    player.bookmarks.addBookmark(pos).catch(console.error)
+  }, [player.bookmarks, pos])
 
   const removeBookmark = useCallback(
     (bookmark: BookTypes.PropertyBookmark) => {
-      booksDeleteBookmarksRouter
-        .action({
-          uuid,
-          bookmarkUuids: [bookmark.uuid],
-        })
-        .then(() => {
-          reload()
-          return pushSnackbar({
-            message: `${t('desc.deletedBookmark')} ${bookmark.brief}`,
-          })
-        })
-        .catch(console.error)
+      player.bookmarks.removeBookmark(bookmark).catch(console.error)
     },
-    [reload, uuid],
+    [player.bookmarks],
   )
 
   const toggleBookmark = useCallback(() => {

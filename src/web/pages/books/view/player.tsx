@@ -10,11 +10,13 @@ import {
 } from './player-iframe-controller.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
+import { PlayerBookmarks } from './player-bookmarks.js'
 
 export class Player {
   states: PlayerStatesManager
   utterer: Utterer
   iframeCtrler: PlayerIframeController
+  bookmarks: PlayerBookmarks
 
   constructor(
     public book: BookView,
@@ -25,6 +27,7 @@ export class Player {
     this.states.pos = initPos
     this.iframeCtrler = new PlayerIframeController(this, this.states, iframeRef)
     this.utterer = new Utterer(this, this.states, this.iframeCtrler)
+    this.bookmarks = new PlayerBookmarks(this)
 
     const onVisibilityChange = () => {
       async(async () => {

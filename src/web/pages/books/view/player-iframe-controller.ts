@@ -308,7 +308,6 @@ export class PlayerIframeController {
   }
   public async pushPageListAdjust(offsetPage: number, jump: boolean) {
     if (!this.viewWidth) return
-    if (offsetPage === 0) return
     if (this.states.pageListCurIndex === undefined) return
     if (!this.states.pageListCount) return
     if (!this.pageList) return
@@ -735,11 +734,37 @@ export class PlayerIframeController {
   }
 
   protected hookParagraphClick() {
+    const win = this.win
+    if (!win) return
     const click = (paraIndex: number) => {
       this.player.gotoParagraph(paraIndex).catch(console.error)
     }
+    const dblclick = (paraIndex: number) => {
+      this.player.bookmarks
+        .toggleBookmark({
+          section: this.states.pos.section,
+          paragraph: paraIndex,
+        })
+        .catch(console.error)
+    }
     this.readableParts.forEach((n, i) => {
-      if (n.type === 'text') n.elem.addEventListener('click', () => click(i))
+      if (n.type === 'text') {
+        n.elem.addEventListener('click', () => click(i))
+        n.elem.addEventListener('dblclick', (e) => {
+          e.preventDefault()
+          win.getSelection()?.removeAllRanges()
+          dblclick(i)
+        })
+        let lastTouchTime: number | undefined = undefined
+        n.elem.addEventListener('touchstart', () => {
+          // dblclick
+          const now = Date.now()
+          if (lastTouchTime && now - lastTouchTime < 300) {
+            dblclick(i)
+          }
+          lastTouchTime = now
+        })
+      }
     })
   }
 
@@ -755,8 +780,8 @@ export class PlayerIframeController {
       startX = touch.clientX
     }
 
-    const movelistener = (event: TouchEvent) => {
-      event.preventDefault()
+    const movelistener = () => {
+      // event.preventDefault()
     }
 
     const endlistener = (event: TouchEvent) => {
@@ -764,11 +789,13 @@ export class PlayerIframeController {
       const touch = event.changedTouches[0]
       if (!touch) return
       const deltaX = touch.clientX - startX
-      const minX = this.win.innerWidth / 4
+      const minX = this.win.innerWidth / 5
       if (deltaX < -minX) {
         void this.player.nextPage(1, true)
       } else if (deltaX > minX) {
         void this.player.prevPage(1, true)
+      } else {
+        void this.pushPageListAdjust(0, false)
       }
     }
 
