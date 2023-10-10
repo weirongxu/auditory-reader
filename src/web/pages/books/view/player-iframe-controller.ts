@@ -413,7 +413,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
-        if (!isSafari) this.iframe.style.visibility = 'hidden'
+        this.iframe.style.opacity = '0'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -471,7 +471,7 @@ export class PlayerIframeController {
     } finally {
       if (isLoadNewPath) {
         this.states.loading = false
-        if (!isSafari) this.iframe.style.visibility = 'visible'
+        this.iframe.style.opacity = '1'
       }
     }
   }
@@ -511,8 +511,6 @@ export class PlayerIframeController {
         .writingMode.startsWith('vertical')
 
       this.scrollContainer = this.detectScrollContainer(doc)
-      // eslint-disable-next-line no-console
-      console.debug(`scrollContainer: ${this.scrollContainer.tagName}`)
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
@@ -581,8 +579,7 @@ export class PlayerIframeController {
         html {
           height: 100%;
           width: auto;
-          overflow-y: hidden;
-          overflow-x: auto;
+          overflow: hidden;
           /* Safari iOS not support
             columns: var(--main-column-count) auto;
           */
@@ -776,10 +773,11 @@ export class PlayerIframeController {
   }
 
   protected hookPageTouch() {
-    const win = this.win
+    if (!this.enabledPageList) return
     const doc = this.doc
     const viewWidth = this.viewWidth
-    if (!win || !doc || !viewWidth) return
+    const scrollContainer = this.scrollContainer
+    if (!doc || !viewWidth || !scrollContainer) return
 
     let startX: number | undefined = undefined
 
@@ -795,16 +793,16 @@ export class PlayerIframeController {
       const touch = event.touches[0]
       if (!touch) return
       const deltaX = touch.clientX - startX
-      doc.documentElement.style.transform = `translateX(${deltaX}px)`
+      doc.body.style.transform = `translateX(${deltaX}px)`
     }
 
     const endlistener = (event: TouchEvent) => {
       if (startX === undefined) return
-      doc.documentElement.style.transform = 'none'
       const touch = event.changedTouches[0]
       if (!touch) return
-      event.preventDefault()
+      doc.body.style.transform = 'none'
       const deltaX = touch.clientX - startX
+      scrollContainer.scrollLeft -= deltaX
       const minX = viewWidth / 5
       if (deltaX < -minX) {
         void this.player.nextPage(1, true)
@@ -867,14 +865,31 @@ export class PlayerIframeController {
   protected detectScrollContainer(doc: Document) {
     const body = doc.body
     const html = doc.documentElement
-    return body.scrollHeight > body.clientHeight ||
-      body.scrollWidth > body.clientWidth
-      ? body
-      : html
+    const container = body.scrollHeight > body.clientHeight ? body : html
+
+    // eslint-disable-next-line no-console
+    console.debug(
+      `body: scrollHeight:${body.scrollHeight} clientHeight:${body.clientHeight}`,
+    )
+    // eslint-disable-next-line no-console
+    console.debug(
+      `body: scrollWidth:${body.scrollWidth} clientWidth:${body.clientWidth}`,
+    )
+    // eslint-disable-next-line no-console
+    console.debug(
+      `html: scrollHeight:${html.scrollHeight} clientHeight:${html.clientHeight}`,
+    )
+    // eslint-disable-next-line no-console
+    console.debug(
+      `html: scrollWidth:${html.scrollWidth} clientWidth:${html.clientWidth}`,
+    )
+    // eslint-disable-next-line no-console
+    console.debug(`scrollContainer: ${container.tagName}`)
+    return container
   }
 
   protected async pageListCalculate(doc: Document) {
-    if (!this.viewWidth) return
+    if (!this.viewWidth || !this.scrollContainer) return
 
     const html = doc.documentElement
     const pageListType = this.pageListType()
@@ -887,9 +902,6 @@ export class PlayerIframeController {
     this.pageListColumnWidth = columnWidth
 
     this.pageListResizeImgs(doc, this.pageListColumnWidth)
-
-    // re-detect scroll container
-    this.scrollContainer = this.detectScrollContainer(doc)
 
     let scrollWidth = this.scrollContainer.scrollWidth
     let pageCount: number
