@@ -27,6 +27,25 @@ export function throttleFn<A extends Array<any>, R>(
   }
 }
 
+export function throttleTailFn<A extends Array<any>, R>(
+  delay: number,
+  fn: (...args: A) => R,
+): (...args: A) => R | void {
+  let timer: NodeJS.Timeout | undefined
+  let isThrottled = false
+  return (...args: A) => {
+    clearTimeout(timer)
+    if (isThrottled) {
+      timer = setTimeout(() => fn(...args), delay)
+    } else {
+      const result = fn(...args)
+      isThrottled = true
+      setTimeout(() => (isThrottled = false), delay)
+      return result
+    }
+  }
+}
+
 export interface IterateAnimateOptions {
   iteration?: number
   duration?: number

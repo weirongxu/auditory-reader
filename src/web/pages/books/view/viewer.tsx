@@ -12,46 +12,14 @@ import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
-
-function ViewProgress({
-  pageListCurIndex,
-  pageListCount,
-}: {
-  pageListCurIndex: number | undefined
-  pageListCount: number | undefined
-}) {
-  let progress = '0'
-  if (pageListCurIndex && pageListCount)
-    progress = (((pageListCurIndex + 1) / pageListCount) * 100).toFixed(2)
-
-  return (
-    <div
-      style={{
-        height: 8,
-        width: '100%',
-        overflow: 'hidden',
-        borderRadius: 8,
-        background: 'var(--main-bg-active)',
-      }}
-    >
-      <div
-        style={{
-          width: `${progress}%`,
-          height: '100%',
-          background: 'var(--main-fg-active)',
-        }}
-      ></div>
-    </div>
-  )
-}
+import { ViewProgressBar } from './progress-bar.js'
 
 export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [pageListCount, setPageListCount] = useState<number | undefined>()
-  const [pageListCurIndex, setPageListCurIndex] = useState<number | undefined>()
+  const [scrollPercent, setScrollPercent] = useState<number | undefined>()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
@@ -62,8 +30,7 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
     setStarted,
     setActiveNavs,
     setLoading,
-    setPageListCount,
-    setPageListCurIndex,
+    setScrollPercent,
   })
 
   // dark scheme
@@ -71,6 +38,16 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   useEffect(() => {
     player.iframeCtrler.updateColorTheme(theme.palette.mode)
   }, [player.iframeCtrler, theme.palette.mode])
+
+  const { BookPanelView, toggleBookmark } = usePlayerUI({
+    uuid,
+    book,
+    pos,
+    setPos,
+    player,
+    started,
+    activeNavs,
+  })
 
   const MainContent = useMemo(
     () => (
@@ -89,24 +66,14 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
           </div>
         )}
         <iframe title="viewer" ref={iframeRef}></iframe>
-        <ViewProgress
-          pageListCurIndex={pageListCurIndex}
-          pageListCount={pageListCount}
-        ></ViewProgress>
+        <ViewProgressBar
+          player={player}
+          scrollPercent={scrollPercent}
+        ></ViewProgressBar>
       </FlexBox>
     ),
-    [loading, pageListCount, pageListCurIndex],
+    [loading, scrollPercent, player],
   )
-
-  const { BookPanelView, toggleBookmark } = usePlayerUI({
-    uuid,
-    book,
-    pos,
-    setPos,
-    player,
-    started,
-    activeNavs,
-  })
 
   // hotkey
   useEffect(() => {

@@ -14,7 +14,7 @@ import {
   PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
-import { isMobile } from '../../../../core/util/browser.js'
+import { isMobile, isSafari } from '../../../../core/util/browser.js'
 import {
   find,
   findLast,
@@ -58,7 +58,7 @@ interface ScrollOptions extends IterateAnimateOptions {
   /**
    * @default 'center'
    */
-  position?: 'center' | 'nearest'
+  position?: 'center' | 'start'
   /**
    * @default true
    */
@@ -78,6 +78,9 @@ export class PlayerIframeController {
   protected pageListGap = 12
   /** page list: single page width */
   protected pageListColumnWidth?: number
+  protected pageListCount: number | undefined
+  /** page list: current index */
+  protected pageListCurIndex: number | undefined
   /** page list: focus to part after resize */
   protected pageListResizeFocusPart?: ReadablePart
   protected win?: Window
@@ -99,16 +102,12 @@ export class PlayerIframeController {
   }
 
   get isFirstPageList() {
-    return this.states.pageListCurIndex === 0
+    return this.pageListCurIndex === 0
   }
 
   get isLastPageList() {
-    if (
-      this.states.pageListCurIndex === undefined ||
-      !this.states.pageListCount
-    )
-      return true
-    return this.states.pageListCurIndex >= this.states.pageListCount - 1
+    if (this.pageListCurIndex === undefined || !this.pageListCount) return true
+    return this.pageListCurIndex >= this.pageListCount - 1
   }
 
   constructor(
@@ -299,7 +298,7 @@ export class PlayerIframeController {
     }
 
     if (this.viewOffsetWidth)
-      this.states.pageListCurIndex = Math.round(
+      this.pageListCurIndex = Math.round(
         container.scrollLeft / this.viewOffsetWidth,
       )
     if (userOperator) this.updatePageListFocus()
@@ -310,29 +309,32 @@ export class PlayerIframeController {
     pageIndex: number
   }
   public async pushPageListAdjust(offsetPage: number, jump: boolean) {
-    if (!this.viewOffsetWidth) return
-    if (this.states.pageListCurIndex === undefined) return
-    if (!this.states.pageListCount) return
-    if (!this.pageList) return
+    if (
+      !this.viewOffsetWidth ||
+      this.pageListCurIndex === undefined ||
+      !this.pageListCount ||
+      !this.pageList
+    )
+      return
 
     let goalPageIndex: number
     if (this.#pushPageListLast) {
       goalPageIndex = this.#pushPageListLast.pageIndex + offsetPage
     } else {
-      goalPageIndex = this.states.pageListCurIndex + offsetPage
+      goalPageIndex = this.pageListCurIndex + offsetPage
     }
 
     // exceed section range
     if (jump) {
       if (goalPageIndex < 0) {
         return await this.player.prevSection(-1)
-      } else if (goalPageIndex >= this.states.pageListCount) {
+      } else if (goalPageIndex >= this.pageListCount) {
         return await this.player.nextSection()
       }
     } else {
       if (goalPageIndex < 0) goalPageIndex = 0
-      else if (goalPageIndex >= this.states.pageListCount)
-        goalPageIndex = this.states.pageListCount - 1
+      else if (goalPageIndex >= this.pageListCount)
+        goalPageIndex = this.pageListCount - 1
     }
 
     this.#pushPageListLast?.abortCtrl.abort()
@@ -372,6 +374,27 @@ export class PlayerIframeController {
     }
 
     this.#pushPageListLast = undefined
+  }
+
+  public async scrollPercent(percent: number, jump: boolean) {
+    const container = this.scrollContainer
+    if (!container) return
+
+    if (!this.enabledPageList) {
+      const scrollTop =
+        (container.scrollHeight - container.clientHeight) * percent
+      await this.scrollToTop(scrollTop, { position: 'start' })
+      return
+    }
+
+    // page list
+    if (!this.viewOffsetWidth || this.pageListCurIndex === undefined) return
+
+    const targetIndex = Math.floor(
+      (container.scrollWidth * percent) / this.viewOffsetWidth,
+    )
+    const offsetIndex = targetIndex - this.pageListCurIndex
+    await this.pushPageListAdjust(offsetIndex, jump)
   }
 
   #curAbsPath?: string
@@ -415,7 +438,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
-        // this.iframe.style.opacity = '0'
+        this.iframe.style.opacity = '0'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -528,6 +551,7 @@ export class PlayerIframeController {
         this.hookPageTouch()
         this.hookPageWheel()
       }
+      this.hookScroll()
       this.hookALinks(doc)
       this.hookImgs(doc)
       this.hookParagraphClick()
@@ -660,7 +684,7 @@ export class PlayerIframeController {
 
       .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS} {
         background: var(--main-bg-active);
-        outline: 5px solid var(--main-bg-active);
+        ${!isSafari ? `outline: 5px solid var(--main-bg-active);` : ''}
       }
 
       ${hoverStyle}
@@ -857,6 +881,23 @@ export class PlayerIframeController {
     })
   }
 
+  protected hookScroll() {
+    const container = this.scrollContainer
+    if (!this.doc || !container) return
+
+    const onScroll = () => {
+      const percent = this.enabledPageList
+        ? container.scrollLeft / (container.scrollWidth - container.clientWidth)
+        : container.scrollTop /
+          (container.scrollHeight - container.clientHeight)
+
+      this.states.scrollPercent = percent * 100
+    }
+
+    this.doc.addEventListener('scroll', () => onScroll())
+    onScroll()
+  }
+
   protected viewCalculate(doc: Document) {
     const viewRect = doc.body.getBoundingClientRect()
     this.viewWidth = viewRect.width
@@ -933,13 +974,13 @@ export class PlayerIframeController {
       pageCount = Math.round(scrollWidth / this.viewOffsetWidth)
     }
 
-    this.states.pageListCount = pageCount
+    this.pageListCount = pageCount
     // eslint-disable-next-line no-console
     console.debug(`scrollWidth: ${scrollWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
     // eslint-disable-next-line no-console
-    console.debug(`pageListCount: ${this.states.pageListCount}`)
+    console.debug(`pageListCount: ${this.pageListCount}`)
 
     this.parsePageList(this.scrollContainer)
   }
@@ -980,9 +1021,9 @@ export class PlayerIframeController {
   protected parsePageList(scrollContainer: HTMLElement) {
     const viewOffsetWidth = this.viewOffsetWidth
     if (!viewOffsetWidth) return
-    if (!this.states.pageListCount) return
+    if (!this.pageListCount) return
 
-    this.pageList = range(0, this.states.pageListCount)
+    this.pageList = range(0, this.pageListCount)
       .map((i) => i * viewOffsetWidth)
       .map((scrollLeft) => ({ scrollLeft }))
 
@@ -1004,7 +1045,7 @@ export class PlayerIframeController {
   }
 
   protected updatePageListFocus() {
-    if (!this.pageList || this.states.pageListCurIndex === undefined) return
+    if (!this.pageList || this.pageListCurIndex === undefined) return
 
     // update focus part
     const paragraph = this.states.pos.paragraph
@@ -1012,14 +1053,13 @@ export class PlayerIframeController {
       this.pageList,
       (page) => !!page.topmost && page.topmost.paragraph <= paragraph,
     )
-    if (pageListPosIndex === this.states.pageListCurIndex) {
+    if (pageListPosIndex === this.pageListCurIndex) {
       // use the pos paragraph as resize focus
       this.pageListResizeFocusPart = this.readableParts.at(paragraph)
     } else {
       // use pageListCurIndex as resize focus
-      this.pageListResizeFocusPart = this.pageList.at(
-        this.states.pageListCurIndex,
-      )?.topmost?.readablePart
+      this.pageListResizeFocusPart = this.pageList.at(this.pageListCurIndex)
+        ?.topmost?.readablePart
     }
   }
 
