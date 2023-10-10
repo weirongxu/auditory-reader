@@ -4,7 +4,6 @@ import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
-import { isMobile } from '../../../../core/util/browser.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
@@ -21,8 +20,6 @@ function ViewProgress({
   pageListCurIndex: number | undefined
   pageListCount: number | undefined
 }) {
-  if (!isMobile) return <></>
-
   let progress = '0'
   if (pageListCurIndex && pageListCount)
     progress = (((pageListCurIndex + 1) / pageListCount) * 100).toFixed(2)

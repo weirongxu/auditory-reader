@@ -14,6 +14,7 @@ import {
   PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
+import { isMobile } from '../../../../core/util/browser.js'
 import {
   find,
   findLast,
@@ -38,7 +39,6 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { isMobile, isSafari } from '../../../../core/util/browser.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -72,8 +72,10 @@ export class PlayerIframeController {
   protected mainContentRootUrl: string
   protected colorScheme: ColorScheme = 'light'
   protected viewWidth?: number
+  protected viewOffsetWidth?: number
   protected viewHeight?: number
   protected pageList?: PageListNode[]
+  protected pageListGap = 12
   /** page list: single page width */
   protected pageListColumnWidth?: number
   /** page list: focus to part after resize */
@@ -296,9 +298,9 @@ export class PlayerIframeController {
       )
     }
 
-    if (this.viewWidth)
+    if (this.viewOffsetWidth)
       this.states.pageListCurIndex = Math.round(
-        container.scrollLeft / this.viewWidth,
+        container.scrollLeft / this.viewOffsetWidth,
       )
     if (userOperator) this.updatePageListFocus()
   }
@@ -308,7 +310,7 @@ export class PlayerIframeController {
     pageIndex: number
   }
   public async pushPageListAdjust(offsetPage: number, jump: boolean) {
-    if (!this.viewWidth) return
+    if (!this.viewOffsetWidth) return
     if (this.states.pageListCurIndex === undefined) return
     if (!this.states.pageListCount) return
     if (!this.pageList) return
@@ -340,7 +342,7 @@ export class PlayerIframeController {
       pageIndex: goalPageIndex,
     }
 
-    const goalLeft = goalPageIndex * this.viewWidth
+    const goalLeft = goalPageIndex * this.viewOffsetWidth
     if (jump) {
       let paragraph: number | undefined = undefined
       if (offsetPage < 0) {
@@ -413,7 +415,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
-        this.iframe.style.opacity = '0'
+        // this.iframe.style.opacity = '0'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -514,6 +516,7 @@ export class PlayerIframeController {
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
+
       this.viewCalculate(doc)
       win.addEventListener('resize', () => {
         if (this.states.loading) return
@@ -577,23 +580,24 @@ export class PlayerIframeController {
       pageStyle = `
         /* page list */
         html {
-          height: 100%;
-          width: auto;
-          overflow: hidden;
+          height: 100% !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 4px !important;
+          box-sizing: border-box !important;
+        }
+        body {
+          height: 100% !important;
+          width: auto !important;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          overflow: hidden !important;
           /* Safari iOS not support
             columns: var(--main-column-count) auto;
           */
-          columns: var(--main-column-count) var(--main-column-width);
-          column-gap: 0;
-          margin: 0;
-          padding: 0;
-        }
-        body {
-          height: 100%;
-          width: auto;
-          margin: 0;
-          padding: 0 10px;
-          box-sizing: border-box;
+          columns: var(--main-column-count) var(--main-column-width) !important;
+          column-gap: ${this.pageListGap}px !important;
         }
         .${COLUMN_BREAK_CLASS} {
           content: ' ';
@@ -759,6 +763,7 @@ export class PlayerIframeController {
           win.getSelection()?.removeAllRanges()
           dblclick(i)
         })
+        // double touch
         let lastTouchTime: number | undefined = undefined
         n.elem.addEventListener('touchstart', () => {
           // dblclick
@@ -853,11 +858,14 @@ export class PlayerIframeController {
   }
 
   protected viewCalculate(doc: Document) {
-    const htmlRect = doc.documentElement.getBoundingClientRect()
-    this.viewWidth = htmlRect.width
-    this.viewHeight = htmlRect.height
+    const viewRect = doc.body.getBoundingClientRect()
+    this.viewWidth = viewRect.width
+    this.viewOffsetWidth = viewRect.width + this.pageListGap
+    this.viewHeight = viewRect.height
     // eslint-disable-next-line no-console
     console.debug(`viewWidth: ${this.viewWidth}`)
+    // eslint-disable-next-line no-console
+    console.debug(`viewOffsetWidth: ${this.viewOffsetWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
@@ -889,14 +897,15 @@ export class PlayerIframeController {
   }
 
   protected async pageListCalculate(doc: Document) {
-    if (!this.viewWidth || !this.scrollContainer) return
+    if (!this.viewWidth || !this.viewOffsetWidth || !this.scrollContainer)
+      return
 
     const html = doc.documentElement
     const pageListType = this.pageListType()
 
     // update column count
     const columnCount = pageListType === 'single' ? 1 : 2
-    const columnWidth = this.viewWidth / columnCount
+    const columnWidth = (this.viewWidth - this.pageListGap) / columnCount
     html.style.setProperty('--main-column-count', columnCount.toString())
     html.style.setProperty('--main-column-width', `${columnWidth}px`)
     this.pageListColumnWidth = columnWidth
@@ -910,7 +919,7 @@ export class PlayerIframeController {
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
       // fix column double last page
-      pageCount = Math.round((2 * scrollWidth) / this.viewWidth)
+      pageCount = Math.round((2 * scrollWidth) / this.viewOffsetWidth)
       if (pageCount % 2 === 1) {
         // add empty page & update the scrollWidth
         pageCount += 1
@@ -921,7 +930,7 @@ export class PlayerIframeController {
       }
       pageCount /= 2
     } else {
-      pageCount = Math.round(scrollWidth / this.viewWidth)
+      pageCount = Math.round(scrollWidth / this.viewOffsetWidth)
     }
 
     this.states.pageListCount = pageCount
@@ -969,12 +978,12 @@ export class PlayerIframeController {
   }
 
   protected parsePageList(scrollContainer: HTMLElement) {
-    const viewWidth = this.viewWidth
-    if (!viewWidth) return
+    const viewOffsetWidth = this.viewOffsetWidth
+    if (!viewOffsetWidth) return
     if (!this.states.pageListCount) return
 
     this.pageList = range(0, this.states.pageListCount)
-      .map((i) => i * viewWidth)
+      .map((i) => i * viewOffsetWidth)
       .map((scrollLeft) => ({ scrollLeft }))
 
     const parentLeft = scrollContainer.getBoundingClientRect().left
