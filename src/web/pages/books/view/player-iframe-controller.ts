@@ -776,8 +776,10 @@ export class PlayerIframeController {
   }
 
   protected hookPageTouch() {
+    const win = this.win
     const doc = this.doc
-    if (!doc) return
+    const viewWidth = this.viewWidth
+    if (!win || !doc || !viewWidth) return
 
     let startX: number | undefined = undefined
 
@@ -787,16 +789,23 @@ export class PlayerIframeController {
       startX = touch.clientX
     }
 
-    const movelistener = () => {
-      // event.preventDefault()
+    const movelistener = (event: TouchEvent) => {
+      event.preventDefault()
+      if (startX === undefined) return
+      const touch = event.touches[0]
+      if (!touch) return
+      const deltaX = touch.clientX - startX
+      doc.documentElement.style.transform = `translateX(${deltaX}px)`
     }
 
     const endlistener = (event: TouchEvent) => {
-      if (startX === undefined || !this.win) return
+      if (startX === undefined) return
+      doc.documentElement.style.transform = 'none'
       const touch = event.changedTouches[0]
       if (!touch) return
+      event.preventDefault()
       const deltaX = touch.clientX - startX
-      const minX = this.win.innerWidth / 5
+      const minX = viewWidth / 5
       if (deltaX < -minX) {
         void this.player.nextPage(1, true)
       } else if (deltaX > minX) {
