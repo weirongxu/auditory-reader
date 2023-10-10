@@ -38,7 +38,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { isMobile } from '../../../../core/util/browser.js'
+import { isMobile, isSafari } from '../../../../core/util/browser.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -413,7 +413,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
-        // this.iframe.style.opacity = '0'
+        if (!isSafari) this.iframe.style.visibility = 'hidden'
         this.triggerUnmount()
 
         const loaded = new Promise<void>((resolve) => {
@@ -471,7 +471,7 @@ export class PlayerIframeController {
     } finally {
       if (isLoadNewPath) {
         this.states.loading = false
-        // this.iframe.style.opacity = '1'
+        if (!isSafari) this.iframe.style.visibility = 'visible'
       }
     }
   }
