@@ -19,9 +19,14 @@ export function useBookPanel(
     useBookViewBookmarks(book, player, pos)
 
   const BookPanelView = useMemo(
-    () =>
-      viewPanelType !== 'none' ? (
-        <div className="book-panel">
+    () => (
+      <>
+        <div
+          className={[
+            'book-panel',
+            viewPanelType === 'none' ? 'hidden' : '',
+          ].join(' ')}
+        >
           {viewPanelType === 'nav' && (
             <>
               <h3>{t('nav')}</h3>
@@ -35,9 +40,17 @@ export function useBookPanel(
             </>
           )}
         </div>
-      ) : null,
+        <div
+          className={[
+            'book-panel-overlay',
+            viewPanelType === 'none' ? 'hidden' : '',
+          ].join(' ')}
+          onClick={() => setViewPanelType('none')}
+        ></div>
+      </>
+    ),
 
-    [BookmarkView, NavTreeView, viewPanelType],
+    [BookmarkView, NavTreeView, setViewPanelType, viewPanelType],
   )
 
   return useMemo(

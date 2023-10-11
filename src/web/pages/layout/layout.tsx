@@ -24,7 +24,7 @@ import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
 
 export const Layout = ({ children }: { children?: React.ReactNode }) => {
-  const title = useTitle()
+  const title = useTitle() ?? defaultTitle
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
@@ -70,8 +70,14 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             </MuiLink>
           )}
         </LinkWrap>
-        <Typography flex={1} noWrap overflow="hidden" textOverflow="ellipsis">
-          {title ?? defaultTitle}
+        <Typography
+          flex={1}
+          noWrap
+          overflow="hidden"
+          textOverflow="ellipsis"
+          title={title}
+        >
+          {title}
         </Typography>
       </FlexBox>
       <FlexBox dir="row" style={{ alignItems: 'center', flex: 1 }} gap={4}>

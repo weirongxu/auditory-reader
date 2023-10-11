@@ -97,6 +97,7 @@ function Bookmarks({
                   {isSelected && <ChevronRight className="selected-icon" />}
                   <div
                     className={textCls.join(' ')}
+                    style={{ fontSize: 14 }}
                     onClick={(event) => {
                       event.stopPropagation()
                       player
@@ -113,7 +114,7 @@ function Bookmarks({
                         removeBookmark(bookmark)
                       }}
                     >
-                      <Delete />
+                      <Delete fontSize="small" />
                     </div>
                   </div>
                 </div>

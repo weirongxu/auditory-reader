@@ -18,13 +18,22 @@
       flex-direction: column;
       background-color: var(--main-bg);
       border-right: 1px dashed var(--main-fg);
+      transition: width 0.2s;
+      &.hidden {
+        display: none;
+      }
       @include mobile {
+        display: flex;
         max-width: 300px;
         position: absolute;
         left: 0;
         top: 0;
-        z-index: 2;
-        border: 1px solid var(--main-fg);
+        z-index: 3;
+        transition: transform 0.2s;
+        &.hidden {
+          display: flex;
+          transform: translateX(-100%);
+        }
       }
 
       h3 {
@@ -71,6 +80,23 @@
       }
     }
 
+    .book-panel-overlay {
+      display: none;
+      @include mobile {
+        &.hidden {
+          display: none;
+        }
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.5);
+      }
+    }
+
     .panel-content {
       overflow-y: auto;
       padding: 0 8px;
@@ -101,7 +127,10 @@
         border-left: 1px dashed var(--main-fg);
         margin-left: 10px;
         padding-left: 10px;
-        font-size: 12px;
+        font-size: 14px;
+        > li > ul {
+          font-size: 12px;
+        }
       }
     }
 
