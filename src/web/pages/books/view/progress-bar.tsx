@@ -7,8 +7,7 @@ export function ViewProgressBar({
   player: Player
   scrollPercent: number | undefined
 }) {
-  let progress = '0'
-  if (scrollPercent) progress = scrollPercent.toFixed(2)
+  const progress = scrollPercent?.toFixed(2) ?? '0'
 
   return (
     <div
@@ -24,6 +23,7 @@ export function ViewProgressBar({
         const percent = (event.clientX - rect.left) / rect.width
         player.iframeCtrler.scrollPercent(percent, true).catch(console.error)
       }}
+      title={`${progress}%`}
     >
       <div
         style={{

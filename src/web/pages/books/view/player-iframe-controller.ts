@@ -14,7 +14,7 @@ import {
   PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
-import { isMobile, isSafari } from '../../../../core/util/browser.js'
+import { isFirefox, isMobile, isSafari } from '../../../../core/util/browser.js'
 import {
   find,
   findLast,
@@ -438,6 +438,7 @@ export class PlayerIframeController {
       // load iframe
       if (isLoadNewPath) {
         this.states.loading = true
+        // NOTE: (visibility = none) has BUG in Safari
         this.iframe.style.opacity = '0'
         this.triggerUnmount()
 
@@ -626,6 +627,7 @@ export class PlayerIframeController {
         .${COLUMN_BREAK_CLASS} {
           content: ' ';
           break-before: column;
+          ${isSafari || isFirefox ? 'height: 100%' : ''}
         }
       `
     }
