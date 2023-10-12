@@ -14,6 +14,7 @@ export const langZh = {
       single: '单页',
       double: '双页',
     },
+    fontSize: '字体大小',
   },
   hotkey: {
     title: '快捷键',

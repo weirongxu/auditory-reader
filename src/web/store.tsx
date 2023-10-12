@@ -193,3 +193,9 @@ export const usePageList = createStore<PageListType>({
     SPLIT_PAGE_TYPES.includes(v as PageListType) ? (v as PageListType) : 'auto',
   write: (v) => v,
 })
+
+export const useFontSize = createStore<number>({
+  storeKey: 'fontSize',
+  read: (v) => (v ? Number(v) : 16),
+  write: (v) => v.toString(),
+})

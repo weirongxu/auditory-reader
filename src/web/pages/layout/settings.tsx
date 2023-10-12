@@ -30,6 +30,7 @@ import {
   useUserColorScheme,
   type PageListType,
   type UserColorscheme,
+  useFontSize,
 } from '../../store.js'
 
 export function SettingLine({ children }: { children: React.ReactNode }) {
@@ -284,6 +285,24 @@ function PageListCheckBox() {
   )
 }
 
+function FontSizeInput() {
+  const [fontSize, setFontSize] = useFontSize()
+  return (
+    <SettingLine>
+      <span>{t('setting.fontSize')}</span>
+      <TextField
+        type="number"
+        sx={{ width: 80 }}
+        defaultValue={fontSize}
+        onChange={(e) => {
+          const f = parseInt(e.target.value, 10)
+          if (!isNaN(f)) setFontSize(f < 1 ? 1 : Math.floor(f))
+        }}
+      ></TextField>
+    </SettingLine>
+  )
+}
+
 export const GlobalSettings = () => {
   return (
     <>
@@ -294,6 +313,7 @@ export const GlobalSettings = () => {
       <ColorSchemeSelect></ColorSchemeSelect>
       <ParagraphRepeatInput></ParagraphRepeatInput>
       <PageListCheckBox></PageListCheckBox>
+      <FontSizeInput></FontSizeInput>
     </>
   )
 }

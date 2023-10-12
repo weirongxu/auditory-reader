@@ -14,6 +14,7 @@ export const langEn = {
       single: 'Single',
       double: 'Double',
     },
+    fontSize: 'Font Size',
   },
   hotkey: {
     title: 'Hotkeys',

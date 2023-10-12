@@ -152,6 +152,10 @@ export class PlayerIframeController {
       if (this.iframe) await this.load({ force: true })
     })
 
+    this.states.uiEvents.on('fontSize', async () => {
+      this.updateFontSize()
+    })
+
     this.player.onUnmount(() => this.triggerUnmount())
   }
 
@@ -570,6 +574,7 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.updateBookmarks()
+      this.updateFontSize()
     }
   }
 
@@ -1122,6 +1127,13 @@ export class PlayerIframeController {
         if (!item) continue
         item.elem.classList.add(PARA_BOOKMARK_CLASS)
       }
+    }).catch(console.error)
+  }
+
+  protected updateFontSize() {
+    this.tryManipulateDOM(() => {
+      if (!this.doc) return
+      this.doc.documentElement.style.fontSize = `${this.states.fontSize}px`
     }).catch(console.error)
   }
 

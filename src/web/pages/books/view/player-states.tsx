@@ -23,6 +23,7 @@ type PlayerReadonlyStates = {
   autoNextSection: boolean
   paragraphRepeat: number
   pageList: PageListType
+  fontSize: number
 }
 
 export class PlayerStatesManager {
@@ -85,6 +86,7 @@ export class PlayerStatesManager {
     autoNextSection: false,
     paragraphRepeat: 1,
     pageList: 'double',
+    fontSize: 16,
   }
 
   uiEvents = new ChangedEmitter<PlayerReadonlyStates>()
@@ -115,6 +117,10 @@ export class PlayerStatesManager {
 
   get pageList() {
     return this.#readonlyStates.pageList
+  }
+
+  get fontSize() {
+    return this.#readonlyStates.fontSize
   }
 
   get docVisible() {
@@ -178,13 +184,14 @@ export function usePlayerSync(
 export function usePlayerUISync(
   player: Player,
   {
+    bookmarks,
     isPersonReplace,
     speechSpeed,
     voice,
     autoNextSection,
     paragraphRepeat,
     pageList,
-    bookmarks,
+    fontSize,
   }: PlayerReadonlyStates,
 ) {
   useEffect(() => {
@@ -214,6 +221,10 @@ export function usePlayerUISync(
   useEffect(() => {
     player.states.syncUIState('pageList', pageList)
   }, [player, pageList])
+
+  useEffect(() => {
+    player.states.syncUIState('fontSize', fontSize)
+  }, [player, fontSize])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,
