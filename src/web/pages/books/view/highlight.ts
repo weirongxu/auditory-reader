@@ -7,7 +7,7 @@ import { isElement, isTextNode } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
-import type { ReadablePart } from './types.js'
+import type { ReadablePart, Rect } from './types.js'
 
 const enum FindRangePosType {
   found,
@@ -36,7 +36,7 @@ export class Highlight {
 
     this.#hlRoot = doc.createElement('div')
     this.#hlRoot.classList.add(PARA_HIGHLIGHT_CLASS)
-    doc.body.appendChild(this.#hlRoot)
+    doc.documentElement.appendChild(this.#hlRoot)
     this.#cacheHlRectMap.clear()
   }
 
@@ -63,7 +63,15 @@ export class Highlight {
       return div
     }
 
-    const rects = [...range.getClientRects()]
+    const containerRect = doc.documentElement.getBoundingClientRect()
+    const rects: Rect[] = [...range.getClientRects()].map((rect) => ({
+      width: rect.width,
+      height: rect.height,
+      left: rect.left - containerRect.left,
+      right: rect.right - containerRect.left,
+      top: rect.top - containerRect.top,
+      bottom: rect.bottom - containerRect.top,
+    }))
     this.#highlightHide()
     for (const [idx, rect] of rects.entries()) {
       const div = getRectDiv(idx)
@@ -77,17 +85,14 @@ export class Highlight {
     this.#scrollToRects(rects)
   }
 
-  #scrollToRects = throttleFn(1000, (rects: DOMRect[]) => {
-    const container = this.iframeCtrl.scrollContainer
-    if (!rects.length || !container) return
+  #scrollToRects = throttleFn(1000, (rects: Rect[]) => {
+    if (!rects.length) return
 
     if (this.iframeCtrl.enabledPageList) {
-      const left =
-        sum(rects.map((r) => r.left)) / rects.length + container.scrollLeft
+      const left = sum(rects.map((r) => r.left)) / rects.length
       this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)
     } else {
-      const top =
-        sum(rects.map((r) => r.top)) / rects.length + container.scrollTop
+      const top = sum(rects.map((r) => r.top)) / rects.length
       this.iframeCtrl.scrollToTop(top).catch(console.error)
     }
   })

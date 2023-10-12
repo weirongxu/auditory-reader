@@ -23,6 +23,7 @@ import {
   range,
 } from '../../../../core/util/collection.js'
 import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
+import { Emitter } from '../../../../core/util/emitter.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import {
   debounceFn,
@@ -47,7 +48,7 @@ type PageListNode = {
     paragraph: number
     readablePart: ReadablePart
   }
-  scrollLeft: number
+  offsetLeft: number
 }
 
 interface ScrollOptions extends IterateAnimateOptions {
@@ -68,6 +69,7 @@ interface ScrollOptions extends IterateAnimateOptions {
 export class PlayerIframeController {
   readableParts: ReadablePart[] = []
   alias: TextAlias[] = []
+
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
   protected colorScheme: ColorScheme = 'light'
@@ -76,16 +78,20 @@ export class PlayerIframeController {
   protected viewHeight?: number
   protected pageList?: PageListNode[]
   protected pageListGap = 12
+  protected pageListScrollWidth = 0
+  protected pageListScrollLeft = 0
   /** page list: single page width */
   protected pageListColumnWidth?: number
   protected pageListCount: number | undefined
   /** page list: current index */
-  protected pageListCurIndex: number | undefined
+  protected pageListCurIndex = 0
   /** page list: focus to part after resize */
   protected pageListResizeFocusPart?: ReadablePart
   protected win?: Window
+
   public doc?: Document
-  public scrollContainer?: HTMLElement
+  public events = new Emitter<{ scroll: void }>()
+
   #isVertical = false
 
   get book() {
@@ -102,7 +108,7 @@ export class PlayerIframeController {
   }
 
   get isFirstPageList() {
-    return this.pageListCurIndex === 0
+    return this.pageListCurIndex <= 0
   }
 
   get isLastPageList() {
@@ -195,8 +201,9 @@ export class PlayerIframeController {
   public async scrollToCurParagraph(animated = true) {
     // goto paragraph
     const item = this.readableParts.at(this.states.pos.paragraph)
-    if (!item) return
-    await this.scrollToElem(item.elem, { animated })
+    if (item) await this.scrollToElem(item.elem, { animated })
+    else if (this.enabledPageList)
+      await this.scrollToPageByLeft(this.pageListScrollLeft, { animated })
   }
 
   public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
@@ -231,17 +238,17 @@ export class PlayerIframeController {
     }: ScrollOptions = {},
   ) {
     if (!this.win) return
-    const container = this.scrollContainer
-    if (!container) return
+    const scrollElement = this.doc?.scrollingElement
+    if (!scrollElement) return
 
     // get center top
     const finalTop =
       position === 'center' ? Math.max(0, top - this.win?.innerHeight / 2) : top
 
     if (!animated) {
-      container.scrollTop = finalTop
+      scrollElement.scrollTop = finalTop
     } else {
-      const startTop = container.scrollTop
+      const startTop = scrollElement.scrollTop
       const offset = finalTop - startTop
       const unit = offset / iteration
       await iterateAnimate(
@@ -251,10 +258,17 @@ export class PlayerIframeController {
           abortCtrl,
         },
         (index) => {
-          container.scrollTop = startTop + index * unit
+          scrollElement.scrollTop = startTop + index * unit
         },
       )
     }
+  }
+
+  protected pageListScrollToLeft(offsetLeft: number) {
+    if (!this.doc) return
+    this.pageListScrollLeft = offsetLeft
+    this.doc.documentElement.style.transform = `translateX(${-offsetLeft}px)`
+    this.events.fire('scroll', undefined)
   }
 
   /**
@@ -270,19 +284,17 @@ export class PlayerIframeController {
       userOperator = true,
     }: ScrollOptions = {},
   ) {
-    const container = this.scrollContainer
-    if (!container) return
     if (!this.enabledPageList) return
     if (!this.pageList) return
 
-    const finalLeft = findLast(this.pageList, (page) => page.scrollLeft <= left)
-      ?.scrollLeft
+    const finalLeft = findLast(this.pageList, (page) => page.offsetLeft <= left)
+      ?.offsetLeft
     if (finalLeft === undefined) return
 
     if (!animated) {
-      container.scrollLeft = finalLeft
+      this.pageListScrollToLeft(finalLeft)
     } else {
-      const startLeft = container.scrollLeft
+      const startLeft = this.pageListScrollLeft
       const offset = finalLeft - startLeft
       const unit = offset / iteration
       await iterateAnimate(
@@ -292,14 +304,14 @@ export class PlayerIframeController {
           abortCtrl,
         },
         (index) => {
-          container.scrollLeft = startLeft + index * unit
+          this.pageListScrollToLeft(startLeft + index * unit)
         },
       )
     }
 
     if (this.viewOffsetWidth)
       this.pageListCurIndex = Math.round(
-        container.scrollLeft / this.viewOffsetWidth,
+        this.pageListScrollLeft / this.viewOffsetWidth,
       )
     if (userOperator) this.updatePageListFocus()
   }
@@ -350,12 +362,12 @@ export class PlayerIframeController {
       if (offsetPage < 0) {
         paragraph = findLast(
           this.pageList,
-          (page) => !!page.topmost && page.scrollLeft <= goalLeft,
+          (page) => !!page.topmost && page.offsetLeft <= goalLeft,
         )?.topmost?.paragraph
       } else {
         paragraph = find(
           this.pageList,
-          (page) => !!page.topmost && page.scrollLeft >= goalLeft,
+          (page) => !!page.topmost && page.offsetLeft >= goalLeft,
         )?.topmost?.paragraph
       }
       if (paragraph === undefined || paragraph === this.states.pos.paragraph)
@@ -377,12 +389,14 @@ export class PlayerIframeController {
   }
 
   public async scrollPercent(percent: number, jump: boolean) {
-    const container = this.scrollContainer
-    if (!container) return
+    const scrollElement = this.doc?.scrollingElement
+    // eslint-disable-next-line no-console
+    console.debug(`scrollElement: ${scrollElement?.tagName ?? 'null'}`)
+    if (!scrollElement) return
 
     if (!this.enabledPageList) {
       const scrollTop =
-        (container.scrollHeight - container.clientHeight) * percent
+        (scrollElement.scrollHeight - scrollElement.clientHeight) * percent
       await this.scrollToTop(scrollTop, { position: 'start' })
       return
     }
@@ -391,7 +405,7 @@ export class PlayerIframeController {
     if (!this.viewOffsetWidth || this.pageListCurIndex === undefined) return
 
     const targetIndex = Math.floor(
-      (container.scrollWidth * percent) / this.viewOffsetWidth,
+      (this.pageListScrollWidth * percent) / this.viewOffsetWidth,
     )
     const offsetIndex = targetIndex - this.pageListCurIndex
     await this.pushPageListAdjust(offsetIndex, jump)
@@ -536,8 +550,6 @@ export class PlayerIframeController {
         .getComputedStyle(doc.body)
         .writingMode.startsWith('vertical')
 
-      this.scrollContainer = this.detectScrollContainer(doc)
-
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
 
@@ -566,7 +578,6 @@ export class PlayerIframeController {
       this.viewCalculate(doc)
       this.resizeImgs(doc)
       if (this.enabledPageList) {
-        if (!this.scrollContainer) return
         await this.pageListCalculate(doc)
         const resizeFocusPart = this.pageListResizeFocusPart
         if (resizeFocusPart)
@@ -575,7 +586,7 @@ export class PlayerIframeController {
             userOperator: false,
           })
         else
-          await this.scrollToPageByLeft(this.scrollContainer.scrollLeft, {
+          await this.scrollToPageByLeft(this.pageListScrollLeft, {
             animated: false,
             userOperator: false,
           })
@@ -605,21 +616,21 @@ export class PlayerIframeController {
       pageStyle = `
         /* page list */
         html {
-          height: 100% !important;
           width: 100% !important;
-          margin: 0 !important;
-          padding: 4px !important;
-          box-sizing: border-box !important;
-        }
-        body {
           height: 100% !important;
-          width: auto !important;
           box-sizing: border-box !important;
           margin: 0 !important;
           padding: 0 !important;
           overflow: hidden !important;
+        }
+        body {
+          width: fit-content !important;
+          height: 100% !important;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
           /* Safari iOS not support
-            columns: var(--main-column-count) auto;
+            columns: var(--main-column-count) auto !important;
           */
           columns: var(--main-column-count) var(--main-column-width) !important;
           column-gap: ${this.pageListGap}px !important;
@@ -628,6 +639,20 @@ export class PlayerIframeController {
           content: ' ';
           break-before: column;
           ${isSafari || isFirefox ? 'height: 100%' : ''}
+        }
+      `
+    } else {
+      pageStyle = `
+        html {
+          width: 100%;
+          height: 100%;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 4px !important;
+        }
+        body {
+          height: fit-content;
+          box-sizing: border-box !important;
         }
       `
     }
@@ -694,7 +719,7 @@ export class PlayerIframeController {
       .${PARA_HIGHLIGHT_CLASS} > div {
         background-color: var(--main-bg-highlight) !important;
         color: var(--main-fg-highlight) !important;
-        position: fixed;
+        position: absolute;
         user-select: none;
       }
 
@@ -791,14 +816,18 @@ export class PlayerIframeController {
         })
         // double touch
         let lastTouchTime: number | undefined = undefined
-        n.elem.addEventListener('touchstart', () => {
-          // dblclick
-          const now = Date.now()
-          if (lastTouchTime && now - lastTouchTime < 300) {
-            dblclick(i)
-          }
-          lastTouchTime = now
-        })
+        n.elem.addEventListener(
+          'touchstart',
+          () => {
+            // dblclick
+            const now = Date.now()
+            if (lastTouchTime && now - lastTouchTime < 300) {
+              dblclick(i)
+            }
+            lastTouchTime = now
+          },
+          { passive: true },
+        )
       }
     })
   }
@@ -807,41 +836,55 @@ export class PlayerIframeController {
     if (!this.enabledPageList) return
     const doc = this.doc
     const viewWidth = this.viewWidth
-    const scrollContainer = this.scrollContainer
-    if (!doc || !viewWidth || !scrollContainer) return
+    if (!doc || !viewWidth) return
 
-    let startX: number | undefined = undefined
+    let startPoint:
+      | {
+          x: number
+          offsetLeft: number
+          timestamp: number
+        }
+      | undefined = undefined
 
     const startlistener = (event: TouchEvent) => {
       const touch = event.touches[0]
       if (!touch) return
-      startX = touch.clientX
+      startPoint = {
+        x: touch.clientX,
+        offsetLeft: this.pageListScrollLeft,
+        timestamp: Date.now(),
+      }
     }
 
     const movelistener = (event: TouchEvent) => {
       event.preventDefault()
-      if (startX === undefined) return
+      if (startPoint === undefined) return
       const touch = event.touches[0]
       if (!touch) return
-      const deltaX = touch.clientX - startX
-      doc.body.style.transform = `translateX(${deltaX}px)`
+      const deltaX = touch.clientX - startPoint.x
+      this.pageListScrollToLeft(startPoint.offsetLeft - deltaX)
     }
 
+    const speedLimit = 0.3
     const endlistener = (event: TouchEvent) => {
-      if (startX === undefined) return
+      if (startPoint === undefined) return
       const touch = event.changedTouches[0]
       if (!touch) return
-      doc.body.style.transform = 'none'
-      const deltaX = touch.clientX - startX
-      scrollContainer.scrollLeft -= deltaX
-      const minX = viewWidth / 5
-      if (deltaX < -minX) {
-        void this.player.nextPage(1, true)
-      } else if (deltaX > minX) {
-        void this.player.prevPage(1, true)
-      } else {
-        void this.pushPageListAdjust(0, false)
+      const deltaX = touch.clientX - startPoint.x
+      const speed = deltaX / (Date.now() - startPoint.timestamp)
+      const minX = viewWidth / 4
+      if (speed < -speedLimit || deltaX < -minX) {
+        if (!this.isLastPageList || !this.player.isLastSection) {
+          void this.player.nextPage(1, true)
+          return
+        }
+      } else if (speed > speedLimit || deltaX > minX) {
+        if (!this.isFirstPageList || !this.player.isFirstSection) {
+          void this.player.prevPage(1, true)
+          return
+        }
       }
+      void this.pushPageListAdjust(0, false)
     }
 
     doc.addEventListener('touchstart', startlistener, {
@@ -884,24 +927,34 @@ export class PlayerIframeController {
   }
 
   protected hookScroll() {
-    const container = this.scrollContainer
-    if (!this.doc || !container) return
+    const scrollElement = this.doc?.scrollingElement
+    if (!this.doc || !scrollElement) return
 
     const onScroll = () => {
       const percent = this.enabledPageList
-        ? container.scrollLeft / (container.scrollWidth - container.clientWidth)
-        : container.scrollTop /
-          (container.scrollHeight - container.clientHeight)
+        ? this.pageListScrollLeft /
+          (this.pageListScrollWidth - scrollElement.clientWidth)
+        : scrollElement.scrollTop /
+          (scrollElement.scrollHeight - scrollElement.clientHeight)
 
       this.states.scrollPercent = percent * 100
     }
-
-    this.doc.addEventListener('scroll', () => onScroll())
     onScroll()
+    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
+
+    this.doc.addEventListener(
+      'scroll',
+      () => this.events.fire('scroll', undefined),
+      { passive: true },
+    )
+
+    this.onUnmount(() => {
+      disposeScrollEvent()
+    })
   }
 
   protected viewCalculate(doc: Document) {
-    const viewRect = doc.body.getBoundingClientRect()
+    const viewRect = doc.documentElement.getBoundingClientRect()
     this.viewWidth = viewRect.width
     this.viewOffsetWidth = viewRect.width + this.pageListGap
     this.viewHeight = viewRect.height
@@ -913,35 +966,8 @@ export class PlayerIframeController {
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
-  protected detectScrollContainer(doc: Document) {
-    const body = doc.body
-    const html = doc.documentElement
-    const container = body.scrollHeight > body.clientHeight ? body : html
-
-    // eslint-disable-next-line no-console
-    console.debug(
-      `body: scrollHeight:${body.scrollHeight} clientHeight:${body.clientHeight}`,
-    )
-    // eslint-disable-next-line no-console
-    console.debug(
-      `body: scrollWidth:${body.scrollWidth} clientWidth:${body.clientWidth}`,
-    )
-    // eslint-disable-next-line no-console
-    console.debug(
-      `html: scrollHeight:${html.scrollHeight} clientHeight:${html.clientHeight}`,
-    )
-    // eslint-disable-next-line no-console
-    console.debug(
-      `html: scrollWidth:${html.scrollWidth} clientWidth:${html.clientWidth}`,
-    )
-    // eslint-disable-next-line no-console
-    console.debug(`scrollContainer: ${container.tagName}`)
-    return container
-  }
-
   protected async pageListCalculate(doc: Document) {
-    if (!this.viewWidth || !this.viewOffsetWidth || !this.scrollContainer)
-      return
+    if (!this.viewWidth || !this.viewOffsetWidth) return
 
     const html = doc.documentElement
     const pageListType = this.pageListType()
@@ -955,36 +981,38 @@ export class PlayerIframeController {
 
     this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
-    let scrollWidth = this.scrollContainer.scrollWidth
+    this.pageListScrollWidth = html.scrollWidth
     let pageCount: number
 
     // update page list width
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
       // fix column double last page
-      pageCount = Math.round((2 * scrollWidth) / this.viewOffsetWidth)
+      pageCount = Math.round(
+        (2 * this.pageListScrollWidth) / this.viewOffsetWidth,
+      )
       if (pageCount % 2 === 1) {
         // add empty page & update the scrollWidth
         pageCount += 1
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
-        scrollWidth = this.scrollContainer.scrollWidth
+        this.pageListScrollWidth = html.scrollWidth
       }
       pageCount /= 2
     } else {
-      pageCount = Math.round(scrollWidth / this.viewOffsetWidth)
+      pageCount = Math.round(this.pageListScrollWidth / this.viewOffsetWidth)
     }
 
     this.pageListCount = pageCount
     // eslint-disable-next-line no-console
-    console.debug(`scrollWidth: ${scrollWidth}`)
+    console.debug(`pageListScrollWidth: ${this.pageListScrollWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
     // eslint-disable-next-line no-console
     console.debug(`pageListCount: ${this.pageListCount}`)
 
-    this.parsePageList(this.scrollContainer)
+    this.parsePageList(html)
   }
 
   protected resizeImgs(doc: Document) {
@@ -1020,23 +1048,23 @@ export class PlayerIframeController {
     }
   }
 
-  protected parsePageList(scrollContainer: HTMLElement) {
+  protected parsePageList(html: HTMLElement) {
     const viewOffsetWidth = this.viewOffsetWidth
     if (!viewOffsetWidth) return
     if (!this.pageListCount) return
 
     this.pageList = range(0, this.pageListCount)
       .map((i) => i * viewOffsetWidth)
-      .map((scrollLeft) => ({ scrollLeft }))
+      .map((offsetLeft) => ({ offsetLeft }))
 
-    const parentLeft = scrollContainer.getBoundingClientRect().left
+    const parentLeft = html.getBoundingClientRect().left
     for (const [paragraph, readablePart] of this.readableParts.entries()) {
       const rect = readablePart.elem.getBoundingClientRect()
-      const scrollLeft =
+      const offsetLeft =
         rect.left + readablePart.elem.offsetWidth / 2 - parentLeft
       const page = findLast(
         this.pageList,
-        (page) => page.scrollLeft <= scrollLeft,
+        (page) => page.offsetLeft <= offsetLeft,
       )
       if (page && !page.topmost)
         page.topmost = {

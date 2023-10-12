@@ -173,12 +173,12 @@ export class Player {
   }
 
   get isFirstParagraph() {
-    return this.states.pos.paragraph === 0
+    return this.states.pos.paragraph <= 0
   }
 
   get isLastParagraph() {
     return (
-      this.states.pos.paragraph === this.iframeCtrler.readableParts.length - 1
+      this.states.pos.paragraph >= this.iframeCtrler.readableParts.length - 1
     )
   }
 
