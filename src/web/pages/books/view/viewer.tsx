@@ -65,7 +65,11 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
             <CircularProgress></CircularProgress>
           </div>
         )}
-        <iframe title="viewer" ref={iframeRef}></iframe>
+        <iframe
+          style={{ padding: '0 4px' }}
+          title="viewer"
+          ref={iframeRef}
+        ></iframe>
         <ViewProgressBar
           player={player}
           scrollPercent={scrollPercent}

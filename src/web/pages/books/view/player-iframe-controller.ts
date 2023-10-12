@@ -629,7 +629,7 @@ export class PlayerIframeController {
           overflow: hidden !important;
         }
         body {
-          width: fit-content !important;
+          width: auto !important;
           height: 100% !important;
           box-sizing: border-box !important;
           margin: 0 !important;
@@ -656,7 +656,7 @@ export class PlayerIframeController {
           padding: 4px !important;
         }
         body {
-          height: fit-content;
+          height: auto;
           box-sizing: border-box !important;
         }
       `
