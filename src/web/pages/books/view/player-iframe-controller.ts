@@ -871,13 +871,14 @@ export class PlayerIframeController {
     }
 
     const speedLimit = 0.3
+    const viewRateLimit = 0.2
     const endlistener = (event: TouchEvent) => {
       if (startPoint === undefined) return
       const touch = event.changedTouches[0]
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       const speed = deltaX / (Date.now() - startPoint.timestamp)
-      const minX = viewWidth / 4
+      const minX = viewWidth * viewRateLimit
       if (speed < -speedLimit || deltaX < -minX) {
         if (!this.isLastPageList || !this.player.isLastSection) {
           void this.player.nextPage(1, true)
