@@ -840,8 +840,9 @@ export class PlayerIframeController {
   protected hookPageTouch() {
     if (!this.enabledPageList) return
     const doc = this.doc
+    const win = this.win
     const viewWidth = this.viewWidth
-    if (!doc || !viewWidth) return
+    if (!doc || !win || !viewWidth) return
 
     let startPoint:
       | {
@@ -850,6 +851,8 @@ export class PlayerIframeController {
           timestamp: number
         }
       | undefined = undefined
+    const speedLimit = 0.3
+    const viewRateLimit = 0.2
 
     const startlistener = (event: TouchEvent) => {
       const touch = event.touches[0]
@@ -864,14 +867,17 @@ export class PlayerIframeController {
     const movelistener = (event: TouchEvent) => {
       event.preventDefault()
       if (startPoint === undefined) return
+      const selection = win.getSelection()
+      if (selection?.type === 'Range') {
+        startPoint = undefined
+        return
+      }
       const touch = event.touches[0]
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       this.pageListScrollToLeft(startPoint.offsetLeft - deltaX)
     }
 
-    const speedLimit = 0.3
-    const viewRateLimit = 0.2
     const endlistener = (event: TouchEvent) => {
       if (startPoint === undefined) return
       const touch = event.changedTouches[0]
