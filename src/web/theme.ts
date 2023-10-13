@@ -51,6 +51,11 @@ const createAppTheme = (mode: ColorScheme) =>
           size: 'small',
         },
       },
+      MuiTableCell: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
       MuiButtonGroup: {
         defaultProps: {
           variant: 'contained',

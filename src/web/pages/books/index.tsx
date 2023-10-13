@@ -1,4 +1,4 @@
-import { Add, DragIndicator } from '@mui/icons-material'
+import { Add, DragIndicator, LinearScale } from '@mui/icons-material'
 import {
   Alert,
   Button,
@@ -7,6 +7,8 @@ import {
   Chip,
   CircularProgress,
   IconButton,
+  Menu,
+  MenuItem,
   Pagination,
   Paper,
   Table,
@@ -40,6 +42,7 @@ import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
+import { isMobile } from '../../../core/util/browser.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -326,6 +329,50 @@ function useHomeHotKeys({
   return { activedIndex }
 }
 
+function BookButtons({ book }: { book: BookTypes.Entity }) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const nav = useNavigate()
+
+  const exportBook = useCallback(() => {
+    window.open(
+      `${booksDownloadRouter.fullRoutePath}?uuid=${book.uuid}`,
+      '_blank',
+    )
+  }, [book.uuid])
+
+  if (isMobile)
+    return (
+      <>
+        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+          <LinearScale></LinearScale>
+        </IconButton>
+        <Menu
+          open={Boolean(anchorEl)}
+          anchorEl={anchorEl}
+          onClose={() => setAnchorEl(null)}
+        >
+          <MenuItem onClick={() => nav(editPath(book.uuid))}>
+            {t('edit')}
+          </MenuItem>
+          <MenuItem onClick={() => exportBook()}>{t('export')}</MenuItem>
+        </Menu>
+      </>
+    )
+  else
+    return (
+      <FlexBox dir="row" gap={4}>
+        <LinkWrap to={editPath(book.uuid)}>
+          {(href) => (
+            <Button color="success" href={href}>
+              {t('edit')}
+            </Button>
+          )}
+        </LinkWrap>
+        <Button onClick={() => exportBook()}>{t('export')}</Button>
+      </FlexBox>
+    )
+}
+
 function BookRow({
   index,
   actived,
@@ -405,7 +452,7 @@ function BookRow({
   return (
     <TableRow ref={refEl} key={book.uuid} sx={{ opacity }} selected={actived}>
       <TableCell
-        padding="checkbox"
+        padding="none"
         ref={drag}
         sx={{
           cursor: 'move',
@@ -413,7 +460,7 @@ function BookRow({
       >
         <DragIndicator />
       </TableCell>
-      <TableCell padding="checkbox">
+      <TableCell padding="none">
         <Checkbox
           checked={selectedUuids.includes(book.uuid)}
           onClick={(event) => {
@@ -448,25 +495,7 @@ function BookRow({
         {book.name}
       </TableCell>
       <TableCell>
-        <FlexBox dir="row" gap={4}>
-          <LinkWrap to={editPath(book.uuid)}>
-            {(href) => (
-              <Button color="success" href={href}>
-                {t('edit')}
-              </Button>
-            )}
-          </LinkWrap>
-          <Button
-            onClick={() => {
-              window.open(
-                `${booksDownloadRouter.fullRoutePath}?uuid=${book.uuid}`,
-                '_blank',
-              )
-            }}
-          >
-            {t('export')}
-          </Button>
-        </FlexBox>
+        <BookButtons book={book}></BookButtons>
       </TableCell>
     </TableRow>
   )
@@ -678,8 +707,8 @@ export function BookList() {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell></TableCell>
-              <TableCell padding="checkbox">
+              <TableCell width="8px" padding="none"></TableCell>
+              <TableCell padding="none">
                 <Checkbox
                   title={t('all')}
                   checked={allSelected}
