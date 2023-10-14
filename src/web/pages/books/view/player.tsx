@@ -164,12 +164,16 @@ export class Player {
     return this.iframeCtrler.isLastPageList
   }
 
+  async gotoPage(pageIndex: number, jump: boolean) {
+    await this.iframeCtrler.pageListScrollToPage(pageIndex, jump)
+  }
+
   async prevPage(count: number, jump: boolean) {
-    await this.iframeCtrler.pushPageListAdjust(-count, jump)
+    await this.iframeCtrler.pageListPushAdjust(-count, jump)
   }
 
   async nextPage(count: number, jump: boolean) {
-    await this.iframeCtrler.pushPageListAdjust(count, jump)
+    await this.iframeCtrler.pageListPushAdjust(count, jump)
   }
 
   get isFirstParagraph() {

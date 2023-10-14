@@ -207,7 +207,7 @@ export class PlayerIframeController {
     const item = this.readableParts.at(this.states.pos.paragraph)
     if (item) await this.scrollToElem(item.elem, { animated })
     else if (this.enabledPageList)
-      await this.scrollToPageByLeft(this.pageListScrollLeft, { animated })
+      await this.pageListScrollToLeft(this.pageListScrollLeft, { animated })
   }
 
   public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
@@ -223,7 +223,7 @@ export class PlayerIframeController {
       } else {
         const bodyLeft = bodyRect.left
         const endLeft = elemRect.left + element.offsetWidth / 2 - bodyLeft
-        await this.scrollToPageByLeft(endLeft, options)
+        await this.pageListScrollToLeft(endLeft, options)
       }
     })
   }
@@ -268,17 +268,17 @@ export class PlayerIframeController {
     }
   }
 
-  protected pageListScrollToLeft(offsetLeft: number) {
+  protected pageListSetScrollLeft(scrollLeft: number) {
     if (!this.doc) return
-    this.pageListScrollLeft = offsetLeft
-    this.doc.documentElement.style.transform = `translateX(${-offsetLeft}px)`
+    this.pageListScrollLeft = scrollLeft
+    this.doc.documentElement.style.transform = `translateX(${-scrollLeft}px)`
     this.events.fire('scroll', undefined)
   }
 
   /**
    * scroll to page by left offset with animation
    */
-  public async scrollToPageByLeft(
+  public async pageListScrollToLeft(
     left: number,
     {
       iteration = 10,
@@ -296,7 +296,7 @@ export class PlayerIframeController {
     if (finalLeft === undefined) return
 
     if (!animated) {
-      this.pageListScrollToLeft(finalLeft)
+      this.pageListSetScrollLeft(finalLeft)
     } else {
       const startLeft = this.pageListScrollLeft
       const offset = finalLeft - startLeft
@@ -308,7 +308,7 @@ export class PlayerIframeController {
           abortCtrl,
         },
         (index) => {
-          this.pageListScrollToLeft(startLeft + index * unit)
+          this.pageListSetScrollLeft(startLeft + index * unit)
         },
       )
     }
@@ -320,11 +320,27 @@ export class PlayerIframeController {
     if (userOperator) this.updatePageListFocus()
   }
 
+  public async pageListScrollToPage(
+    pageIndex: number,
+    jump: boolean,
+    scrollOptions: ScrollOptions = {},
+  ) {
+    if (!this.enabledPageList) return
+    if (!this.pageList) return
+    const page = this.pageList.at(pageIndex)
+    if (!page) return
+    if (jump)
+      await this.player.gotoParagraph(
+        page.topmost?.paragraph ?? this.states.pos.paragraph,
+      )
+    else await this.pageListScrollToLeft(page.offsetLeft, scrollOptions)
+  }
+
   #pushPageListLast?: {
     abortCtrl: AbortController
     pageIndex: number
   }
-  public async pushPageListAdjust(offsetPage: number, jump: boolean) {
+  public async pageListPushAdjust(offsetPage: number, jump: boolean) {
     if (
       !this.viewOffsetWidth ||
       this.pageListCurIndex === undefined ||
@@ -383,16 +399,15 @@ export class PlayerIframeController {
         //     - It will happen when the last paragraph is too long
         // paragraph is current.paragraph
         //   - Scroll
-        await this.scrollToPageByLeft(goalLeft, { abortCtrl })
+        await this.pageListScrollToLeft(goalLeft, { abortCtrl })
       else await this.player.gotoParagraph(paragraph)
     } else {
-      await this.scrollToPageByLeft(goalLeft, { abortCtrl })
+      await this.pageListScrollToLeft(goalLeft, { abortCtrl })
     }
 
     this.#pushPageListLast = undefined
   }
-
-  public async scrollPercent(percent: number, jump: boolean) {
+  public async scrollToPercent(percent: number, jump: boolean) {
     const scrollElement = this.doc?.scrollingElement
     // eslint-disable-next-line no-console
     console.debug(`scrollElement: ${scrollElement?.tagName ?? 'null'}`)
@@ -412,7 +427,7 @@ export class PlayerIframeController {
       (this.pageListScrollWidth * percent) / this.viewOffsetWidth,
     )
     const offsetIndex = targetIndex - this.pageListCurIndex
-    await this.pushPageListAdjust(offsetIndex, jump)
+    await this.pageListPushAdjust(offsetIndex, jump)
   }
 
   #curAbsPath?: string
@@ -591,7 +606,7 @@ export class PlayerIframeController {
             userOperator: false,
           })
         else
-          await this.scrollToPageByLeft(this.pageListScrollLeft, {
+          await this.pageListScrollToLeft(this.pageListScrollLeft, {
             animated: false,
             userOperator: false,
           })
@@ -875,7 +890,7 @@ export class PlayerIframeController {
       const touch = event.touches[0]
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
-      this.pageListScrollToLeft(startPoint.offsetLeft - deltaX)
+      this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
     }
 
     const endlistener = (event: TouchEvent) => {
@@ -896,7 +911,7 @@ export class PlayerIframeController {
           return
         }
       }
-      void this.pushPageListAdjust(0, false)
+      void this.pageListPushAdjust(0, false)
     }
 
     doc.addEventListener('touchstart', startlistener, {

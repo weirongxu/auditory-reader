@@ -83,10 +83,14 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
   useEffect(() => {
     const jumpPrevPage = () => player.prevPage(1, true)
     const jumpNextPage = () => player.nextPage(1, true)
+    const firstPage = () => player.gotoPage(0, true)
+    const lastPage = () => player.gotoPage(-1, true)
     const prevPage = () => player.prevPage(1, false)
     const nextPage = () => player.nextPage(1, false)
     const prevSection = () => player.prevSection()
     const nextSection = () => player.nextSection()
+    const firstParagraph = () => player.gotoParagraph(0)
+    const lastParagraph = () => player.gotoParagraph(-1)
     const prevParagraph = () => player.prevParagraph()
     const nextParagraph = () => player.nextParagraph()
 
@@ -116,8 +120,12 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
       ['l', t('hotkey.jumpNextPage'), jumpNextPage],
       ['ArrowLeft', t('hotkey.jumpPrevPage'), jumpPrevPage],
       ['ArrowRight', t('hotkey.jumpNextPage'), jumpNextPage],
+      ['Home', t('hotkey.firstPage'), firstPage],
+      ['End', t('hotkey.lastPage'), lastPage],
       ['PageUp', t('hotkey.prevPage'), prevPage],
       ['PageDown', t('hotkey.nextPage'), nextPage],
+      [['g', 'g'], t('hotkey.firstParagraph'), firstParagraph],
+      [{ shift: true, key: 'G' }, t('hotkey.lastParagraph'), lastParagraph],
       ['k', t('hotkey.prevParagraph'), prevParagraph],
       ['j', t('hotkey.nextParagraph'), nextParagraph],
       ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],

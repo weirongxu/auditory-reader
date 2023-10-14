@@ -90,7 +90,7 @@ export class Highlight {
 
     if (this.iframeCtrl.enabledPageList) {
       const left = sum(rects.map((r) => r.left)) / rects.length
-      this.iframeCtrl.scrollToPageByLeft(left).catch(console.error)
+      this.iframeCtrl.pageListScrollToLeft(left).catch(console.error)
     } else {
       const top = sum(rects.map((r) => r.top)) / rects.length
       this.iframeCtrl.scrollToTop(top).catch(console.error)

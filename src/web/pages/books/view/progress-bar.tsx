@@ -21,7 +21,7 @@ export function ViewProgressBar({
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect()
         const percent = (event.clientX - rect.left) / rect.width
-        player.iframeCtrler.scrollPercent(percent, true).catch(console.error)
+        player.iframeCtrler.scrollToPercent(percent, true).catch(console.error)
       }}
       title={`${progress}%`}
     >

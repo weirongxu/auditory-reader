@@ -27,6 +27,10 @@ function Bookmarks({
     return bookmarks?.at(selectedIndex)
   }, [bookmarks, selectedIndex])
 
+  const removeSelectedBookmark = useCallback(() => {
+    if (selectedBookmark) removeBookmark(selectedBookmark)
+  }, [removeBookmark, selectedBookmark])
+
   // selected hotkeys
   useEffect(() => {
     const prevBookmark = () => {
@@ -54,9 +58,21 @@ function Bookmarks({
       ['p', t('hotkey.prevBookmark'), prevBookmark],
       ['n', t('hotkey.nextBookmark'), nextBookmark],
       ['enter', t('hotkey.gotoBookmark'), gotoBookmark],
+      [
+        ['d', 'b'],
+        t('hotkey.bookmarkRemoveSelected'),
+        () => removeSelectedBookmark(),
+      ],
       [{ shift: true, key: 'K' }, t('hotkey.speakBookmark'), speakBookmark],
     ])
-  }, [addHotkeys, bookmarks, player, selectedBookmark, selectedIndex])
+  }, [
+    addHotkeys,
+    bookmarks,
+    player,
+    removeSelectedBookmark,
+    selectedBookmark,
+    selectedIndex,
+  ])
 
   // change selected bookmark
   useEffect(() => {
