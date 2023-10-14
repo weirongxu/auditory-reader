@@ -153,7 +153,9 @@ export class PlayerIframeController {
     })
 
     this.states.uiEvents.on('fontSize', async () => {
-      this.updateFontSize()
+      if (!this.doc) return
+      this.updateFontSize(this.doc)
+      this.onResized(this.doc)
     })
 
     this.player.onUnmount(() => this.triggerUnmount())
@@ -571,11 +573,12 @@ export class PlayerIframeController {
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
+      this.updateFontSize(doc)
 
       this.viewCalculate(doc)
       win.addEventListener('resize', () => {
         if (this.states.loading) return
-        this.onResize(doc)
+        this.onResized(doc)
       })
       this.resizeImgs(doc)
       if (this.enabledPageList) {
@@ -589,11 +592,10 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.updateBookmarks()
-      this.updateFontSize()
     }
   }
 
-  protected onResize = debounceFn(300, (doc: Document) => {
+  protected onResized = debounceFn(300, (doc: Document) => {
     async(async () => {
       this.viewCalculate(doc)
       this.resizeImgs(doc)
@@ -1152,10 +1154,9 @@ export class PlayerIframeController {
     }).catch(console.error)
   }
 
-  protected updateFontSize() {
+  protected updateFontSize(doc: Document) {
     this.tryManipulateDOM(() => {
-      if (!this.doc) return
-      this.doc.documentElement.style.fontSize = `${this.states.fontSize}px`
+      doc.documentElement.style.fontSize = `${this.states.fontSize}px`
     }).catch(console.error)
   }
 
