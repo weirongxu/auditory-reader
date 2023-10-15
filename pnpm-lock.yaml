@@ -77,9 +77,6 @@ dependencies:
   node-fetch:
     specifier: ^3.3.2
     version: 3.3.2
-  pinch-zoom-pan:
-    specifier: ^3.0.0
-    version: 3.0.0
   react:
     specifier: ^18.2.0
     version: 18.2.0
@@ -6705,10 +6702,6 @@ packages:
     resolution: {integrity: sha512-C3FsVNH1udSEX48gGX1xfvwTWfsYWj5U+8/uK15BGzIGrKoUpghX8hWZwa/OFnakBiiVNmBvemTJR5mcy7iPcg==}
     engines: {node: '>=4'}
     dev: true
-
-  /pinch-zoom-pan@3.0.0:
-    resolution: {integrity: sha512-VU/8a+Ke5utGgw1wvF+n67WHO+FW2Wu3m/oNsRErcUeLrDOOp0nhHhLTbXwyRiXwKgXb+7UW791KANcD/APRPg==}
-    dev: false
 
   /pinkie-promise@2.0.1:
     resolution: {integrity: sha512-0Gni6D4UcLTbv9c57DfxDGdr41XfgUjqWZu492f0cIGr16zDU06BWP/RAEvOuo7CQ0CNjHaLlM59YJJFm3NWlw==}

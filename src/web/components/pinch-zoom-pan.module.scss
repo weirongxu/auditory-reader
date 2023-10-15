@@ -1,4 +1,4 @@
-.root {
+.overlay {
   background: rgba(0, 0, 0, 0.5);
   position: absolute;
   top: 0;
@@ -10,7 +10,7 @@
   overflow: hidden;
 }
 
-.point {
+.container {
   position: absolute;
   width: 0;
   height: 0;
@@ -19,7 +19,7 @@
   will-change: transform;
 }
 
-.canvas {
+.center {
   position: absolute;
   transform: translate(-50%, -50%);
 }

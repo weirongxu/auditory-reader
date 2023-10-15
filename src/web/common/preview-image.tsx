@@ -10,12 +10,30 @@ export function PreviewImageProvider() {
 
   return (
     <PinchZoomPan
-      captureWheel
       onClose={() => {
         setSrc(null)
       }}
     >
-      <img src={src} alt="preview" />
+      <img
+        src={src}
+        onLoad={(event) => {
+          const img = event.currentTarget
+          const imgRate = img.naturalWidth / img.naturalHeight
+          const winRate = window.innerWidth / window.innerHeight
+          if (imgRate > winRate) {
+            if (img.naturalWidth > window.innerWidth) {
+              img.width = window.innerWidth
+              img.height = window.innerWidth / imgRate
+            }
+          } else {
+            if (img.naturalHeight > window.innerHeight) {
+              img.height = window.innerHeight
+              img.width = window.innerHeight * imgRate
+            }
+          }
+        }}
+        alt="preview"
+      />
     </PinchZoomPan>
   )
 }
