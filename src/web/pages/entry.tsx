@@ -9,7 +9,7 @@ import {
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
-import { useSpeechSpeed } from '../store.js'
+import { useFontSize, useSpeechSpeed } from '../store.js'
 import { BooksEntry } from './books/entry.js'
 import { Layout } from './layout/layout.js'
 import { Login } from './login.js'
@@ -35,6 +35,7 @@ function Books() {
 
 function Main() {
   const [, setSpeechSpeed] = useSpeechSpeed()
+  const [, setFontSize] = useFontSize()
   const { addHotkeys } = useHotkeys()
   const { openHint } = useHintText()
 
@@ -62,6 +63,26 @@ function Main() {
           }),
       ],
       [
+        '-',
+        t('hotkey.fontSizeDown'),
+        () =>
+          setFontSize((v) => {
+            const n = v - 1
+            openHint(`${t('fontSize')}: ${n}`)
+            return n
+          }),
+      ],
+      [
+        '=',
+        t('hotkey.fontSizeUp'),
+        () =>
+          setFontSize((v) => {
+            const n = v + 1
+            openHint(`${t('fontSize')}: ${n}`)
+            return n
+          }),
+      ],
+      [
         'r',
         t('hotkey.reload'),
         () => {
@@ -69,7 +90,7 @@ function Main() {
         },
       ],
     ])
-  }, [addHotkeys, openHint, setSpeechSpeed])
+  }, [addHotkeys, openHint, setFontSize, setSpeechSpeed])
 
   return (
     <Routes>
