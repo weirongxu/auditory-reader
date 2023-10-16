@@ -67,8 +67,13 @@ interface ScrollOptions extends IterateAnimateOptions {
 }
 
 export class PlayerIframeController {
-  readableParts: ReadablePart[] = []
-  alias: TextAlias[] = []
+  public readableParts: ReadablePart[] = []
+  public alias: TextAlias[] = []
+
+  public doc?: Document
+  public events = new Emitter<{ scroll: void }>()
+
+  public isVertical = false
 
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
@@ -89,11 +94,6 @@ export class PlayerIframeController {
   protected pageListResizeFocusPart?: ReadablePart
   protected win?: Window
 
-  public doc?: Document
-  public events = new Emitter<{ scroll: void }>()
-
-  #isVertical = false
-
   get book() {
     return this.player.book
   }
@@ -104,7 +104,7 @@ export class PlayerIframeController {
 
   get enabledPageList() {
     if (this.states.pageList === 'none') return false
-    return !this.#isVertical
+    return !this.isVertical
   }
 
   get isFirstPageList() {
@@ -209,25 +209,69 @@ export class PlayerIframeController {
     const item = this.readableParts.at(this.states.pos.paragraph)
     if (item) await this.scrollToElem(item.elem, { animated })
     else if (this.enabledPageList)
+      // reset to current page list position
       await this.pageListScrollToLeft(this.pageListScrollLeft, { animated })
   }
 
   public async scrollToElem(element: HTMLElement, options: ScrollOptions = {}) {
     await this.tryManipulateDOM(async () => {
       if (!this.doc) return
-      const body = this.doc.body
-      const bodyRect = body.getBoundingClientRect()
+      const html = this.doc.documentElement
+      const containerRect = html.getBoundingClientRect()
       const elemRect = element.getBoundingClientRect()
-      if (!this.enabledPageList) {
-        const bodyTop = bodyRect.top
-        const endTop = elemRect.top - bodyTop
-        await this.scrollToTop(endTop, options)
+      if (this.enabledPageList) {
+        const left =
+          elemRect.left + element.offsetWidth / 2 - containerRect.left
+        await this.pageListScrollToLeft(left, options)
+      } else if (this.isVertical) {
+        const right =
+          elemRect.right + element.offsetWidth / 2 - containerRect.right
+        await this.scrollToRight(right, options)
       } else {
-        const bodyLeft = bodyRect.left
-        const endLeft = elemRect.left + element.offsetWidth / 2 - bodyLeft
-        await this.pageListScrollToLeft(endLeft, options)
+        const top = elemRect.top - containerRect.top
+        await this.scrollToTop(top, options)
       }
     })
+  }
+
+  /**
+   * scroll to left offset with animation
+   */
+  public async scrollToRight(
+    left: number,
+    {
+      iteration = 10,
+      duration = 100,
+      animated = true,
+      abortCtrl,
+      position = 'center',
+    }: ScrollOptions = {},
+  ) {
+    if (!this.win) return
+    const scrollElement = this.doc?.scrollingElement
+    if (!scrollElement) return
+
+    // get center left
+    const finalLeft =
+      position === 'center' ? left + this.win.innerWidth / 2 : left
+
+    if (!animated) {
+      scrollElement.scrollLeft = finalLeft
+    } else {
+      const startLeft = scrollElement.scrollLeft
+      const offset = finalLeft - startLeft
+      const unit = offset / iteration
+      await iterateAnimate(
+        {
+          duration,
+          iteration,
+          abortCtrl,
+        },
+        (index) => {
+          scrollElement.scrollLeft = startLeft + index * unit
+        },
+      )
+    }
   }
 
   /**
@@ -249,7 +293,7 @@ export class PlayerIframeController {
 
     // get center top
     const finalTop =
-      position === 'center' ? Math.max(0, top - this.win?.innerHeight / 2) : top
+      position === 'center' ? top - this.win.innerHeight / 2 : top
 
     if (!animated) {
       scrollElement.scrollTop = finalTop
@@ -567,7 +611,7 @@ export class PlayerIframeController {
 
       globalStore.set(hotkeyIframeWinAtom, { win })
 
-      this.#isVertical = win
+      this.isVertical = win
         .getComputedStyle(doc.body)
         .writingMode.startsWith('vertical')
 
@@ -585,6 +629,9 @@ export class PlayerIframeController {
         await this.pageListCalculate(doc)
         this.hookPageTouch()
         this.hookPageWheel()
+      }
+      if (this.isVertical) {
+        this.hookVerticalWheel()
       }
       this.hookScroll()
       this.hookALinks(doc)
@@ -671,10 +718,22 @@ export class PlayerIframeController {
           height: 100%;
           box-sizing: border-box !important;
           margin: 0 !important;
-          padding: 4px !important;
+          padding: 8px !important;
         }
         body {
-          height: auto;
+          ${
+            this.isVertical
+              ? `
+                width: auto;
+                height: 100%;
+                overflow-y: hidden;
+              `
+              : `
+                height: auto;
+                width: 100%;
+                overflow-x: hidden;
+              `
+          }
           box-sizing: border-box !important;
         }
       `
@@ -872,7 +931,7 @@ export class PlayerIframeController {
     const speedLimit = 0.3
     const viewRateLimit = 0.2
 
-    const startlistener = (event: TouchEvent) => {
+    const onStart = (event: TouchEvent) => {
       const touch = event.touches[0]
       if (!touch) return
       startPoint = {
@@ -882,7 +941,7 @@ export class PlayerIframeController {
       }
     }
 
-    const movelistener = (event: TouchEvent) => {
+    const onMove = (event: TouchEvent) => {
       event.preventDefault()
       if (startPoint === undefined) return
       const selection = win.getSelection()
@@ -896,7 +955,7 @@ export class PlayerIframeController {
       this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
     }
 
-    const endlistener = (event: TouchEvent) => {
+    const onEnd = (event: TouchEvent) => {
       if (startPoint === undefined) return
       const touch = event.changedTouches[0]
       if (!touch) return
@@ -917,19 +976,13 @@ export class PlayerIframeController {
       void this.pageListPushAdjust(0, false)
     }
 
-    doc.addEventListener('touchstart', startlistener, {
-      passive: false,
-    })
-    doc.addEventListener('touchmove', movelistener, {
-      passive: false,
-    })
-    doc.addEventListener('touchend', endlistener, {
-      passive: false,
-    })
+    doc.addEventListener('touchstart', onStart)
+    doc.addEventListener('touchmove', onMove)
+    doc.addEventListener('touchend', onEnd)
     this.onUnmount(() => {
-      doc.documentElement.removeEventListener('touchstart', startlistener)
-      doc.documentElement.removeEventListener('touchmove', movelistener)
-      doc.documentElement.removeEventListener('touchend', endlistener)
+      doc.documentElement.removeEventListener('touchstart', onStart)
+      doc.documentElement.removeEventListener('touchmove', onMove)
+      doc.documentElement.removeEventListener('touchend', onEnd)
     })
   }
 
@@ -937,7 +990,7 @@ export class PlayerIframeController {
     const doc = this.doc
     if (!doc) return
 
-    const listener = (e: WheelEvent) => {
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault()
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
@@ -948,11 +1001,27 @@ export class PlayerIframeController {
       }
     }
 
-    doc.documentElement.addEventListener('wheel', listener, {
-      passive: false,
-    })
+    doc.documentElement.addEventListener('wheel', onWheel)
     this.onUnmount(() => {
-      doc.documentElement.removeEventListener('wheel', listener)
+      doc.documentElement.removeEventListener('wheel', onWheel)
+    })
+  }
+
+  protected hookVerticalWheel() {
+    const doc = this.doc
+    const scrollElement = this.doc?.scrollingElement
+    if (!doc || !scrollElement) return
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      if (isInputElement(e.target)) return
+      if (e.deltaY === 0) return
+      scrollElement.scrollLeft -= e.deltaY
+    }
+
+    doc.documentElement.addEventListener('wheel', onWheel)
+    this.onUnmount(() => {
+      doc.documentElement.removeEventListener('wheel', onWheel)
     })
   }
 
@@ -961,10 +1030,18 @@ export class PlayerIframeController {
     if (!this.doc || !scrollElement) return
 
     const onScroll = () => {
-      const percent = this.enabledPageList
-        ? this.pageListScrollLeft /
+      let percent: number
+      if (this.enabledPageList)
+        percent =
+          this.pageListScrollLeft /
           (this.pageListScrollWidth - scrollElement.clientWidth)
-        : scrollElement.scrollTop /
+      else if (this.isVertical)
+        percent =
+          -scrollElement.scrollLeft /
+          (scrollElement.scrollWidth - scrollElement.clientWidth)
+      else
+        percent =
+          scrollElement.scrollTop /
           (scrollElement.scrollHeight - scrollElement.clientHeight)
 
       this.states.scrollPercent = percent * 100

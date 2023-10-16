@@ -68,7 +68,7 @@ export class Highlight {
       width: rect.width,
       height: rect.height,
       left: rect.left - containerRect.left,
-      right: rect.right - containerRect.left,
+      right: rect.right - containerRect.right,
       top: rect.top - containerRect.top,
       bottom: rect.bottom - containerRect.top,
     }))
@@ -86,11 +86,15 @@ export class Highlight {
   }
 
   #scrollToRects = throttleFn(1000, (rects: Rect[]) => {
+    if (!this.doc) return
     if (!rects.length) return
 
     if (this.iframeCtrl.enabledPageList) {
       const left = sum(rects.map((r) => r.left)) / rects.length
       this.iframeCtrl.pageListScrollToLeft(left).catch(console.error)
+    } else if (this.iframeCtrl.isVertical) {
+      const right = sum(rects.map((r) => r.right)) / rects.length
+      this.iframeCtrl.scrollToRight(right).catch(console.error)
     } else {
       const top = sum(rects.map((r) => r.top)) / rects.length
       this.iframeCtrl.scrollToTop(top).catch(console.error)
