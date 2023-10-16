@@ -31,6 +31,7 @@ import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import {
   useAutoSection,
+  useDisabledVertical,
   useFontSize,
   usePageList,
   useParagraphRepeat,
@@ -193,6 +194,7 @@ export function usePlayerUI({
   const [paragraphRepeat] = useParagraphRepeat()
   const [pageList] = usePageList()
   const [fontSize] = useFontSize()
+  const [disabledVertical] = useDisabledVertical()
   const [collapsed, setCollapsed] = useState(isMobile)
 
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
@@ -205,6 +207,7 @@ export function usePlayerUI({
       paragraphRepeat,
       pageList,
       fontSize,
+      disabledVertical,
     })
 
   const PlayerCtrlGroup = useMemo(() => {

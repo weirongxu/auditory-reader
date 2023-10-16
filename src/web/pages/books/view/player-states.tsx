@@ -24,6 +24,7 @@ type PlayerReadonlyStates = {
   paragraphRepeat: number
   pageList: PageListType
   fontSize: number
+  disabledVertical: boolean
 }
 
 export class PlayerStatesManager {
@@ -87,6 +88,7 @@ export class PlayerStatesManager {
     paragraphRepeat: 1,
     pageList: 'double',
     fontSize: 16,
+    disabledVertical: false,
   }
 
   uiEvents = new ChangedEmitter<PlayerReadonlyStates>()
@@ -121,6 +123,10 @@ export class PlayerStatesManager {
 
   get fontSize() {
     return this.#readonlyStates.fontSize
+  }
+
+  get disabledVertical() {
+    return this.#readonlyStates.disabledVertical
   }
 
   get docVisible() {
@@ -192,6 +198,7 @@ export function usePlayerUISync(
     paragraphRepeat,
     pageList,
     fontSize,
+    disabledVertical,
   }: PlayerReadonlyStates,
 ) {
   useEffect(() => {
@@ -225,6 +232,10 @@ export function usePlayerUISync(
   useEffect(() => {
     player.states.syncUIState('fontSize', fontSize)
   }, [player, fontSize])
+
+  useEffect(() => {
+    player.states.syncUIState('disabledVertical', disabledVertical)
+  }, [player, disabledVertical])
 
   const isFirstSection = useMemo(
     () => player.isFirstSection,

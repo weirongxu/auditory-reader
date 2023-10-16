@@ -72,7 +72,6 @@ export class PlayerIframeController {
 
   public doc?: Document
   public events = new Emitter<{ scroll: void }>()
-
   public isVertical = false
 
   protected mainContentRootPath: string
@@ -147,6 +146,15 @@ export class PlayerIframeController {
     this.states.uiEvents.on('pageList', async () => {
       if (firstPageListChanged) {
         firstPageListChanged = false
+        return
+      }
+      if (this.iframe) await this.load({ force: true })
+    })
+
+    let firstDisabledVerticalChanged = true
+    this.states.uiEvents.on('disabledVertical', async () => {
+      if (firstDisabledVerticalChanged) {
+        firstDisabledVerticalChanged = false
         return
       }
       if (this.iframe) await this.load({ force: true })
@@ -611,9 +619,11 @@ export class PlayerIframeController {
 
       globalStore.set(hotkeyIframeWinAtom, { win })
 
-      this.isVertical = win
-        .getComputedStyle(doc.body)
-        .writingMode.startsWith('vertical')
+      if (!this.states.disabledVertical)
+        this.isVertical = win
+          .getComputedStyle(doc.body)
+          .writingMode.startsWith('vertical')
+      else this.isVertical = false
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
@@ -682,7 +692,7 @@ export class PlayerIframeController {
 
     let pageStyle = ''
     if (this.enabledPageList) {
-      pageStyle = `
+      pageStyle += `
         /* page list */
         html {
           width: 100% !important;
@@ -712,7 +722,7 @@ export class PlayerIframeController {
         }
       `
     } else {
-      pageStyle = `
+      pageStyle += `
         html {
           width: 100%;
           height: 100%;
@@ -738,6 +748,15 @@ export class PlayerIframeController {
         }
       `
     }
+
+    if (this.states.disabledVertical) {
+      pageStyle += `
+        body {
+          writing-mode: initial !important;
+        }
+      `
+    }
+
     let hoverStyle = ''
     if (!isMobile) {
       hoverStyle = `

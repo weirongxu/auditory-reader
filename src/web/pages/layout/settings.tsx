@@ -9,6 +9,7 @@ import {
   Radio,
   RadioGroup,
   Slider,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -31,6 +32,7 @@ import {
   type PageListType,
   type UserColorscheme,
   useFontSize,
+  useDisabledVertical,
 } from '../../store.js'
 
 export function SettingLine({ children }: { children: React.ReactNode }) {
@@ -303,12 +305,32 @@ function FontSizeInput() {
   )
 }
 
+function DiabledVerticalCheckbox() {
+  const [disabledVertical, setDisabledVertical] = useDisabledVertical()
+  return (
+    <SettingLine>
+      <FormControlLabel
+        label={t('setting.disabledVertical')}
+        control={
+          <Checkbox
+            checked={disabledVertical}
+            onChange={(v) => {
+              setDisabledVertical(v.currentTarget.checked)
+            }}
+          ></Checkbox>
+        }
+      ></FormControlLabel>
+    </SettingLine>
+  )
+}
+
 export const GlobalSettings = () => {
   return (
     <>
       <AutoSectionCheckBox></AutoSectionCheckBox>
       <TimerInput></TimerInput>
       <PersonReplaceUI></PersonReplaceUI>
+      <DiabledVerticalCheckbox></DiabledVerticalCheckbox>
       <PlaySpeed></PlaySpeed>
       <ColorSchemeSelect></ColorSchemeSelect>
       <ParagraphRepeatInput></ParagraphRepeatInput>

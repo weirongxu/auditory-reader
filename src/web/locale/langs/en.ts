@@ -7,6 +7,7 @@ export const langEn = {
     speed: '$t(speed)',
     userColorScheme: 'Color Scheme',
     paragraphRepeat: 'Paragraph Repeat',
+    disabledVertical: 'Disable Vertical Direction',
     pageList: 'Split Page',
     pageListType: {
       none: 'None',

@@ -7,6 +7,7 @@ export const langZh = {
     speed: '$t(speed)',
     userColorScheme: '颜色主题',
     paragraphRepeat: '段落重复',
+    disabledVertical: '禁用垂直方向',
     pageList: '分页',
     pageListType: {
       none: '无',

@@ -199,3 +199,9 @@ export const useFontSize = createStore<number>({
   read: (v) => (v ? Number(v) : 16),
   write: (v) => v.toString(),
 })
+
+export const useDisabledVertical = createStore<boolean>({
+  storeKey: 'disabledVertical',
+  read: (v) => (v ? v === '1' : false),
+  write: (v) => (v ? '1' : '0'),
+})
