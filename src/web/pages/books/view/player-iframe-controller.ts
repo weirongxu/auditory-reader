@@ -821,15 +821,21 @@ export class PlayerIframeController {
 
   protected hookALinks(doc: Document) {
     for (const link of doc.querySelectorAll('a')) {
-      if (link.getAttribute('target') === '_blank') {
-        link.addEventListener('click', () => {
-          window.open(link.href, '_blank', 'noopener,noreferrer')
-        })
-        continue
-      }
       if (!link.href) continue
 
-      link.addEventListener('click', (event) => {
+      if (link.getAttribute('target') === '_blank') {
+        const onOpenLink = (event: Event) => {
+          event.stopPropagation()
+          event.preventDefault()
+          window.open(link.href, '_blank', 'noopener,noreferrer')
+        }
+
+        link.addEventListener('touchstart', onOpenLink)
+        link.addEventListener('click', onOpenLink)
+        continue
+      }
+
+      const onClickLink = (event: Event) => {
         event.preventDefault()
         event.stopPropagation()
         async(async () => {
@@ -849,7 +855,9 @@ export class PlayerIframeController {
           await this.gotoUrlPath(rootPath)
           this.player.utterer.cancel()
         })
-      })
+      }
+      link.addEventListener('click', onClickLink)
+      link.addEventListener('touchstart', onClickLink)
     }
   }
 
