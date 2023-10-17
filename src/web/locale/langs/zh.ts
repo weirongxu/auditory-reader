@@ -27,6 +27,7 @@ export const langZh = {
     fontSizeDown: '降低字体大小',
     reload: '刷新页面',
     helper: '显示快捷键',
+    speakBookName: '朗读选择的书名',
     playToggle: '播放 / 暂停',
     navToggle: '开关显示导航',
     prevNav: '选择上一个导航',

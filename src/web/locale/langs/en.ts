@@ -27,6 +27,7 @@ export const langEn = {
     fontSizeDown: 'Decrease font size',
     reload: 'Reload',
     helper: 'Show the hotkeys',
+    speakBookName: 'Speak selected book name',
     playToggle: 'Play / Pause',
     navToggle: 'Toggle table contents panel',
     prevNav: 'Select previous nav',

@@ -57,75 +57,85 @@ export const useViewPanelType = createStore<ViewPanelType>({
   write: limitViewPanelType,
 })
 
-const useLastVoiceURIDict = createStore<Record<string, string>>({
-  storeKey: 'voiceURILastDict',
+/**
+ * Dict[book-lang] = voiceURI
+ */
+const useLangVoiceURIDict = createStore<Record<string, string>>({
+  storeKey: 'langVoiceURIDict',
   read: (uriDictStr) => (uriDictStr ? JSON.parse(uriDictStr) : {}),
   write: (uriDict) => JSON.stringify(uriDict),
 })
 
-const useLastVoiceURI = (book: BookTypes.Entity) => {
-  const [dict, setDict] = useLastVoiceURIDict()
+export const useGetVoice = () => {
+  const [dict] = useLangVoiceURIDict()
+  const [allVoices] = useAtom(allVoicesAtom)
 
-  const lastURI = useMemo(
+  const getAllSortedVoices = useCallback(
+    (book: BookTypes.Entity) => {
+      return orderBy(allVoices, 'desc', (v) => [
+        v.lang.startsWith(`${book.langCode}-`),
+        !v.localService,
+      ])
+    },
+    [allVoices],
+  )
+
+  const getVoice = useCallback(
+    (book: BookTypes.Entity) => {
+      const allSortedVoices = getAllSortedVoices(book)
+      const uri = dict[book.langCode]
+      const voice = uri ? allSortedVoices.find((v) => v.voiceURI === uri) : null
+      return voice ?? allSortedVoices.at(0) ?? null
+    },
+    [dict, getAllSortedVoices],
+  )
+
+  return { getVoice, getAllSortedVoices }
+}
+
+const useLangVoiceURI = (book: BookTypes.Entity) => {
+  const [dict, setDict] = useLangVoiceURIDict()
+
+  const langURI = useMemo(
     () => dict[book.langCode] ?? null,
     [book.langCode, dict],
   )
 
-  const setLastURI = useCallback(
-    (lastURI: string | null) => {
+  const setLangURI = useCallback(
+    (langURI: string | null) => {
       const newDict = { ...dict }
-      if (lastURI) newDict[book.langCode] = lastURI
+      if (langURI) newDict[book.langCode] = langURI
       else delete newDict[book.langCode]
       setDict(newDict)
     },
     [book.langCode, dict, setDict],
   )
 
-  return [lastURI, setLastURI] as const
+  return [langURI, setLangURI] as const
 }
 
-const useVoiceURLDict = createStore<Record<string, string>>({
-  storeKey: 'voiceURIDict',
-  read: (voiceURIStr) => (voiceURIStr ? JSON.parse(voiceURIStr) : {}),
-  write: (voiceURIDict) => JSON.stringify(voiceURIDict),
-})
-
 export const useVoice = (book: BookTypes.Entity) => {
-  const [dict, setDict] = useVoiceURLDict()
-  const [lastVoiceURI, setLastVoiceURI] = useLastVoiceURI(book)
-  const [allVoices] = useAtom(allVoicesAtom)
+  const [langVoiceURI, setLangVoiceURI] = useLangVoiceURI(book)
+  const { getAllSortedVoices, getVoice } = useGetVoice()
 
   const allSortedVoices = useMemo(() => {
-    return orderBy(allVoices, 'desc', (v) => [
-      v.lang.startsWith(`${book.langCode}-`),
-      !v.localService,
-    ])
-  }, [allVoices, book.langCode])
+    return getAllSortedVoices(book)
+  }, [book, getAllSortedVoices])
 
   const voiceURI = useMemo((): string | null => {
-    return dict[book.uuid] ?? lastVoiceURI ?? allSortedVoices[0]?.voiceURI
-  }, [allSortedVoices, book.uuid, lastVoiceURI, dict])
+    return langVoiceURI ?? allSortedVoices[0]?.voiceURI
+  }, [allSortedVoices, langVoiceURI])
 
   const setVoiceURI = useCallback(
     (voiceURI: string | null) => {
-      const newDict = { ...dict }
-      if (voiceURI) newDict[book.uuid] = voiceURI
-      else delete dict[book.uuid]
-      setDict(newDict)
-      setLastVoiceURI(voiceURI)
+      setLangVoiceURI(voiceURI)
     },
-    [book.uuid, dict, setDict, setLastVoiceURI],
+    [setLangVoiceURI],
   )
 
   const voice = useMemo(() => {
-    return (
-      (voiceURI
-        ? allSortedVoices.find((v) => v.voiceURI === voiceURI)
-        : null) ??
-      allSortedVoices[0] ??
-      null
-    )
-  }, [allSortedVoices, voiceURI])
+    return getVoice(book) ?? null
+  }, [book, getVoice])
 
   const setVoice = useCallback(
     (voice: SpeechSynthesisVoice | null) => {

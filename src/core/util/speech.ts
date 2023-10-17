@@ -60,18 +60,6 @@ export class Speech {
   public utterance: SpeechSynthesisUtterance
   public state: 'speaking' | 'none' | 'cancel' = 'none'
 
-  set text(text: string) {
-    this.utterance.text = text
-  }
-
-  set voice(voice: SpeechSynthesisVoice | null) {
-    this.utterance.voice = voice
-  }
-
-  set rate(rate: number) {
-    this.utterance.rate = rate
-  }
-
   constructor() {
     this.utterance = new SpeechSynthesisUtterance()
   }
@@ -123,11 +111,15 @@ export class Speech {
   async speak(
     text: string,
     {
+      speed,
+      voice,
       isPersonReplace,
       quote = true,
       alias,
       onBoundary,
     }: {
+      speed: number
+      voice: SpeechSynthesisVoice
       isPersonReplace: boolean
       quote?: boolean
       alias?: TextAlias[]
@@ -201,6 +193,8 @@ export class Speech {
       this.utterance.addEventListener('boundary', boundaryListener)
     }
 
+    this.utterance.rate = speed
+    this.utterance.voice = voice
     this.utterance.text = text
     speechSynthesis.speak(this.utterance)
 

@@ -27,13 +27,6 @@ export class Utterer {
     this.hl = new Highlight(iframeCtrler, states)
 
     this.speech = new Speech()
-
-    this.states.uiEvents.on('voice', (voice) => {
-      this.speech.voice = voice
-    })
-    this.states.uiEvents.on('speechSpeed', (speechSpeed) => {
-      this.speech.rate = speechSpeed
-    })
   }
 
   cancel() {
@@ -41,7 +34,11 @@ export class Utterer {
   }
 
   async speakNode(node: ReadablePartText): Promise<SpeakResult> {
+    if (!this.states.voice) return 'done'
+
     return this.speech.speak(node.text, {
+      voice: this.states.voice,
+      speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
       alias: this.player.iframeCtrler.alias,
       onBoundary: (event) => {
@@ -51,7 +48,11 @@ export class Utterer {
   }
 
   async speakText(text: string): Promise<SpeakResult> {
+    if (!this.states.voice) return 'done'
+
     return this.speech.speak(text, {
+      voice: this.states.voice,
+      speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
       alias: this.player.iframeCtrler.alias,
     })

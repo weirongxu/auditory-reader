@@ -43,6 +43,8 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
 import { isMobile } from '../../../core/util/browser.js'
+import { Speech } from '../../../core/util/speech.js'
+import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -186,6 +188,9 @@ function useHomeHotKeys({
   removeBooks: (books: BookTypes.Entity[]) => void
 }) {
   const [activedIndex, setActivedIndex] = useState(0)
+  const [isPersonReplace] = usePersonReplace()
+  const [speechSpeed] = useSpeechSpeed()
+  const { getVoice } = useGetVoice()
   const { addHotkeys } = useHotkeys()
   const nav = useNavigate()
 
@@ -271,6 +276,18 @@ function useHomeHotKeys({
       if (currentBook) void moveBooksTop(selectedBooks)
     }
 
+    const speech = new Speech()
+    const speakBookName = () => {
+      if (!currentBook) return
+      const voice = getVoice(currentBook)
+      if (!voice) return
+      void speech.speak(currentBook.name, {
+        voice,
+        speed: speechSpeed,
+        isPersonReplace,
+      })
+    }
+
     return addHotkeys([
       ['k', t('hotkey.goPrev'), goPrev],
       ['j', t('hotkey.goNext'), goNext],
@@ -309,12 +326,14 @@ function useHomeHotKeys({
       [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
       [{ shift: true, key: 'h' }, t('hotkey.goPageFirst'), pageFirst],
       [{ shift: true, key: 'l' }, t('hotkey.goPageLast'), pageLast],
+      [{ shift: true, key: 'K' }, t('hotkey.speakBookName'), speakBookName],
     ])
   }, [
     activedIndex,
     addHotkeys,
     currentBook,
     dataBooks,
+    isPersonReplace,
     moveBooksTop,
     nav,
     reload,
@@ -324,6 +343,7 @@ function useHomeHotKeys({
     selectedBooks,
     setLoading,
     setPage,
+    speechSpeed,
   ])
 
   return { activedIndex }
