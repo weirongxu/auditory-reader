@@ -4,8 +4,10 @@ import { pushSnackbar } from '../../../common/snackbar.js'
 import type { Player } from './player.js'
 import { booksAddBookmarksRouter } from '../../../../core/api/books/add-bookmarks.js'
 import { booksDeleteBookmarksRouter } from '../../../../core/api/books/delete-bookmarks.js'
+import { booksUpdateBookmarksRouter } from '../../../../core/api/books/update-bookmarks.js'
 
 export class PlayerBookmarks {
+  /** book uuid */
   uuid: string
   reload?: () => void
 
@@ -36,6 +38,17 @@ export class PlayerBookmarks {
     this.reload?.()
     return pushSnackbar({
       message: `${t('desc.addedBookmark')} ${brief}`,
+    })
+  }
+
+  async updateBookmark(bookmark: BookTypes.PropertyBookmark) {
+    await booksUpdateBookmarksRouter.action({
+      uuid: this.uuid,
+      bookmarks: [bookmark],
+    })
+    this.reload?.()
+    return pushSnackbar({
+      message: `${t('desc.updatedBookmark')} ${bookmark.brief}`,
     })
   }
 

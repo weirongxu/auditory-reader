@@ -36,6 +36,7 @@ export const langEn = {
     speakNav: 'Speak selected nav',
     bookmarksPanelToggle: 'Toggle bookmarks panel',
     bookmarkToggle: 'Add / Remove bookmark for current paragraph',
+    bookmarkNoteSelected: 'Note selected bookmark',
     bookmarkRemoveSelected: 'Remove selected bookmark',
     prevBookmark: 'Select previous bookmark',
     nextBookmark: 'Select next bookmark',
@@ -80,6 +81,7 @@ export const langEn = {
     addedBookSuccessful: 'Successfully added a new book',
     addedBookmark: 'Added a $t(bookmark)',
     deletedBookmark: 'Deleted a $t(bookmark)',
+    updatedBookmark: 'Updated a $t(bookmark)',
     noSuportedBookmark: 'No support $t(bookmark) type',
     bookmarksEmpty: '$t(bookmark)s empty',
     navEmpty: '$t(nav) empty',
@@ -97,6 +99,7 @@ export const langEn = {
   error: {
     login: '$t(account) or $t(password) error',
   },
+  note: 'Note',
   speed: 'Speed',
   fontSize: 'Font Size',
   view: 'View',

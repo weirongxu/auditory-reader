@@ -55,18 +55,22 @@
         &:last-child {
           border-bottom: none;
         }
-        > .item {
+        .item {
           width: 100%;
           display: flex;
           > .text {
             flex: 1;
-            display: flex;
+            font-weight: bolder;
             &.clickable {
               cursor: pointer;
             }
             &:hover {
               background-color: var(--main-bg-hover);
               color: var(--main-fg-hover);
+            }
+            .note {
+              font-size: 12px;
+              font-weight: normal;
             }
           }
         }
@@ -99,13 +103,14 @@
 
     .panel-content {
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 0 8px;
     }
 
     .book-bookmarks,
     .book-nav {
       li {
-        > .item {
+        .item {
           position: relative;
           > .text {
             &.active {

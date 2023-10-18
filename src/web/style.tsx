@@ -9,6 +9,8 @@ export const globalStyle = `
     --main-fg-active: #111;
     --main-fg-hover: #111;
     --main-border: rgba(100, 100, 100, 0.35);
+    --main-bg-blue: #048;
+    --main-fg-blue: #DDD;
     --main-bg-highlight: rgba(10, 120, 220, 0.3);
     --main-fg-highlight: var(--main-fg);
   }

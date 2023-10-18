@@ -102,7 +102,7 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
         () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav')),
       ],
       [
-        { shift: true, key: 't' },
+        'm',
         t('hotkey.bookmarksPanelToggle'),
         () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
       ],

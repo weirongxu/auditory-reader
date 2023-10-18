@@ -9,7 +9,6 @@ import {
   Radio,
   RadioGroup,
   Slider,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -22,6 +21,8 @@ import {
   SPLIT_PAGE_TYPES,
   USER_COLOR_SCHEMES,
   useAutoSection,
+  useDisabledVertical,
+  useFontSize,
   usePageList,
   useParagraphRepeat,
   usePersonReplace,
@@ -31,8 +32,6 @@ import {
   useUserColorScheme,
   type PageListType,
   type UserColorscheme,
-  useFontSize,
-  useDisabledVertical,
 } from '../../store.js'
 
 export function SettingLine({ children }: { children: React.ReactNode }) {

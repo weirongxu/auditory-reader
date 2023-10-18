@@ -37,6 +37,7 @@ function UpdateForm({ book }: { book: BookTypes.Entity }) {
       }}
       onSubmit={(e) => {
         e.preventDefault()
+        e.stopPropagation()
         async(async () => {
           await booksUpdateRouter.action({
             uuid: book.uuid,

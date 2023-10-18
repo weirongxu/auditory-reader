@@ -1,4 +1,4 @@
-import { Add, DragIndicator, LinearScale } from '@mui/icons-material'
+import { Add, DragIndicator, LinearScale, MoreVert } from '@mui/icons-material'
 import {
   Alert,
   Button,
@@ -34,17 +34,15 @@ import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
+import { Speech } from '../../../core/util/speech.js'
 import { useConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
-import { FlexBox } from '../../components/flex-box.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
+import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
-import { isMobile } from '../../../core/util/browser.js'
-import { Speech } from '../../../core/util/speech.js'
-import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -172,7 +170,6 @@ function useHomeHotKeys({
   selectTo,
   selectAll,
   selectedBooks,
-  setLoading,
   reload,
   moveBooksTop,
   removeBooks,
@@ -182,7 +179,6 @@ function useHomeHotKeys({
   selectTo: (index: number, shift: boolean) => void
   selectAll: () => void
   selectedBooks: BookTypes.Entity[]
-  setLoading: Dispatch<SetStateAction<boolean>>
   reload: () => void
   moveBooksTop: (books: BookTypes.Entity[]) => Promise<void>
   removeBooks: (books: BookTypes.Entity[]) => void
@@ -333,6 +329,7 @@ function useHomeHotKeys({
     addHotkeys,
     currentBook,
     dataBooks,
+    getVoice,
     isPersonReplace,
     moveBooksTop,
     nav,
@@ -341,7 +338,6 @@ function useHomeHotKeys({
     selectAll,
     selectTo,
     selectedBooks,
-    setLoading,
     setPage,
     speechSpeed,
   ])
@@ -360,37 +356,23 @@ function BookButtons({ book }: { book: BookTypes.Entity }) {
     )
   }, [book.uuid])
 
-  if (isMobile)
-    return (
-      <>
-        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-          <LinearScale></LinearScale>
-        </IconButton>
-        <Menu
-          open={Boolean(anchorEl)}
-          anchorEl={anchorEl}
-          onClose={() => setAnchorEl(null)}
-        >
-          <MenuItem onClick={() => nav(editPath(book.uuid))}>
-            {t('edit')}
-          </MenuItem>
-          <MenuItem onClick={() => exportBook()}>{t('export')}</MenuItem>
-        </Menu>
-      </>
-    )
-  else
-    return (
-      <FlexBox dir="row" gap={4}>
-        <LinkWrap to={editPath(book.uuid)}>
-          {(href) => (
-            <Button color="success" href={href}>
-              {t('edit')}
-            </Button>
-          )}
-        </LinkWrap>
-        <Button onClick={() => exportBook()}>{t('export')}</Button>
-      </FlexBox>
-    )
+  return (
+    <>
+      <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+        <MoreVert></MoreVert>
+      </IconButton>
+      <Menu
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+      >
+        <MenuItem onClick={() => nav(editPath(book.uuid))}>
+          {t('edit')}
+        </MenuItem>
+        <MenuItem onClick={() => exportBook()}>{t('export')}</MenuItem>
+      </Menu>
+    </>
+  )
 }
 
 function BookRow({
@@ -514,7 +496,7 @@ function BookRow({
       >
         {book.name}
       </TableCell>
-      <TableCell>
+      <TableCell padding="none">
         <BookButtons book={book}></BookButtons>
       </TableCell>
     </TableRow>
@@ -587,7 +569,6 @@ export function BookList() {
   const { activedIndex } = useHomeHotKeys({
     setPage,
     dataBooks,
-    setLoading,
     reload,
     selectTo,
     selectAll,
@@ -739,7 +720,7 @@ export function BookList() {
               </TableCell>
               <TableCell padding="none">{t('cover')}</TableCell>
               <TableCell>{t('bookName')}</TableCell>
-              <TableCell></TableCell>
+              <TableCell padding="none"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

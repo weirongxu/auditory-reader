@@ -36,6 +36,7 @@ export const langZh = {
     speakNav: '朗读选择的导航',
     bookmarksPanelToggle: '开关显示书签',
     bookmarkToggle: '添加或删除当前段落的书签',
+    bookmarkNoteSelected: '当前段落的书签的备注',
     bookmarkRemoveSelected: '删除选择的书签',
     prevBookmark: '选择上一个书签',
     nextBookmark: '选择下一个书签',
@@ -77,6 +78,7 @@ export const langZh = {
   desc: {
     addedBookSuccessful: '成功添加了一本新书',
     addedBookmark: '添加了一个$t(bookmark)',
+    updatedBookmark: '更新了一个$t(bookmark)',
     deletedBookmark: '删除了一个$t(bookmark)',
     noSuportedBookmark: '不支持的$t(bookmark)类型',
     bookmarksEmpty: '$t(bookmark)书签为空',
@@ -95,6 +97,7 @@ export const langZh = {
   error: {
     login: '$t(account)或$t(password)错误',
   },
+  note: '备注',
   speed: '速度',
   fontSize: '字体大小',
   view: '浏览',

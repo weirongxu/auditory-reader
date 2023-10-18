@@ -8,26 +8,6 @@ import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import ReactRefreshTypeScript from 'react-refresh-typescript'
 
-const sassRule = (cssmodule) => {
-  const moduleTest = /\.module\.s[ac]ss$/i
-  return {
-    test: cssmodule ? moduleTest : /\.s[ac]ss$/i,
-    exclude: cssmodule ? undefined : moduleTest,
-    use: [
-      MiniCssExtractPlugin.loader,
-      // Translates CSS into CommonJS
-      {
-        loader: 'css-loader',
-        options: {
-          modules: cssmodule,
-        },
-      },
-      // Compiles Sass to CSS
-      'sass-loader',
-    ],
-  }
-}
-
 /**
  * @type {() => import('webpack').Configuration}
  */
@@ -41,7 +21,7 @@ export default (env, argv) => {
     },
     output: {
       path: url.fileURLToPath(
-        new URL(isServer ? 'server-public' : 'sw-public', import.meta.url)
+        new URL(isServer ? 'server-public' : 'sw-public', import.meta.url),
       ),
       assetModuleFilename: '[name].[contenthash][ext]',
       filename: '[name].[contenthash].js',
@@ -78,8 +58,16 @@ export default (env, argv) => {
           },
           exclude: /node_modules/,
         },
-        sassRule(false),
-        sassRule(true),
+        {
+          test: /\.s[ac]ss$/i,
+          use: [
+            isProd ? MiniCssExtractPlugin.loader : 'style-loader',
+            // Translates CSS into CommonJS
+            'css-loader',
+            // Compiles Sass to CSS
+            'sass-loader',
+          ],
+        },
       ],
     },
     optimization: {

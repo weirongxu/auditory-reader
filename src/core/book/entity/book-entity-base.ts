@@ -80,6 +80,16 @@ export abstract class BookEntityBase {
     await this.writeProp(prop)
   }
 
+  async bookmarksUpdate(bookmarks: BookTypes.PropertyBookmark[]) {
+    const prop = await this.readProp()
+    if (!prop.bookmarks) return
+    for (const bookmark of bookmarks) {
+      const index = prop.bookmarks.findIndex((b) => b.uuid === bookmark.uuid)
+      if (index !== -1) prop.bookmarks[index] = bookmark
+    }
+    await this.writeProp(prop)
+  }
+
   async bookmarksDelete(bookmarkUuids: string[]) {
     const prop = await this.readProp()
     if (prop.bookmarks) {

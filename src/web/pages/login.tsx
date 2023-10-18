@@ -29,8 +29,9 @@ export function Login() {
         <Typography variant="h4">{t('login')}</Typography>
 
         <form
-          onSubmitCapture={(evt) => {
-            evt.preventDefault()
+          onSubmitCapture={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
             const values = { account, password }
             loginRouter
               .action(values)

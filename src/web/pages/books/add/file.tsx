@@ -30,6 +30,7 @@ export function AddFile() {
       }}
       onSubmit={(e) => {
         e.preventDefault()
+        e.stopPropagation()
         async(async () => {
           if (!name) return
           if (!file) return

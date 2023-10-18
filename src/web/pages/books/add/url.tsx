@@ -26,12 +26,8 @@ export function AddUrl() {
 
   return (
     <>
-      <Dialog
-        open={isFetching}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">Fetching URL</DialogTitle>
+      <Dialog open={isFetching}>
+        <DialogTitle>Fetching URL</DialogTitle>
         <DialogContent>
           <FlexBox style={{ alignItems: 'center' }}>
             <CircularProgress />
@@ -45,6 +41,7 @@ export function AddUrl() {
         }}
         onSubmit={(e) => {
           e.preventDefault()
+          e.stopPropagation()
           async(async () => {
             if (!name) return
             if (!url) return
