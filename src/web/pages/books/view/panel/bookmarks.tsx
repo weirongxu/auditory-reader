@@ -300,9 +300,15 @@ export function useBookViewBookmarks(
   pos: BookTypes.PropertyPosition,
 ) {
   const uuid = book.item.uuid
-  const { data: bookmarks, reload } = useAction(booksBookmarksRouter, {
-    uuid,
-  })
+  const { data: bookmarks, reload } = useAction(
+    booksBookmarksRouter,
+    {
+      uuid,
+    },
+    {
+      clearWhenReload: false,
+    },
+  )
 
   useEffect(() => {
     player.bookmarks.reload = reload
