@@ -206,7 +206,7 @@ export const usePageList = createStore<PageListType>({
 
 export const useFontSize = createStore<number>({
   storeKey: 'fontSize',
-  read: (v) => (v ? Number(v) : 16),
+  read: (v) => (v ? Math.min(Math.max(Number(v), 8), 30) : 16),
   write: (v) => v.toString(),
 })
 
