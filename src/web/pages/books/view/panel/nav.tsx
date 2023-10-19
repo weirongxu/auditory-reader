@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
+import { eventBan } from '../../../../../core/util/dom.js'
 
 function NavList({
   navs,
@@ -33,7 +34,7 @@ function NavList({
             <div
               className="item"
               onClick={(event) => {
-                event.stopPropagation()
+                eventBan(event)
                 if (nav.href) player.gotoUrlPath(nav.href).catch(console.error)
               }}
             >

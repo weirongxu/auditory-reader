@@ -16,6 +16,7 @@ import { async } from '../../../core/util/promise.js'
 import { FlexBox } from '../../components/flex-box.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { NotFound } from '../not-found.js'
+import { eventBan } from '../../../core/util/dom.js'
 
 function UpdateForm({ book }: { book: BookTypes.Entity }) {
   const nav = useNavigate()
@@ -36,8 +37,7 @@ function UpdateForm({ book }: { book: BookTypes.Entity }) {
         width: '800px',
       }}
       onSubmit={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        eventBan(e)
         async(async () => {
           await booksUpdateRouter.action({
             uuid: book.uuid,

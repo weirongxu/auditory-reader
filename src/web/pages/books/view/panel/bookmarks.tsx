@@ -12,6 +12,7 @@ import {
   Menu,
   MenuItem,
   TextareaAutosize,
+  Typography,
 } from '@mui/material'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -25,6 +26,7 @@ import { FlexBox } from '../../../../components/flex-box.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 import { textEllispse } from '../../../../../core/util/text.js'
+import { eventBan } from '../../../../../core/util/dom.js'
 
 function BookmarkItem({
   bookmark,
@@ -76,7 +78,7 @@ function BookmarkItem({
             className={textCls.join(' ')}
             style={{ fontSize: 13 }}
             onClick={(event) => {
-              event.stopPropagation()
+              eventBan(event)
               player
                 .gotoSection(bookmark.section, bookmark.paragraph)
                 .catch(console.error)
@@ -229,15 +231,21 @@ function Bookmarks({
           <Dialog
             open={bookmarkForNote !== undefined}
             onClose={() => setBookmarkForNote(undefined)}
+            fullWidth
+            PaperProps={{
+              style: {
+                alignItems: 'start',
+              },
+            }}
           >
             <DialogTitle>
               {t('bookmark')} {t('note')}
             </DialogTitle>
-            <DialogContent>
+            <DialogContent style={{ width: '100%' }}>
+              <Typography>{bookmarkForNote?.brief}</Typography>
               <form
                 onSubmit={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                  eventBan(e)
                   submitNote()
                 }}
               >
@@ -257,7 +265,7 @@ function Bookmarks({
                     }
                     onKeyDown={(e) => {
                       if (e.ctrlKey && e.key === 'Enter') {
-                        e.preventDefault()
+                        eventBan(e)
                         submitNote()
                       }
                     }}

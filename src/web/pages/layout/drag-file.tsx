@@ -21,6 +21,7 @@ import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 import { FlexBox } from '../../components/flex-box.js'
+import { eventBan } from '../../../core/util/dom.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
 
@@ -123,10 +124,10 @@ export function DragFile({ children }: { children: React.ReactNode }) {
         setDragOver((c) => c - 1)
       }}
       onDragOver={(event) => {
-        event.preventDefault()
+        eventBan(event)
       }}
       onDrop={(event) => {
-        event.preventDefault()
+        eventBan(event)
         async(async () => {
           setDragOver(0)
           setLoading(true)

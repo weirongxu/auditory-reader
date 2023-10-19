@@ -14,6 +14,7 @@ import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { InputFile } from '../../../components/input-file.js'
+import { eventBan } from '../../../../core/util/dom.js'
 
 export function AddFile() {
   const nav = useNavigate()
@@ -29,8 +30,7 @@ export function AddFile() {
         maxWidth: '800px',
       }}
       onSubmit={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        eventBan(e)
         async(async () => {
           if (!name) return
           if (!file) return

@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties, useState } from 'react'
+import { eventBan } from '../../core/util/dom.js'
 
 type SwipeAction = {
   width: number
@@ -42,10 +43,7 @@ function mountSwipe(
     const oY = y - start.y
     const dY = Math.abs(oY)
     if (dY > 30) return
-    if (dX > 5) {
-      event.stopPropagation()
-      event.preventDefault()
-    }
+    if (dX > 5) eventBan(event)
     if (left && leftElement && oX > 0) {
       const mX = Math.min(dX, left.width + 10)
       curX = mX

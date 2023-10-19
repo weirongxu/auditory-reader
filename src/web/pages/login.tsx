@@ -6,6 +6,7 @@ import { loginRouter } from '../../core/api/login.js'
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
 import { FlexBox } from '../components/flex-box.js'
+import { eventBan } from '../../core/util/dom.js'
 
 export function Login() {
   const nav = useNavigate()
@@ -29,9 +30,8 @@ export function Login() {
         <Typography variant="h4">{t('login')}</Typography>
 
         <form
-          onSubmitCapture={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
+          onSubmit={(e) => {
+            eventBan(e)
             const values = { account, password }
             loginRouter
               .action(values)

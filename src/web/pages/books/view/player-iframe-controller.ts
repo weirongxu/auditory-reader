@@ -14,7 +14,12 @@ import {
   PARA_BOX_CLASS,
   PARA_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
-import { isFirefox, isMobile, isSafari } from '../../../../core/util/browser.js'
+import {
+  isFirefox,
+  isMobile,
+  isSafari,
+  supportedTouch,
+} from '../../../../core/util/browser.js'
 import {
   find,
   findLast,
@@ -22,7 +27,11 @@ import {
   findLastPair,
   range,
 } from '../../../../core/util/collection.js'
-import { isInputElement, svgToDataUri } from '../../../../core/util/dom.js'
+import {
+  eventBan,
+  isInputElement,
+  svgToDataUri,
+} from '../../../../core/util/dom.js'
 import { Emitter } from '../../../../core/util/emitter.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import {
@@ -844,19 +853,19 @@ export class PlayerIframeController {
 
       if (link.getAttribute('target') === '_blank') {
         const onOpenLink = (event: Event) => {
-          event.stopPropagation()
-          event.preventDefault()
+          eventBan(event)
           window.open(link.href, '_blank', 'noopener,noreferrer')
         }
 
-        link.addEventListener('touchstart', onOpenLink)
-        link.addEventListener('click', onOpenLink)
+        if (supportedTouch) {
+          link.addEventListener('touchend', onOpenLink)
+          link.addEventListener('click', (e) => eventBan(e))
+        } else link.addEventListener('click', onOpenLink)
         continue
       }
 
       const onClickLink = (event: Event) => {
-        event.preventDefault()
-        event.stopPropagation()
+        eventBan(event)
         async(async () => {
           const isToc = link.closest(NAV_TOC_SELECTOR)
           let rootPath: string
@@ -875,8 +884,10 @@ export class PlayerIframeController {
           this.player.utterer.cancel()
         })
       }
-      link.addEventListener('click', onClickLink)
-      link.addEventListener('touchstart', onClickLink)
+      if (supportedTouch) {
+        link.addEventListener('touchend', onClickLink)
+        link.addEventListener('click', (e) => eventBan(e))
+      } else link.addEventListener('click', onClickLink)
     }
   }
 
@@ -885,14 +896,14 @@ export class PlayerIframeController {
       img.addEventListener('click', (event) => {
         const src = img.src
         if (!src) return
-        event.stopPropagation()
+        eventBan(event)
         globalStore.set(previewImgSrcAtom, src)
       })
     }
 
     for (const svg of doc.querySelectorAll('svg')) {
       svg.addEventListener('click', (event) => {
-        event.stopPropagation()
+        eventBan(event)
         async(async () => {
           const dataURL = await svgToDataUri(svg, doc.URL)
           globalStore.set(previewImgSrcAtom, dataURL)
@@ -904,10 +915,13 @@ export class PlayerIframeController {
   protected hookParagraphClick() {
     const win = this.win
     if (!win) return
-    const click = (paraIndex: number) => {
+    const click = (e: Event, paraIndex: number) => {
+      eventBan(e)
       this.player.gotoParagraph(paraIndex).catch(console.error)
     }
-    const dblclick = (paraIndex: number) => {
+    const dblclick = (e: Event, paraIndex: number) => {
+      eventBan(e)
+      win.getSelection()?.removeAllRanges()
       this.player.bookmarks
         .toggleBookmark({
           section: this.states.pos.section,
@@ -917,26 +931,8 @@ export class PlayerIframeController {
     }
     this.readableParts.forEach((n, i) => {
       if (n.type === 'text') {
-        n.elem.addEventListener('click', () => click(i))
-        n.elem.addEventListener('dblclick', (e) => {
-          e.preventDefault()
-          win.getSelection()?.removeAllRanges()
-          dblclick(i)
-        })
-        // double touch
-        let lastTouchTime: number | undefined = undefined
-        n.elem.addEventListener(
-          'touchstart',
-          () => {
-            // dblclick
-            const now = Date.now()
-            if (lastTouchTime && now - lastTouchTime < 300) {
-              dblclick(i)
-            }
-            lastTouchTime = now
-          },
-          { passive: true },
-        )
+        n.elem.addEventListener('click', (e) => click(e, i))
+        n.elem.addEventListener('dblclick', (e) => dblclick(e, i))
       }
     })
   }
@@ -969,7 +965,7 @@ export class PlayerIframeController {
     }
 
     const onMove = (event: TouchEvent) => {
-      event.preventDefault()
+      eventBan(event)
       if (startPoint === undefined) return
       const selection = win.getSelection()
       if (selection?.type === 'Range') {
@@ -1018,7 +1014,7 @@ export class PlayerIframeController {
     if (!doc) return
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
+      eventBan(e)
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
       if (e.deltaY > 0) {
@@ -1040,7 +1036,7 @@ export class PlayerIframeController {
     if (!doc || !scrollElement) return
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault()
+      eventBan(e)
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
       scrollElement.scrollLeft -= e.deltaY

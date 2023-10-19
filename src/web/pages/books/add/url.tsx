@@ -15,6 +15,7 @@ import { booksFetchUrlInfoRouter } from '../../../../core/api/books/fetch-url-in
 import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
 import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
+import { eventBan } from '../../../../core/util/dom.js'
 
 export function AddUrl() {
   const nav = useNavigate()
@@ -40,8 +41,7 @@ export function AddUrl() {
           maxWidth: '800px',
         }}
         onSubmit={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
+          eventBan(e)
           async(async () => {
             if (!name) return
             if (!url) return

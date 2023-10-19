@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogTitle } from '@mui/material'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
-import { isInputElement } from '../../core/util/dom.js'
+import { eventBan, isInputElement } from '../../core/util/dom.js'
 import { useKeyEscape } from '../hooks/useEscape.js'
 import styles from './hotkey-state.module.scss'
 import { globalStore } from '../store/global.js'
@@ -163,7 +163,7 @@ function getListener() {
     const targetRet = hotkeyItems.find(([key]) => key === fullKey)
     const hasSubRet = hotkeyItems.find(([key]) => key.startsWith(fullSubKey))
     if (!targetRet && !hasSubRet) return
-    e.preventDefault()
+    eventBan(e)
     curKeySeq = ''
     clearTimeout(sequenceTimer)
     if (hasSubRet) {

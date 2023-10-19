@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useKeyEscape } from '../hooks/useEscape.js'
 import styles from './pinch-zoom-pan.module.scss'
+import { eventBan } from '../../core/util/dom.js'
 
 interface PinchZoomPanProps {
   onClose?: () => void
@@ -23,11 +24,6 @@ const getTouchesDistance = (event: TouchEvent) => {
 const getWheelRate = (event: WheelEvent) => {
   const delta = event.deltaY
   return delta === 0 ? 0 : delta < 0 ? 1.1 : 0.9
-}
-
-const stopEvent = (event: Event) => {
-  event.stopPropagation()
-  event.preventDefault()
 }
 
 const mountPinchZoomPan = (
@@ -81,7 +77,7 @@ const mountPinchZoomPan = (
 
   // touch
   overlay.addEventListener('touchstart', (event) => {
-    stopEvent(event)
+    eventBan(event)
     if (event.touches.length >= 2)
       action = {
         type: 'pinch',
@@ -96,7 +92,7 @@ const mountPinchZoomPan = (
     moved = false
   })
   overlay.addEventListener('touchmove', (event) => {
-    stopEvent(event)
+    eventBan(event)
     if (!action) return
     if (action.type === 'move') {
       const touch = event.touches[0]
@@ -112,7 +108,7 @@ const mountPinchZoomPan = (
     }
   })
   overlay.addEventListener('touchend', (event) => {
-    stopEvent(event)
+    eventBan(event)
     if (!action) return
     if (action.type === 'move' && !moved) onClick()
     action = null
@@ -121,7 +117,7 @@ const mountPinchZoomPan = (
 
   // mouse
   overlay.addEventListener('mousedown', (event) => {
-    stopEvent(event)
+    eventBan(event)
     action = {
       type: 'move',
       x: event.clientX,
@@ -130,7 +126,7 @@ const mountPinchZoomPan = (
     moved = false
   })
   overlay.addEventListener('mousemove', (event) => {
-    stopEvent(event)
+    eventBan(event)
     if (!action) return
     if (action.type === 'move') {
       move({
@@ -140,7 +136,7 @@ const mountPinchZoomPan = (
     }
   })
   overlay.addEventListener('mouseup', (event) => {
-    stopEvent(event)
+    eventBan(event)
     if (!action) return
     if (action.type === 'move' && !moved) onClick()
     action = null
@@ -148,7 +144,7 @@ const mountPinchZoomPan = (
     if (!moved) onClick()
   })
   overlay.addEventListener('wheel', (event) => {
-    stopEvent(event)
+    eventBan(event)
     scale({
       pageX: event.pageX,
       pageY: event.pageY,

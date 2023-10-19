@@ -23,7 +23,7 @@ export class PlayerBookmarks {
         severity: 'error',
         message: t('desc.noSuportedBookmark'),
       })
-    const brief = node.text.slice(0, 20)
+    const brief = node.text.slice(0, 30)
     await booksAddBookmarksRouter.action({
       bookmarks: [
         {

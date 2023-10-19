@@ -98,3 +98,8 @@ export async function svgToDataUri(svgElement: SVGSVGElement, baseURL: string) {
   const svg64 = window.btoa(xml)
   return `data:image/svg+xml;base64,${svg64}`
 }
+
+export function eventBan(event: Event | React.FormEvent<HTMLElement>) {
+  event.preventDefault()
+  event.stopPropagation()
+}

@@ -8,6 +8,7 @@ import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
 import { splitLines } from '../../../../core/util/text.js'
 import { FlexBox } from '../../../components/flex-box.js'
+import { eventBan } from '../../../../core/util/dom.js'
 
 export function AddText() {
   const nav = useNavigate()
@@ -23,8 +24,7 @@ export function AddText() {
         maxWidth: '800px',
       }}
       onSubmit={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
+        eventBan(e)
         async(async () => {
           if (!name) return
           if (!content) return
