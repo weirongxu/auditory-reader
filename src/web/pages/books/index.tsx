@@ -1,4 +1,4 @@
-import { Add, DragIndicator, LinearScale, MoreVert } from '@mui/icons-material'
+import { Add, DragIndicator, MoreVert } from '@mui/icons-material'
 import {
   Alert,
   Button,

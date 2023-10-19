@@ -127,7 +127,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
         eventBan(event)
       }}
       onDrop={(event) => {
-        eventBan(event)
+        event.preventDefault()
         async(async () => {
           setDragOver(0)
           setLoading(true)
