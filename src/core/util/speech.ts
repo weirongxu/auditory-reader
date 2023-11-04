@@ -152,11 +152,11 @@ export class Speech {
       })
     }
 
-    if (alias && alias.length) {
-      const aliasResult = this.aliasReplace(text, alias)
-      text = aliasResult.text
+    if (onBoundary)
+      if (alias && alias.length) {
+        const aliasResult = this.aliasReplace(text, alias)
+        text = aliasResult.text
 
-      if (onBoundary) {
         const highlightOffsetTable = aliasResult.highlightOffsets
 
         const highlightOffsetFn: (event: HighlightEvent) => HighlightEvent =
@@ -186,8 +186,11 @@ export class Speech {
         boundaryListeners.push((event: SpeechSynthesisEvent) => {
           onBoundary(highlightOffsetFn(event))
         })
+      } else {
+        boundaryListeners.push((event: SpeechSynthesisEvent) => {
+          onBoundary(event)
+        })
       }
-    }
 
     for (const boundaryListener of boundaryListeners) {
       this.utterance.addEventListener('boundary', boundaryListener)
