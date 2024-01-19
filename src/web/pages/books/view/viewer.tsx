@@ -14,7 +14,13 @@ import { usePlayer } from './player.js'
 import type { BookContextProps } from './types'
 import { ViewProgressBar } from './progress-bar.js'
 
-export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
+export function useViewer({
+  uuid,
+  book,
+  pos,
+  setPos,
+  reload,
+}: BookContextProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
@@ -47,6 +53,7 @@ export function useViewer({ uuid, book, pos, setPos }: BookContextProps) {
     player,
     started,
     activeNavs,
+    reload,
   })
 
   const MainContent = useMemo(

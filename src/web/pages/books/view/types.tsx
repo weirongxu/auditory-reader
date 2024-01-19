@@ -8,6 +8,7 @@ export type BookContextProps = {
   setPos: React.Dispatch<
     React.SetStateAction<BookTypes.PropertyPosition | undefined>
   >
+  reload: () => void
 }
 
 interface ReadablePartBase {

@@ -11,15 +11,23 @@ import { BookListIndexedDB } from './list/book-list-indexed-db.js'
 import type { BookTypes } from './types.js'
 
 const extractUuid = (
-  method: (account: string, uuid: BookTypes.EntityUUID) => unknown,
+  method: (
+    account: string,
+    uuid: BookTypes.EntityUUID,
+    ...args: any[]
+  ) => unknown,
   context: ClassMethodDecoratorContext,
 ) => {
   const methodName = context.name
   context.addInitializer(function (this: any) {
-    this[methodName] = function (account: string, uuid: BookTypes.EntityUUID) {
+    this[methodName] = function (
+      account: string,
+      uuid: BookTypes.EntityUUID,
+      ...args: unknown[]
+    ) {
       const extractedUuid =
         uuid === TMP_UUID ? bookManager.reqTmpUuid(account) : uuid
-      return method.call(this, account, extractedUuid)
+      return method.call(this, account, extractedUuid, ...args)
     }
   })
 }
@@ -64,6 +72,16 @@ class BookManager {
       this.cacheEntity.set(uuid, entity)
     }
     return entity
+  }
+
+  @extractUuid
+  async update(
+    account: string,
+    uuid: string,
+    update: BookTypes.EntityUpdate,
+  ): Promise<void> {
+    await this.list(account).update(uuid, update)
+    this.cacheEntity.delete(uuid)
   }
 
   @extractUuid

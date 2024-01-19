@@ -110,6 +110,7 @@ export const langZh = {
   tmpStore: '存储临时文件',
   top: '置顶',
   edit: '编辑',
+  editBook: '编辑本书',
   remove: '删除',
   update: '更新',
   export: '导出',

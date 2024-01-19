@@ -112,6 +112,7 @@ export const langEn = {
   tmpStore: 'Store temporary file',
   top: 'Top',
   edit: 'Edit',
+  editBook: 'Edit Book',
   remove: 'Remove',
   update: 'Update',
   export: 'Export',

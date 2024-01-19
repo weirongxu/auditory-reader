@@ -11,6 +11,6 @@ export const booksUpdateRouter = new URouter<BookUpdateQuery, object>(
   'books/update',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
-  await bookManager.list(userInfo.account).update(body.uuid, body.update)
+  await bookManager.update(userInfo.account, body.uuid, body.update)
   return { ok: true }
 })

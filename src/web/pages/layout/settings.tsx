@@ -179,6 +179,25 @@ const PersonReplaceUI = () => {
   )
 }
 
+function DiabledVerticalCheckbox() {
+  const [disabledVertical, setDisabledVertical] = useDisabledVertical()
+  return (
+    <SettingLine>
+      <FormControlLabel
+        label={t('setting.disabledVertical')}
+        control={
+          <Checkbox
+            checked={disabledVertical}
+            onChange={(v) => {
+              setDisabledVertical(v.currentTarget.checked)
+            }}
+          ></Checkbox>
+        }
+      ></FormControlLabel>
+    </SettingLine>
+  )
+}
+
 const PlaySpeed = () => {
   const [speechSpeed, setSpeechSpeed] = useSpeechSpeed()
   return (
@@ -300,25 +319,6 @@ function FontSizeInput() {
           if (!isNaN(f)) setFontSize(f < 1 ? 1 : Math.floor(f))
         }}
       ></TextField>
-    </SettingLine>
-  )
-}
-
-function DiabledVerticalCheckbox() {
-  const [disabledVertical, setDisabledVertical] = useDisabledVertical()
-  return (
-    <SettingLine>
-      <FormControlLabel
-        label={t('setting.disabledVertical')}
-        control={
-          <Checkbox
-            checked={disabledVertical}
-            onChange={(v) => {
-              setDisabledVertical(v.currentTarget.checked)
-            }}
-          ></Checkbox>
-        }
-      ></FormControlLabel>
     </SettingLine>
   )
 }

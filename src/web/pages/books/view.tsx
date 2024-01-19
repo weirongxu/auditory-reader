@@ -45,8 +45,16 @@ const useBook = (bookRes: BookViewRes | undefined): BookView | undefined => {
 }
 
 export const useBookView = (uuid: string) => {
-  const { data: bookData, error } = useAction(booksViewRouter, { uuid })
-  const { data: posData, error: posError } = useAction(booksPositionRouter, {
+  const {
+    data: bookData,
+    error,
+    reload: reloadBook,
+  } = useAction(booksViewRouter, { uuid })
+  const {
+    data: posData,
+    error: posError,
+    reload: reloadPos,
+  } = useAction(booksPositionRouter, {
     uuid,
   })
   const [pos, setPosOrigin] = useState<BookTypes.PropertyPosition>()
@@ -70,20 +78,33 @@ export const useBookView = (uuid: string) => {
     booksSyncPositionRouter.action({ uuid, pos }).catch(console.error)
   }, [pos, uuid])
 
+  const reload = useCallback(() => {
+    reloadBook()
+    reloadPos
+  }, [reloadBook, reloadPos])
+
   return {
     error: error || posError,
     pos,
     setPos,
     book,
+    reload,
   }
 }
 
-function BookViewContent({ uuid, book, pos, setPos }: BookContextProps) {
+function BookViewContent({
+  uuid,
+  book,
+  pos,
+  setPos,
+  reload,
+}: BookContextProps) {
   const { BookPanelView, MainContent, activeNavs } = useViewer({
     uuid,
     book,
     pos,
     setPos,
+    reload,
   })
   const pushTitle = usePushTitle()
 
@@ -104,7 +125,7 @@ function BookViewContent({ uuid, book, pos, setPos }: BookContextProps) {
 }
 
 function BookViewReq({ uuid }: { uuid: string }) {
-  const { error, pos, setPos, book } = useBookView(uuid)
+  const { error, pos, setPos, book, reload } = useBookView(uuid)
 
   if (error) return <NotFound title="book"></NotFound>
 
@@ -116,6 +137,7 @@ function BookViewReq({ uuid }: { uuid: string }) {
       book={book}
       pos={pos}
       setPos={setPos}
+      reload={reload}
     ></BookViewContent>
   )
 }

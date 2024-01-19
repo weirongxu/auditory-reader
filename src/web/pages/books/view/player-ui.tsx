@@ -43,6 +43,7 @@ import {
 } from '../../../store.js'
 import { SettingLine } from '../../layout/settings.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
+import { useBookEditDialog } from '../edit.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
@@ -172,10 +173,12 @@ export function usePlayerUI({
   pos,
   started,
   activeNavs,
+  reload,
 }: BookContextProps & {
   started: boolean
   player: Player
   activeNavs?: BookNav[]
+  reload: () => void
 }) {
   const nav = useNavigate()
   const {
@@ -362,6 +365,15 @@ export function usePlayerUI({
     )
   }, [setVoiceURI, voiceOptions, voiceURI])
 
+  const { openBookEdit } = useBookEditDialog(reload)
+  const BookEditModal = useMemo(() => {
+    return (
+      <Button onClick={() => openBookEdit(book.item.uuid)}>
+        {t('editBook')}
+      </Button>
+    )
+  }, [book.item.uuid, openBookEdit])
+
   const TmpStoreBtn = useMemo(() => {
     return (
       <IconButton
@@ -391,8 +403,13 @@ export function usePlayerUI({
   }, [TmpStoreBtn, book.item.isTmp])
 
   const appSettings = useMemo(() => {
-    return <>{SelectVoices}</>
-  }, [SelectVoices])
+    return (
+      <>
+        {BookEditModal}
+        {SelectVoices}
+      </>
+    )
+  }, [BookEditModal, SelectVoices])
 
   useAppBarSync({
     topRight,

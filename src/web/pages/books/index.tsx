@@ -43,6 +43,7 @@ import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import styles from './index.module.scss'
+import { useBookEditDialog } from './edit.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -54,10 +55,6 @@ type DragItem = {
 
 function viewPath(uuid: string) {
   return `/books/view/${uuid}`
-}
-
-function editPath(uuid: string) {
-  return `/books/edit/${uuid}`
 }
 
 function useRemoveBooks(reload: () => void) {
@@ -188,6 +185,7 @@ function useHomeHotKeys({
   const [speechSpeed] = useSpeechSpeed()
   const { getVoice } = useGetVoice()
   const { addHotkeys } = useHotkeys()
+  const { openBookEdit } = useBookEditDialog(reload)
   const nav = useNavigate()
 
   const currentBook = useMemo(
@@ -301,7 +299,7 @@ function useHomeHotKeys({
       [
         'e',
         t('hotkey.edit'),
-        () => currentBook && nav(editPath(currentBook.uuid)),
+        () => currentBook && openBookEdit(currentBook.uuid),
       ],
       ['x', t('hotkey.select'), () => select(false)],
       ['v', t('hotkey.select'), () => select(false)],
@@ -333,6 +331,7 @@ function useHomeHotKeys({
     isPersonReplace,
     moveBooksTop,
     nav,
+    openBookEdit,
     reload,
     removeBooks,
     selectAll,
@@ -347,7 +346,7 @@ function useHomeHotKeys({
 
 function BookButtons({ book }: { book: BookTypes.Entity }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const nav = useNavigate()
+  const { openBookEdit } = useBookEditDialog()
 
   const exportBook = useCallback(() => {
     window.open(
@@ -366,10 +365,8 @@ function BookButtons({ book }: { book: BookTypes.Entity }) {
         anchorEl={anchorEl}
         onClose={() => setAnchorEl(null)}
       >
-        <MenuItem onClick={() => nav(editPath(book.uuid))}>
-          {t('edit')}
-        </MenuItem>
-        <MenuItem onClick={() => exportBook()}>{t('export')}</MenuItem>
+        <MenuItem onClick={() => openBookEdit(book.uuid)}>{t('edit')}</MenuItem>
+        <MenuItem onClick={() => exportBook()}>{t('export')} Epub</MenuItem>
       </Menu>
     </>
   )
@@ -690,11 +687,7 @@ export function BookList() {
     ) : null
 
   if (!books.length)
-    return (
-      <>
-        <Alert severity="warning">{t('prompt.noBooks')}</Alert>
-      </>
-    )
+    return <Alert severity="warning">{t('prompt.noBooks')}</Alert>
 
   return (
     <>
