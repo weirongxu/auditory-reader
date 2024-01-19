@@ -344,9 +344,15 @@ function useHomeHotKeys({
   return { activedIndex }
 }
 
-function BookButtons({ book }: { book: BookTypes.Entity }) {
+function BookButtons({
+  book,
+  reload,
+}: {
+  book: BookTypes.Entity
+  reload: () => void
+}) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const { openBookEdit } = useBookEditDialog()
+  const { openBookEdit } = useBookEditDialog(reload)
 
   const exportBook = useCallback(() => {
     window.open(
@@ -382,6 +388,7 @@ function BookRow({
   onCancel,
   selectedUuids,
   selectTo,
+  reload,
 }: {
   index: number
   actived: boolean
@@ -392,6 +399,7 @@ function BookRow({
   onCancel: () => void
   selectedUuids: string[]
   selectTo: (index: number, shift: boolean) => void
+  reload: () => void
 }) {
   const nav = useNavigate()
   const refEl = useRef<HTMLTableRowElement>(null)
@@ -494,7 +502,7 @@ function BookRow({
         {book.name}
       </TableCell>
       <TableCell padding="none">
-        <BookButtons book={book}></BookButtons>
+        <BookButtons book={book} reload={reload}></BookButtons>
       </TableCell>
     </TableRow>
   )
@@ -729,6 +737,7 @@ export function BookList() {
                   onCancel={onCancel}
                   selectTo={selectTo}
                   selectedUuids={selectedUuids}
+                  reload={reload}
                   key={book.uuid}
                 ></BookRow>
               )
