@@ -38,14 +38,15 @@ app.use(
 )
 
 // eslint-disable-next-line no-console
-console.log('register routes')
+console.debug('register routes')
 for (const router of ROUTERS) {
   const fullRoutePath = router.isDynamic
     ? `${router.fullRoutePath}/*`
     : router.fullRoutePath
   // eslint-disable-next-line no-console
-  console.log(router.method, fullRoutePath)
+  console.debug('  ', router.method, fullRoutePath)
   app[router.method](fullRoutePath, (req, res) => {
+    console.debug(req.method, req.path)
     const dynamicPaths = router.getDynamicPaths(req.path)
     if (router.handler) {
       const ctx = {

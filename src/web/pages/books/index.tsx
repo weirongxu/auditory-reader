@@ -42,7 +42,7 @@ import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
-import styles from './index.module.scss'
+import * as styles from './index.module.scss'
 import { useBookEditDialog } from './edit.js'
 
 const DragType = 'book'

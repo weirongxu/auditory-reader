@@ -19,7 +19,7 @@ import { useAction } from '../../../core/route/action.js'
 import { FlexBox } from '../../components/flex-box.js'
 import { usePushTitle } from '../../hooks/useTitle.js'
 import { NotFound } from '../not-found.js'
-import styles from './view.module.scss'
+import * as styles from './view.module.scss'
 import type { BookContextProps } from './view/types'
 import { useViewer } from './view/viewer.js'
 

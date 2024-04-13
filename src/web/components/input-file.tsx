@@ -2,7 +2,7 @@ import { FileUpload } from '@mui/icons-material'
 import { Typography } from '@mui/material'
 import { useState } from 'react'
 import { FlexBox } from './flex-box.js'
-import styles from './input-file.module.scss'
+import * as styles from './input-file.module.scss'
 
 export const InputFile = ({
   accept,

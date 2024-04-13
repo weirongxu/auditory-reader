@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+// @ts-check
+
 import url from 'url'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
@@ -9,7 +11,7 @@ import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
 import ReactRefreshTypeScript from 'react-refresh-typescript'
 
 /**
- * @type {() => import('webpack').Configuration}
+ * @type {(env: any, argv: any) => import('webpack').Configuration}
  */
 export default (env, argv) => {
   const isProd = argv.mode === 'production'
@@ -27,16 +29,18 @@ export default (env, argv) => {
       filename: '[name].[contenthash].js',
       clean: true,
     },
+    // @ts-ignore
     devServer: {
       hot: true,
       allowedHosts: 'all',
-      ...(isServer
-        ? {
-            proxy: {
-              '/api': 'http://localhost:4001',
+      proxy: isServer
+        ? [
+            {
+              context: ['/api'],
+              target: 'http://localhost:4001',
             },
-          }
-        : {}),
+          ]
+        : [],
     },
     module: {
       rules: [
@@ -104,9 +108,7 @@ export default (env, argv) => {
         title: 'Auditory Reader',
         template: './src/web/index.html',
       }),
-      new NodePolyfillPlugin({
-        includes: ['path'],
-      }),
+      new NodePolyfillPlugin(),
       new MiniCssExtractPlugin({
         filename: '[name].[contenthash].css',
         chunkFilename: '[id].[contenthash].css',

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useKeyEscape } from '../hooks/useEscape.js'
-import styles from './pinch-zoom-pan.module.scss'
+import * as styles from './pinch-zoom-pan.module.scss'
 import { eventBan } from '../../core/util/dom.js'
 
 interface PinchZoomPanProps {

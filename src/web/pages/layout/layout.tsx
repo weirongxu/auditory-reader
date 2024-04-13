@@ -19,7 +19,7 @@ import { FlexBox } from '../../components/flex-box.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { defaultTitle, useTitle } from '../../hooks/useTitle.js'
 import { DragFile } from './drag-file.js'
-import styles from './layout.module.scss'
+import * as styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
 

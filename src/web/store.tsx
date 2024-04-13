@@ -1,10 +1,10 @@
-import { isBrowser } from '@react-hookz/web/cjs/util/const'
 import { atom, useAtom } from 'jotai'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useMemo } from 'react'
 import type { BookTypes } from '../core/book/types.js'
 import { orderBy } from '../core/util/collection.js'
 import { globalStore } from './store/global.js'
+import { isBrowser } from '../core/util/browser.js'
 
 const allVoicesAtom = atom<SpeechSynthesisVoice[]>([])
 if (isBrowser) {
