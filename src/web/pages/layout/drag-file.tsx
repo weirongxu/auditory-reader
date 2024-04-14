@@ -228,8 +228,8 @@ export function DragFile({ children }: { children: React.ReactNode }) {
             }}
             renderInput={(params) => (
               <TextField
-                placeholder={t('prompt.selectLanguage')}
                 {...params}
+                placeholder={t('prompt.selectLanguage')}
                 label={t('language')}
                 required
               />

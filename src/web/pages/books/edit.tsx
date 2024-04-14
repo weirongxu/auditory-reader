@@ -60,14 +60,18 @@ function UpdateForm({
         ></TextField>
 
         <Autocomplete
-          placeholder={t('prompt.selectLanguage')}
           options={langOptions}
           value={langOptions.find((l) => l.value === langCode)}
           onChange={(_, value) => {
             if (value?.value) setLangCode(value.value)
           }}
           renderInput={(params) => (
-            <TextField {...params} label={t('language')} required />
+            <TextField
+              {...params}
+              placeholder={t('prompt.selectLanguage')}
+              label={t('language')}
+              required
+            />
           )}
         ></Autocomplete>
 

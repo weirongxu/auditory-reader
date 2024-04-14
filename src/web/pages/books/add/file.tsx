@@ -79,8 +79,8 @@ export function AddFile() {
           }}
           renderInput={(params) => (
             <TextField
-              placeholder={t('prompt.selectLanguage')}
               {...params}
+              placeholder={t('prompt.selectLanguage')}
               label={t('language')}
               required
             />

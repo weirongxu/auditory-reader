@@ -18,8 +18,7 @@ export function useTitle() {
 export function TitleProvider() {
   const title = useTitle()
   useEffect(() => {
-    if (!title) return
-    document.title = `${title}: ${defaultTitle}`
+    document.title = title ? `${title}: ${defaultTitle}` : defaultTitle
   }, [title])
   return <></>
 }
