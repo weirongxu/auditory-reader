@@ -14,7 +14,6 @@ export class Emitter<T extends Record<string, any>> {
     }
     listeners.push(callback)
     return () => {
-      if (!listeners) return
       const idx = listeners.findIndex(callback as any)
       if (idx === -1) return
       listeners.splice(idx, 1)

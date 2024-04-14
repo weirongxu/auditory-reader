@@ -33,7 +33,7 @@ function* scopeQuerySelectorAll(
   scope: Element,
   childTags: string[],
   selector?: string,
-): Generator<Element, void, void> {
+): Generator<Element, undefined, void> {
   if (!childTags.length) {
     if (selector) {
       for (const el of scope.querySelectorAll(selector)) {

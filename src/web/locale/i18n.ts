@@ -20,6 +20,6 @@ declare module 'i18next' {
 i18n
   .init({
     resources,
-    lng: global.navigator?.languages?.at(0) ?? 'en',
+    lng: global.navigator.languages.at(0) ?? 'en',
   })
   .catch(console.error)

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 // env
 process.env.APP_MODE = 'server'
 import { env } from '../core/env.js'
@@ -37,13 +39,11 @@ app.use(
   }),
 )
 
-// eslint-disable-next-line no-console
 console.debug('register routes')
 for (const router of ROUTERS) {
   const fullRoutePath = router.isDynamic
     ? `${router.fullRoutePath}/*`
     : router.fullRoutePath
-  // eslint-disable-next-line no-console
   console.debug('  ', router.method, fullRoutePath)
   app[router.method](fullRoutePath, (req, res) => {
     console.debug(req.method, req.path)

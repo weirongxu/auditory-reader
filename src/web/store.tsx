@@ -12,7 +12,7 @@ if (isBrowser) {
     globalStore.set(allVoicesAtom, speechSynthesis.getVoices())
   }
   loadVoices()
-  if (window.speechSynthesis.addEventListener) {
+  if ('addEventListener' in window.speechSynthesis) {
     window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
   }
 }
@@ -96,7 +96,7 @@ export const useGetVoice = () => {
 const useLangVoiceURI = (book: BookTypes.Entity) => {
   const [dict, setDict] = useLangVoiceURIDict()
 
-  const langURI = useMemo(
+  const langURI = useMemo<string | null>(
     () => dict[book.langCode] ?? null,
     [book.langCode, dict],
   )

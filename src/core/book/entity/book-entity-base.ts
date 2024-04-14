@@ -18,10 +18,13 @@ export abstract class BookEntityBase {
     const buffer = await this.readFileBuffer()
     let extname: string | undefined
     let contentType: string | false = false
-    if (this.entity.type === 'epub') {
-      extname = '.epub'
-    } else if (this.entity.type === 'text') {
-      extname = '.txt'
+    switch (this.entity.type) {
+      case 'epub':
+        extname = '.epub'
+        break
+      case 'text':
+        extname = '.txt'
+        break
     }
     const unknownHint = 'Book type unknown'
     if (!extname) throw new ErrorRequestResponse(unknownHint)

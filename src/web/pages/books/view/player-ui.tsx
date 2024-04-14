@@ -125,7 +125,7 @@ function TimerRemainBadge({
     const usedSeconds = refUsedSeconds.current ?? 0
 
     const startAt = Date.now() / 1000
-    let timer: NodeJS.Timeout | null = null
+    let timer: NodeJS.Timeout | undefined = undefined
     const fn = () => {
       const used = Date.now() / 1000 - startAt + usedSeconds
       refUsedSeconds.current = used
@@ -142,7 +142,7 @@ function TimerRemainBadge({
     fn()
     timer = setInterval(fn, 1000)
     return () => {
-      if (timer) clearInterval(timer)
+      clearInterval(timer)
     }
   }, [resetCount, player, started, stopTimerEnabled, stopTimerSeconds])
 

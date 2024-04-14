@@ -94,17 +94,22 @@ const mountPinchZoomPan = (
   overlay.addEventListener('touchmove', (event) => {
     eventBan(event)
     if (!action) return
-    if (action.type === 'move') {
-      const touch = event.touches[0]
-      move({
-        x: touch.clientX - action.x,
-        y: touch.clientY - action.y,
-      })
-    } else if (action.type === 'pinch') {
-      scale({
-        ...getTouchesPageCenter(event),
-        rate: getTouchesDistance(event) / action.range,
-      })
+    switch (action.type) {
+      case 'move': {
+        const touch = event.touches[0]
+        move({
+          x: touch.clientX - action.x,
+          y: touch.clientY - action.y,
+        })
+        break
+      }
+      case 'pinch': {
+        scale({
+          ...getTouchesPageCenter(event),
+          rate: getTouchesDistance(event) / action.range,
+        })
+        break
+      }
     }
   })
   overlay.addEventListener('touchend', (event) => {

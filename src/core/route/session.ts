@@ -74,7 +74,6 @@ export function createUserStore(session: SessionNode) {
   return {
     login: async (account: string, password: string) => {
       if (
-        session &&
         env.accounts.find(
           (a) => a.account === account && a.password === password,
         )
@@ -94,7 +93,7 @@ export function createUserStore(session: SessionNode) {
       return !!this.info()
     },
     info: (): UserInfo | null => {
-      return session?.user
+      return session.user
         ? {
             account: session.user,
           }

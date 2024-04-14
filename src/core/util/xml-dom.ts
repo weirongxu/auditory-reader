@@ -71,7 +71,7 @@ export function parseXML(xmlText: string) {
     // the full parsed object.
     let parsed: XMLElement
     // the current node being parsed.
-    let current: XMLElement
+    let current: XMLElement | undefined
     // stack of nodes leading to the current one.
     const stack: XMLElement[] = []
 

@@ -14,6 +14,7 @@ import type { ReadablePart, TextAlias } from '../types.js'
 export function* walkerNode(doc: Document, root: HTMLElement) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ALL)
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     const curNode = walker.nextNode()
     if (curNode) yield curNode
@@ -229,7 +230,7 @@ export class ReadableExtractor {
     ) => {
       blockElem.classList.add(PARA_BOX_CLASS)
       const textContent = this.getContentText(blockElem)
-      const notEmpty = !!textContent?.trim()
+      const notEmpty = !!textContent.trim()
       if (notEmpty) {
         const part: ReadablePart = {
           elem: blockElem,
@@ -247,48 +248,50 @@ export class ReadableExtractor {
 
     const readableParts: ReadablePart[] = []
     for (const { type, elem, anchors, navAnchors } of this.#parts) {
-      if (type === 'image') {
-        // image
-        elem.classList.add(PARA_BOX_CLASS)
-        readableParts.push({
-          elem,
-          type: 'image',
-          anchorIds: anchors,
-          navAnchorIds: navAnchors,
-        })
-      } else if (type === 'text') {
-        // text
-
-        // no parent
-        const blockElem = getParentBlockElem(elem.parentElement)
-        if (!blockElem) continue
-
-        // ignore class
-        if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
-
-        // avoid duplicated
-        const part = blockMap.get(blockElem)
-        if (part) {
-          if (anchors) {
-            part.anchorIds ??= []
-            part.anchorIds.push(...anchors)
-          }
-          if (navAnchors) {
-            part.navAnchorIds ??= []
-            part.navAnchorIds.push(...navAnchors)
-          }
-          continue
+      switch (type) {
+        case 'image': {
+          elem.classList.add(PARA_BOX_CLASS)
+          readableParts.push({
+            elem,
+            type: 'image',
+            anchorIds: anchors,
+            navAnchorIds: navAnchors,
+          })
+          break
         }
+        case 'text': {
+          // no parent
+          const blockElem = getParentBlockElem(elem.parentElement)
+          if (!blockElem) continue
 
-        if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
-          addTextPart(blockElem, anchors, navAnchors)
-        } else {
-          // split block
-          if (!elem.parentElement) continue
-          const wrapElem = this.doc.createElement('span')
-          elem.after(wrapElem)
-          wrapElem.appendChild(elem)
-          addTextPart(wrapElem, anchors, navAnchors)
+          // ignore class
+          if (blockElem.classList.contains(PARA_IGNORE_CLASS)) continue
+
+          // avoid duplicated
+          const part = blockMap.get(blockElem)
+          if (part) {
+            if (anchors) {
+              part.anchorIds ??= []
+              part.anchorIds.push(...anchors)
+            }
+            if (navAnchors) {
+              part.navAnchorIds ??= []
+              part.navAnchorIds.push(...navAnchors)
+            }
+            continue
+          }
+
+          if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
+            addTextPart(blockElem, anchors, navAnchors)
+          } else {
+            // split block
+            if (!elem.parentElement) continue
+            const wrapElem = this.doc.createElement('span')
+            elem.after(wrapElem)
+            wrapElem.appendChild(elem)
+            addTextPart(wrapElem, anchors, navAnchors)
+          }
+          break
         }
       }
     }

@@ -85,7 +85,7 @@ export class Utterer {
 
   async startLoop() {
     let retriedCount = 0
-    // eslint-disable-next-line no-constant-condition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
     while (true) {
       if (!this.states.started) return
       try {
@@ -93,22 +93,27 @@ export class Utterer {
           this.states.pos.paragraph,
         )
         if (node) {
-          if (node.type === 'text') {
-            let isCancel = false
-            for (let i = 0; i < this.states.paragraphRepeat; i++) {
-              const ret = await this.speakNode(node)
-              if (ret === 'cancel') {
-                isCancel = true
-                break
-              } else if (i !== this.states.paragraphRepeat - 1) {
-                await rewindPlay()
+          switch (node.type) {
+            case 'text': {
+              let isCancel = false
+              for (let i = 0; i < this.states.paragraphRepeat; i++) {
+                const ret = await this.speakNode(node)
+                if (ret === 'cancel') {
+                  isCancel = true
+                  break
+                } else if (i !== this.states.paragraphRepeat - 1) {
+                  await rewindPlay()
+                }
               }
+              // May pause, jumps to other paragraphs, leave page.
+              // Continue is necessary, when the user jumps to other paragraphs
+              if (isCancel) continue
+              break
             }
-            // May pause, jumps to other paragraphs, leave page.
-            // Continue is necessary, when the user jumps to other paragraphs
-            if (isCancel) continue
-          } else if (node.type === 'image') {
-            await shutterPlay()
+            case 'image': {
+              await shutterPlay()
+              break
+            }
           }
         }
 

@@ -76,29 +76,34 @@ export function DragFile({ children }: { children: React.ReactNode }) {
         return
       }
       setLoading(true)
-      if (dragItem.type === 'file-epub')
-        await booksCreateRouter.action({
-          bufferBase64: dragItem.bufferBase64,
-          langCode: dragItem.langCode,
-          name: dragItem.title,
-          type: 'epub',
-          isTmp: true,
-        })
-      else if (dragItem.type === 'file-text')
-        await booksCreateRouter.action({
-          bufferBase64: dragItem.bufferBase64,
-          langCode: dragItem.langCode,
-          name: dragItem.title,
-          type: 'text',
-          isTmp: true,
-        })
-      else if (dragItem.type === 'url')
-        await booksCreateByUrlRouter.action({
-          url: dragItem.url,
-          langCode: dragItem.langCode,
-          name: dragItem.title,
-          isTmp: true,
-        })
+      switch (dragItem.type) {
+        case 'file-epub':
+          await booksCreateRouter.action({
+            bufferBase64: dragItem.bufferBase64,
+            langCode: dragItem.langCode,
+            name: dragItem.title,
+            type: 'epub',
+            isTmp: true,
+          })
+          break
+        case 'file-text':
+          await booksCreateRouter.action({
+            bufferBase64: dragItem.bufferBase64,
+            langCode: dragItem.langCode,
+            name: dragItem.title,
+            type: 'text',
+            isTmp: true,
+          })
+          break
+        case 'url':
+          await booksCreateByUrlRouter.action({
+            url: dragItem.url,
+            langCode: dragItem.langCode,
+            name: dragItem.title,
+            isTmp: true,
+          })
+          break
+      }
       setLoading(false)
       setDragItem(null)
       nav(`/books/view/${TMP_UUID}`)
@@ -215,7 +220,6 @@ export function DragFile({ children }: { children: React.ReactNode }) {
             </IconButton>
           </FlexBox>
           <Autocomplete
-            placeholder={t('prompt.selectLanguage')}
             options={langOptions}
             onChange={(_, value) => {
               if (!dragItem || !value?.value) return
@@ -223,7 +227,12 @@ export function DragFile({ children }: { children: React.ReactNode }) {
               setIsInputLangCode(false)
             }}
             renderInput={(params) => (
-              <TextField {...params} label={t('language')} required />
+              <TextField
+                placeholder={t('prompt.selectLanguage')}
+                {...params}
+                label={t('language')}
+                required
+              />
             )}
           ></Autocomplete>
         </div>

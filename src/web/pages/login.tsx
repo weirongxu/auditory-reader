@@ -39,7 +39,7 @@ export function Login() {
                 if (res.ok) {
                   nav('/')
                 } else {
-                  setError(t('error.login') ?? '')
+                  setError(t('error.login'))
                 }
               })
               .catch(console.error)

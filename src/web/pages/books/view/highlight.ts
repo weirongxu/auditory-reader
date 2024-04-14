@@ -135,10 +135,12 @@ export class Highlight {
 
       // recursion
       const result = this.#findRangePos(child, remainIndex)
-      if (result.type === FindRangePosType.found) {
-        return result
-      } else if (result.type === FindRangePosType.skip) {
-        remainIndex = result.remainIndex
+      switch (result.type) {
+        case FindRangePosType.found:
+          return result
+        case FindRangePosType.skip:
+          remainIndex = result.remainIndex
+          continue
       }
     }
     return {

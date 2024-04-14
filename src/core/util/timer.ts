@@ -56,7 +56,7 @@ export async function iterateAnimate(
   { iteration = 10, duration = 100, abortCtrl }: IterateAnimateOptions,
   callback: (index: number) => unknown,
 ) {
-  let aborted = false
+  let aborted = false as boolean
   abortCtrl?.signal.addEventListener('abort', () => {
     aborted = true
   })

@@ -215,7 +215,7 @@ export const parseLangCode = (
 
 export const useUserLanguages = (): LangCode[] => {
   const userLanguages = useMemo(
-    () => (global.navigator?.languages ?? []) as LangCode[],
+    () => global.navigator.languages as LangCode[],
     [],
   )
   return userLanguages

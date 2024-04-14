@@ -71,7 +71,6 @@ export function AddFile() {
         ></TextField>
 
         <Autocomplete
-          placeholder={t('prompt.selectLanguage')}
           options={langOptions}
           value={langOptions.find((l) => l.value === langCode) ?? null}
           onChange={(_, value) => {
@@ -79,13 +78,19 @@ export function AddFile() {
             setLangCode(value.value)
           }}
           renderInput={(params) => (
-            <TextField {...params} label={t('language')} required />
+            <TextField
+              placeholder={t('prompt.selectLanguage')}
+              {...params}
+              label={t('language')}
+              required
+            />
           )}
         ></Autocomplete>
 
         <FormControl>
           <InputFile
-            onChange={([file]) => {
+            onChange={(files) => {
+              const file = files.at(0)
               if (!file) return
               async(async () => {
                 if (file.name.endsWith('.epub')) {
@@ -94,8 +99,8 @@ export function AddFile() {
                   if (!epub) return
                   const ext = path.extname(file.name)
                   const basename = path.basename(file.name, ext)
-                  setName(epub?.title ?? basename)
-                  const langCode = parseLangCode(epub?.language)
+                  setName(epub.title ?? basename)
+                  const langCode = parseLangCode(epub.language)
                   if (langCode) {
                     setLangCode(langCode)
                   }

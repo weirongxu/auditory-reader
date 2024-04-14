@@ -96,21 +96,23 @@ class BookManager {
   }
 
   protected async parseBook(bookEntity: BookEntityBase): Promise<BookBase> {
-    if (bookEntity.entity.type === 'epub') {
-      const epub = await BookEpub.read(await bookEntity.readFileBuffer())
-      if (!epub) throw new ErrorRequestResponse('Parse epub error')
-      return epub
-    } else if (bookEntity.entity.type === 'text') {
-      const text = await BookText.read(
-        await bookEntity.readFileText(),
-        bookEntity.entity.name,
-      )
-      if (!text) throw new ErrorRequestResponse('Parse text error')
-      return text
-    } else {
-      throw new ErrorRequestResponse(
-        `Unsupported type ${bookEntity.entity.type as string}`,
-      )
+    switch (bookEntity.entity.type) {
+      case 'epub': {
+        const epub = await BookEpub.read(await bookEntity.readFileBuffer())
+        if (!epub) throw new ErrorRequestResponse('Parse epub error')
+        return epub
+      }
+      case 'text': {
+        const text = await BookText.read(
+          await bookEntity.readFileText(),
+          bookEntity.entity.name,
+        )
+        return text
+      }
+      default:
+        throw new ErrorRequestResponse(
+          `Unsupported type ${bookEntity.entity.type as string}`,
+        )
     }
   }
 }

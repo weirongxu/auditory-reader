@@ -10,6 +10,7 @@ export class UResponseHold {
   status?: number
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class UResponse<Body> {
   static fromNode(res: ExResponse) {
     return new this({

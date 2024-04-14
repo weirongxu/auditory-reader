@@ -120,7 +120,7 @@ export class PlayerIframeController {
   }
 
   get isLastPageList() {
-    if (this.pageListCurIndex === undefined || !this.pageListCount) return true
+    if (!this.pageListCount) return true
     return this.pageListCurIndex >= this.pageListCount - 1
   }
 
@@ -354,8 +354,10 @@ export class PlayerIframeController {
     if (!this.enabledPageList) return
     if (!this.pageList) return
 
-    const finalLeft = findLast(this.pageList, (page) => page.offsetLeft <= left)
-      ?.offsetLeft
+    const finalLeft = findLast(
+      this.pageList,
+      (page) => page.offsetLeft <= left,
+    )?.offsetLeft
     if (finalLeft === undefined) return
 
     if (!animated) {
@@ -404,13 +406,7 @@ export class PlayerIframeController {
     pageIndex: number
   }
   public async pageListPushAdjust(offsetPage: number, jump: boolean) {
-    if (
-      !this.viewOffsetWidth ||
-      this.pageListCurIndex === undefined ||
-      !this.pageListCount ||
-      !this.pageList
-    )
-      return
+    if (!this.viewOffsetWidth || !this.pageListCount || !this.pageList) return
 
     let goalPageIndex: number
     if (this.#pushPageListLast) {
@@ -484,7 +480,7 @@ export class PlayerIframeController {
     }
 
     // page list
-    if (!this.viewOffsetWidth || this.pageListCurIndex === undefined) return
+    if (!this.viewOffsetWidth) return
 
     const targetIndex = Math.floor(
       (this.pageListScrollWidth * percent) / this.viewOffsetWidth,
@@ -515,8 +511,8 @@ export class PlayerIframeController {
 
     // get spine
     const section = locate.section ?? this.states.pos.section
-    let spine = this.book.spines[section]
-    if (!spine) spine = this.book.spines[0]
+    let spine = this.book.spines.at(section)
+    if (!spine) spine = this.book.spines.at(0)
     if (!spine)
       return pushSnackbar({
         message: 'book spine is empty',
@@ -571,7 +567,7 @@ export class PlayerIframeController {
 
       // update paragraph
       let paragraph = this.states.pos.paragraph
-      if (locate?.paragraph !== undefined) {
+      if (locate.paragraph !== undefined) {
         paragraph =
           locate.paragraph < 0
             ? this.readableParts.length + locate.paragraph
@@ -580,7 +576,7 @@ export class PlayerIframeController {
         if (paragraph < 0) paragraph = 0
         else if (paragraph >= this.readableParts.length)
           paragraph = this.readableParts.length - 1
-      } else if (locate?.anchorId)
+      } else if (locate.anchorId)
         paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
 
       this.states.pos = {
@@ -955,7 +951,7 @@ export class PlayerIframeController {
     const viewRateLimit = 0.2
 
     const onStart = (event: TouchEvent) => {
-      const touch = event.touches[0]
+      const touch = event.touches[0] as Touch | undefined
       if (!touch) return
       startPoint = {
         x: touch.clientX,
@@ -972,7 +968,7 @@ export class PlayerIframeController {
         startPoint = undefined
         return
       }
-      const touch = event.touches[0]
+      const touch = event.touches[0] as Touch | undefined
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
@@ -980,7 +976,7 @@ export class PlayerIframeController {
 
     const onEnd = (event: TouchEvent) => {
       if (startPoint === undefined) return
-      const touch = event.changedTouches[0]
+      const touch = event.changedTouches[0] as Touch | undefined
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       const speed = deltaX / (Date.now() - startPoint.timestamp)
@@ -1205,7 +1201,7 @@ export class PlayerIframeController {
   }
 
   protected updatePageListFocus() {
-    if (!this.pageList || this.pageListCurIndex === undefined) return
+    if (!this.pageList) return
 
     // update focus part
     const paragraph = this.states.pos.paragraph
@@ -1218,8 +1214,9 @@ export class PlayerIframeController {
       this.pageListResizeFocusPart = this.readableParts.at(paragraph)
     } else {
       // use pageListCurIndex as resize focus
-      this.pageListResizeFocusPart = this.pageList.at(this.pageListCurIndex)
-        ?.topmost?.readablePart
+      this.pageListResizeFocusPart = this.pageList.at(
+        this.pageListCurIndex,
+      )?.topmost?.readablePart
     }
   }
 

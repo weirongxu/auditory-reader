@@ -6,7 +6,7 @@ export const defaultTitle = 'Auditory Reader'
 const titleStackAtom = atom<{ id: string; title: string }[]>([])
 const titleAtom = atom<string | undefined>((get) => {
   const titleStack = get(titleStackAtom)
-  const titleItem = titleStack[0]
+  const titleItem = titleStack.at(0)
   return titleItem?.title
 })
 

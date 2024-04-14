@@ -102,7 +102,7 @@ export class URouter<Req = any, Res = any> {
         context.res.status(401)
         return {} as any
       }
-      return handler?.({
+      return handler({
         ...(context as ApiContext<Req, Res, any>),
         userInfo,
       })

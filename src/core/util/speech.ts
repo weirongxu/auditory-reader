@@ -26,7 +26,6 @@ type QoutePostion = { type: 'start' | 'end'; charIndex: number }
 function getQoutePostions(text: string): QoutePostion[] {
   const pos: QoutePostion[] = []
   for (const [i, m] of [...text.matchAll(/"|'/g)].entries()) {
-    if (m.index === undefined) continue
     if (i % 2 === 0) {
       pos.push({
         type: 'start',
@@ -40,14 +39,12 @@ function getQoutePostions(text: string): QoutePostion[] {
     }
   }
   for (const m of text.matchAll(/“|‘|「|『/g)) {
-    if (m.index === undefined) continue
     pos.push({
       type: 'start',
       charIndex: m.index,
     })
   }
   for (const m of text.matchAll(/”|’|」|』/g)) {
-    if (m.index === undefined) continue
     pos.push({
       type: 'end',
       charIndex: m.index,
@@ -75,7 +72,7 @@ export class Speech {
     const indexMap = new Map<number, TextAlias>()
     for (const alias of aliasArray) {
       let i = -1
-      // eslint-disable-next-line no-constant-condition
+      // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition
       while (true) {
         i = text.indexOf(alias.source, i + 1)
         if (i === -1) break
@@ -173,9 +170,9 @@ export class Speech {
                   ([i]) => i <= charEndIndex,
                 )
                 if (!endOffset) return event
-                const charIndex = event.charIndex + (startOffset[1] ?? 0)
+                const charIndex = event.charIndex + (startOffset.at(1) ?? 0)
                 const charLength =
-                  charEndIndex + (endOffset[1] ?? 0) - charIndex
+                  charEndIndex + (endOffset.at(1) ?? 0) - charIndex
                 return {
                   charIndex,
                   charLength,

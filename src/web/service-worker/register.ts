@@ -1,7 +1,7 @@
 import { env } from '../../core/env.js'
 
 async function unregister() {
-  if (!navigator.serviceWorker) return
+  if (!('serviceWorker' in navigator)) return
   const registrations = await navigator.serviceWorker.getRegistrations()
   for (const registration of registrations) {
     await registration.unregister()
@@ -13,7 +13,7 @@ export async function registerAPI() {
     await unregister()
     return 'successful'
   }
-  if (!navigator.serviceWorker) {
+  if (!('serviceWorker' in navigator)) {
     // eslint-disable-next-line no-console
     console.log('service-worker: unsupported')
     return 'unsupported'
