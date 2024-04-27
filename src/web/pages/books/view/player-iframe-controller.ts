@@ -21,7 +21,6 @@ import {
   supportedTouch,
 } from '../../../../core/util/browser.js'
 import {
-  find,
   findLast,
   findLastIndex,
   findLastPair,
@@ -437,29 +436,9 @@ export class PlayerIframeController {
 
     const goalLeft = goalPageIndex * this.viewOffsetWidth
     if (jump) {
-      let paragraph: number | undefined = undefined
-      if (offsetPage < 0) {
-        paragraph = findLast(
-          this.pageList,
-          (page) => !!page.topmost && page.offsetLeft <= goalLeft,
-        )?.topmost?.paragraph
-      } else {
-        paragraph = find(
-          this.pageList,
-          (page) => !!page.topmost && page.offsetLeft >= goalLeft,
-        )?.topmost?.paragraph
-      }
-      if (paragraph === undefined || paragraph === this.states.pos.paragraph)
-        // paragraph is undefined
-        //   offsetPage < 0
-        //     - Scroll when first page no top paragraph but have the empty content
-        //   offsetPage > 0
-        //     - Scroll when last page no top paragraph but have the residue content
-        //     - It will happen when the last paragraph is too long
-        // paragraph is current.paragraph
-        //   - Scroll
-        await this.pageListScrollToLeft(goalLeft, { abortCtrl })
-      else await this.player.gotoParagraph(paragraph)
+      const page = this.pageList.at(goalPageIndex)
+      if (page?.topmost) await this.player.gotoParagraph(page.topmost.paragraph)
+      else await this.pageListScrollToLeft(goalLeft, { abortCtrl })
     } else {
       await this.pageListScrollToLeft(goalLeft, { abortCtrl })
     }
@@ -983,15 +962,18 @@ export class PlayerIframeController {
       const minX = viewWidth * viewRateLimit
       if (speed < -speedLimit || deltaX < -minX) {
         if (!this.isLastPageList || !this.player.isLastSection) {
+          // next
           void this.player.nextPage(1, true)
           return
         }
       } else if (speed > speedLimit || deltaX > minX) {
         if (!this.isFirstPageList || !this.player.isFirstSection) {
+          // prev
           void this.player.prevPage(1, true)
           return
         }
       }
+      // restore
       void this.pageListPushAdjust(0, false)
     }
 
@@ -1014,9 +996,9 @@ export class PlayerIframeController {
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
       if (e.deltaY > 0) {
-        void this.player.nextPage(1, false)
+        void this.player.nextPage(1, true)
       } else {
-        void this.player.prevPage(1, false)
+        void this.player.prevPage(1, true)
       }
     }
 
@@ -1092,9 +1074,13 @@ export class PlayerIframeController {
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
-  protected pageListScrollWidthCalculate(breakElem: HTMLElement | null) {
+  protected pageListScrollWidthCalculate(
+    html: HTMLElement,
+    breakElem: HTMLElement | null,
+  ) {
     let min = Infinity
     let max = -Infinity
+    if (!this.readableParts.length) return html.scrollWidth
     for (const elem of [
       ...this.readableParts.map((part) => part.elem),
       breakElem,
@@ -1122,7 +1108,7 @@ export class PlayerIframeController {
 
     this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
-    this.pageListScrollWidth = this.pageListScrollWidthCalculate(null)
+    this.pageListScrollWidth = this.pageListScrollWidthCalculate(html, null)
 
     let pageCount: number
     // update page list width
@@ -1138,7 +1124,7 @@ export class PlayerIframeController {
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
-        this.pageListScrollWidth = this.pageListScrollWidthCalculate(p)
+        this.pageListScrollWidth = this.pageListScrollWidthCalculate(html, p)
       }
       pageCount /= 2
     } else {
