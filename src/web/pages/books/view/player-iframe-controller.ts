@@ -99,7 +99,7 @@ export class PlayerIframeController {
   /** page list: current index */
   protected pageListCurIndex = 0
   /** page list: focus to part after resize */
-  protected pageListResizeFocusPart?: ReadablePart
+  protected pageListResizeCurFocusPart?: ReadablePart
   protected win?: Window
 
   get book() {
@@ -382,7 +382,7 @@ export class PlayerIframeController {
       this.pageListCurIndex = Math.round(
         this.pageListScrollLeft / this.viewOffsetWidth,
       )
-    if (userOperator) this.updatePageListFocus()
+    if (userOperator) this.updatePageListCurFocus()
   }
 
   public async pageListScrollToPage(
@@ -663,7 +663,7 @@ export class PlayerIframeController {
       this.resizeImgs(doc)
       if (this.enabledPageList) {
         await this.pageListCalculate(doc)
-        const resizeFocusPart = this.pageListResizeFocusPart
+        const resizeFocusPart = this.pageListResizeCurFocusPart
         if (resizeFocusPart)
           await this.scrollToElem(resizeFocusPart.elem, {
             animated: false,
@@ -1092,6 +1092,21 @@ export class PlayerIframeController {
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
+  protected pageListScrollWidthCalculate(breakElem: HTMLElement | null) {
+    let min = Infinity
+    let max = -Infinity
+    for (const elem of [
+      ...this.readableParts.map((part) => part.elem),
+      breakElem,
+    ]) {
+      if (!elem) continue
+      const rect = elem.getBoundingClientRect()
+      if (rect.left < min) min = rect.left
+      if (rect.right > max) max = rect.right
+    }
+    return max - min
+  }
+
   protected async pageListCalculate(doc: Document) {
     if (!this.viewWidth || !this.viewOffsetWidth) return
 
@@ -1107,9 +1122,9 @@ export class PlayerIframeController {
 
     this.pageListResizeImgs(doc, this.pageListColumnWidth)
 
-    this.pageListScrollWidth = html.scrollWidth
-    let pageCount: number
+    this.pageListScrollWidth = this.pageListScrollWidthCalculate(null)
 
+    let pageCount: number
     // update page list width
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
@@ -1123,7 +1138,7 @@ export class PlayerIframeController {
         const p = doc.createElement('p')
         p.classList.add(COLUMN_BREAK_CLASS)
         doc.body.appendChild(p)
-        this.pageListScrollWidth = html.scrollWidth
+        this.pageListScrollWidth = this.pageListScrollWidthCalculate(p)
       }
       pageCount /= 2
     } else {
@@ -1200,7 +1215,7 @@ export class PlayerIframeController {
     }
   }
 
-  protected updatePageListFocus() {
+  protected updatePageListCurFocus() {
     if (!this.pageList) return
 
     // update focus part
@@ -1211,10 +1226,10 @@ export class PlayerIframeController {
     )
     if (pageListPosIndex === this.pageListCurIndex) {
       // use the pos paragraph as resize focus
-      this.pageListResizeFocusPart = this.readableParts.at(paragraph)
+      this.pageListResizeCurFocusPart = this.readableParts.at(paragraph)
     } else {
       // use pageListCurIndex as resize focus
-      this.pageListResizeFocusPart = this.pageList.at(
+      this.pageListResizeCurFocusPart = this.pageList.at(
         this.pageListCurIndex,
       )?.topmost?.readablePart
     }
