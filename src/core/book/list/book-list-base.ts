@@ -128,6 +128,7 @@ export abstract class BookListBase {
       uuid: entity.uuid,
       type: entity.type,
       langCode: entity.langCode,
+      isFavorited: false,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
       isTmp: entity.isTmp,

@@ -4,7 +4,8 @@ export const isBrowser: boolean =
   Boolean(global.window) || Boolean(global.navigator)
 
 export const supportedTouch: boolean =
-  'ontouchstart' in (isBrowser ? global.window : {})
+  'ontouchstart' in
+  (isBrowser ? (global.window as Window | undefined) ?? {} : {})
 
 export const isMobile: boolean =
   isBrowser && isMobileJS(navigator.userAgent).any

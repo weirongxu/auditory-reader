@@ -39,8 +39,7 @@ class BookManager {
 
   reqTmpUuid(account: string) {
     const uuid = this.list(account).tmpUuid
-    if (!uuid) throw new ErrorRequestResponse(`uuid(${uuid}) not found`)
-    return uuid
+    return uuid ?? TMP_UUID
   }
 
   list(account: string) {
@@ -59,7 +58,7 @@ class BookManager {
   async delete(account: string, uuid: BookTypes.EntityUUID) {
     this.cacheEntity.delete(uuid)
     this.cacheBook.delete(uuid)
-    await bookManager.list(account).delete(uuid)
+    await this.list(account).delete(uuid)
   }
 
   @extractUuid

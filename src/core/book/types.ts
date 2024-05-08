@@ -18,6 +18,7 @@ export namespace BookTypes {
     uuid: EntityUUID
     name: string
     type: EntityType
+    isFavorited: boolean
     langCode: LangCode
     createdAt: string
     updatedAt: string
@@ -64,7 +65,7 @@ export namespace BookTypes {
     uuid: string
     type: 'text'
     brief: string
-    text: string
+    content: string
     note?: string
     range: PropertyBookmarkRange
   }
