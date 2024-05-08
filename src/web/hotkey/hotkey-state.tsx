@@ -8,6 +8,7 @@ import * as styles from './hotkey-state.module.scss'
 import { globalStore } from '../store/global.js'
 import { orderBy } from '../../core/util/collection.js'
 import { capitalize } from '../../core/util/text.js'
+import { iframeWinAtom } from '../atoms.js'
 
 type Hotkey =
   | string
@@ -39,8 +40,6 @@ const sequenceSymbol = ' '
 const hotkeyItemsAtom = atom<HotkeyItemList>([])
 let curKeySeq = ''
 const seqTimeout = 1000
-
-export const hotkeyIframeWinAtom = atom<{ win: Window | null }>({ win: null })
 
 function getHotkeyKey(hotkey: Hotkey): string {
   if (Array.isArray(hotkey)) {
@@ -181,7 +180,7 @@ function getListener() {
 }
 
 function useHotkeysRegister() {
-  const [refWin] = useAtom(hotkeyIframeWinAtom)
+  const [refWin] = useAtom(iframeWinAtom)
 
   // global
   useEffect(() => {

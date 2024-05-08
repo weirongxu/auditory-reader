@@ -60,6 +60,7 @@
           display: flex;
           > .text {
             flex: 1;
+            padding: 4px;
             font-weight: bolder;
             &.clickable {
               cursor: pointer;
@@ -71,6 +72,17 @@
             .note {
               font-size: 12px;
               font-weight: normal;
+              font-style: italic;
+            }
+            .range .selected-text {
+              font-size: 12px;
+              background-color: var(--main-bg-blue);
+              color: var(--main-fg-blue);
+              margin-left: 6px;
+              padding: 0 2px;
+            }
+            .range .note {
+              margin-left: 8px;
             }
           }
         }
@@ -104,7 +116,6 @@
     .panel-content {
       overflow-y: auto;
       overflow-x: hidden;
-      padding: 0 8px;
     }
 
     .book-bookmarks,

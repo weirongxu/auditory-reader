@@ -1,9 +1,10 @@
 import { CircularProgress } from '@mui/material'
-import { useUnmountEffect } from '@react-hookz/web'
+import { useSyncedRef, useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { BookNav } from '../../../../core/book/book-base.js'
+import type { BookTypes } from '../../../../core/book/types.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
@@ -11,8 +12,12 @@ import { useAppTheme } from '../../../theme.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
-import type { BookContextProps } from './types'
 import { ViewProgressBar } from './progress-bar.js'
+import type { BookContextProps } from './types'
+import {
+  useBookmarkNoteDialog,
+  useBookmarkRangeNoteDialog,
+} from './bookmark-dialogs.js'
 
 export function useViewer({
   uuid,
@@ -26,9 +31,13 @@ export function useViewer({
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
   const [loading, setLoading] = useState<boolean>(false)
   const [scrollPercent, setScrollPercent] = useState<number | undefined>()
+  const [selection, setSelection] = useState<
+    BookTypes.PropertyBookmarkRange | undefined
+  >()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
+  const posRef = useSyncedRef<BookTypes.PropertyPosition>(pos)
 
   const player = usePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
@@ -37,6 +46,7 @@ export function useViewer({
     setActiveNavs,
     setLoading,
     setScrollPercent,
+    setSelection,
   })
 
   // dark scheme
@@ -45,7 +55,7 @@ export function useViewer({
     player.iframeCtrler.updateColorTheme(theme.palette.mode)
   }, [player.iframeCtrler, theme.palette.mode])
 
-  const { BookPanelView, toggleBookmark } = usePlayerUI({
+  const { BookPanelView } = usePlayerUI({
     uuid,
     book,
     pos,
@@ -53,8 +63,12 @@ export function useViewer({
     player,
     started,
     activeNavs,
+    selection,
     reload,
   })
+
+  const bookmarkNoteOpen = useBookmarkNoteDialog()
+  const bookmarkRangeNoteOpen = useBookmarkRangeNoteDialog()
 
   const MainContent = useMemo(
     () => (
@@ -113,7 +127,16 @@ export function useViewer({
         t('hotkey.bookmarksPanelToggle'),
         () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
       ],
-      ['b', t('hotkey.bookmarkToggle'), () => toggleBookmark()],
+      [
+        'b',
+        t('hotkey.bookmarkToggle'),
+        () => player.bookmarks.toggleBookmark(posRef.current),
+      ],
+      [
+        { shift: true, key: 'B' },
+        t('hotkey.bookmarkNote'),
+        () => (selection ? bookmarkRangeNoteOpen() : bookmarkNoteOpen()),
+      ],
       ['u', t('hotkey.goBack'), () => nav('../../')],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
       [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
@@ -138,7 +161,7 @@ export function useViewer({
       ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
       ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
-  }, [addHotkeys, nav, player, setViewPanelType, toggleBookmark])
+  }, [addHotkeys, nav, player, posRef, setViewPanelType])
 
   // leave
   useUnmountEffect(() => {

@@ -6,17 +6,28 @@ import {
   DialogTitle,
   styled,
 } from '@mui/material'
+import { useSyncedRef } from '@react-hookz/web'
+import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 import { useKeyEscape } from '../hooks/useEscape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
-import { t } from 'i18next'
+import { globalStore } from '../store/global.js'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
   description: React.ReactNode
   okCallback: () => void
 }>(null)
+
+export function uiConfirm(options: {
+  title: React.ReactNode
+  description: React.ReactNode
+}) {
+  return new Promise<void>((resolve) => {
+    globalStore.set(confirmAtom, { ...options, okCallback: resolve })
+  })
+}
 
 export function useConfirm() {
   const [, setConfirm] = useAtom(confirmAtom)
@@ -42,9 +53,44 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   },
 }))
 
+export const useConfirmHotkey = ({
+  enable = true,
+  onOk,
+  onClose,
+  level = 100,
+}: {
+  enable?: boolean
+  onOk: () => void
+  onClose?: () => void
+  level?: number
+}) => {
+  const { addHotkey } = useHotkeys()
+  const onOkRef = useSyncedRef(onOk)
+  const onCloseRef = useSyncedRef(onClose)
+
+  useEffect(() => {
+    if (enable) {
+      return addHotkey(
+        'Enter',
+        t('hotkey.ok'),
+        () => {
+          onOkRef.current()
+        },
+        { level },
+      )
+    }
+  }, [addHotkey, enable, level, onOkRef])
+
+  useKeyEscape(
+    () => {
+      onCloseRef.current?.()
+    },
+    { enable: !!enable && !!onClose },
+  )
+}
+
 function ConfirmDialog() {
   const [confirm, setConfirm] = useAtom(confirmAtom)
-  const { addHotkey } = useHotkeys()
 
   const onClose = useCallback(() => {
     setConfirm(null)
@@ -55,21 +101,10 @@ function ConfirmDialog() {
     onClose()
   }, [confirm, onClose])
 
-  useEffect(() => {
-    if (confirm) {
-      return addHotkey(
-        'Enter',
-        t('hotkey.ok'),
-        () => {
-          onOk()
-        },
-        { level: 100 },
-      )
-    }
-  }, [addHotkey, confirm, onClose, onOk])
-
-  useKeyEscape(() => {
-    onClose()
+  useConfirmHotkey({
+    enable: !!confirm,
+    onOk,
+    onClose,
   })
 
   return (

@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useViewPanelType } from '../../../../store.js'
+import { BookmarkDialogs } from '../bookmark-dialogs.js'
 import type { Player } from '../player.js'
 import { useBookViewBookmarks } from './bookmarks.js'
 import { useBookViewNav } from './nav.js'
@@ -12,11 +13,12 @@ export function useBookPanel(
   player: Player,
   activeNavs: BookNav[] | undefined,
   pos: BookTypes.PropertyPosition,
+  selection: BookTypes.PropertyBookmarkRange | undefined,
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
-  const { bookmarks, BookmarkView, toggleBookmark, activeBookmark } =
-    useBookViewBookmarks(book, player, pos)
+  const { bookmarks, BookmarkView, activeBookmark, activeBookmarkRange } =
+    useBookViewBookmarks(book, player, pos, selection)
 
   const BookPanelView = useMemo(
     () => (
@@ -47,10 +49,26 @@ export function useBookPanel(
           ].join(' ')}
           onClick={() => setViewPanelType('none')}
         ></div>
+        <BookmarkDialogs
+          player={player}
+          pos={pos}
+          selection={selection}
+          activeBookmark={activeBookmark}
+          activeBookmarkRange={activeBookmarkRange}
+        />
       </>
     ),
-
-    [BookmarkView, NavTreeView, setViewPanelType, viewPanelType],
+    [
+      BookmarkView,
+      NavTreeView,
+      activeBookmark,
+      activeBookmarkRange,
+      player,
+      pos,
+      selection,
+      setViewPanelType,
+      viewPanelType,
+    ],
   )
 
   return useMemo(
@@ -58,15 +76,15 @@ export function useBookPanel(
       bookmarks,
       BookPanelView,
       setViewPanelType,
-      toggleBookmark,
       activeBookmark,
+      activeBookmarkRange,
     }),
     [
       bookmarks,
       BookPanelView,
       setViewPanelType,
-      toggleBookmark,
       activeBookmark,
+      activeBookmarkRange,
     ],
   )
 }

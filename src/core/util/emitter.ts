@@ -49,10 +49,7 @@ export class ChangedEmitter<T extends Record<string, any>> extends Emitter<T> {
   }
 
   fire<K extends keyof T & string>(name: K, value: T[K]) {
-    if (value === undefined) return
-
-    const lastValue = this.#lastValues.get(name)
-    if (lastValue === undefined || lastValue !== value) {
+    if (!this.#lastValues.has(name) || this.#lastValues.get(name) !== value) {
       this.#lastValues.set(name, value)
       super.fire(name, value)
     }

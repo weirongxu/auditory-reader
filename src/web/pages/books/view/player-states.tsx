@@ -13,6 +13,7 @@ type PlayerStates = {
   activeNavs: BookNav[]
   loading: boolean
   scrollPercent: number | undefined
+  selection: BookTypes.PropertyBookmarkRange | undefined
 }
 
 type PlayerReadonlyStates = {
@@ -34,6 +35,7 @@ export class PlayerStatesManager {
     activeNavs: [],
     loading: false,
     scrollPercent: undefined,
+    selection: undefined,
   }
 
   events = new ChangedEmitter<PlayerStates>()
@@ -77,6 +79,15 @@ export class PlayerStatesManager {
   set scrollPercent(scrollPercent: number | undefined) {
     this.#states.scrollPercent = scrollPercent
     this.events.fire('scrollPercent', scrollPercent)
+  }
+
+  get selection() {
+    return this.#states.selection
+  }
+
+  set selection(selection: BookTypes.PropertyBookmarkRange | undefined) {
+    this.#states.selection = selection
+    this.events.fire('selection', selection)
   }
 
   #readonlyStates: PlayerReadonlyStates = {
@@ -154,12 +165,14 @@ export function usePlayerSync(
     setActiveNavs,
     setLoading,
     setScrollPercent,
+    setSelection,
   }: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
     setScrollPercent: Dispatch<number | undefined>
+    setSelection: Dispatch<BookTypes.PropertyBookmarkRange | undefined>
   },
 ) {
   useEffect(() => {
@@ -180,11 +193,22 @@ export function usePlayerSync(
       events.on('scrollPercent', (scrollPercent) => {
         setScrollPercent(scrollPercent)
       }),
+      events.on('selection', (selection) => {
+        setSelection(selection)
+      }),
     ]
     return () => {
       disposes.forEach((dispose) => dispose())
     }
-  }, [player, setPos, setStarted, setActiveNavs, setLoading, setScrollPercent])
+  }, [
+    player,
+    setPos,
+    setStarted,
+    setActiveNavs,
+    setLoading,
+    setScrollPercent,
+    setSelection,
+  ])
 }
 
 export function usePlayerUISync(

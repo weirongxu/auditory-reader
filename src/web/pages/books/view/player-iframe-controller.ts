@@ -41,13 +41,14 @@ import {
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
 import { pushSnackbar } from '../../../common/snackbar.js'
-import { hotkeyIframeWinAtom } from '../../../hotkey/hotkey-state.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
+import { iframeWinAtom } from '../../../atoms.js'
+import type { BookTypes } from '../../../../core/book/types.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -601,13 +602,39 @@ export class PlayerIframeController {
       this.win = win
       this.doc = doc
 
-      globalStore.set(hotkeyIframeWinAtom, { win })
+      globalStore.set(iframeWinAtom, { win })
 
       if (!this.states.disabledVertical)
         this.isVertical = win
           .getComputedStyle(doc.body)
           .writingMode.startsWith('vertical')
       else this.isVertical = false
+
+      doc.addEventListener('selectionchange', () => {
+        const boxSelector = `.${PARA_BOX_CLASS}`
+        const getSelectionRange = ():
+          | BookTypes.PropertyBookmarkRange
+          | undefined => {
+          const sel = doc.getSelection()
+          if (!sel || sel.rangeCount <= 0) return
+          const range = sel.getRangeAt(0)
+          const selectedText = range.toString()
+          const length = selectedText.length
+          if (!length) return
+          const parent = range.commonAncestorContainer.parentElement
+          if (!parent) return
+          const elem = parent.matches(boxSelector)
+            ? parent
+            : parent.closest(boxSelector)
+          if (!elem) return
+          const preCaretRange = range.cloneRange()
+          preCaretRange.selectNodeContents(elem)
+          preCaretRange.setEnd(range.endContainer, range.endOffset)
+          const start = preCaretRange.toString().length - length
+          return { start, end: start + length, selectedText }
+        }
+        this.states.selection = getSelectionRange()
+      })
 
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
@@ -889,14 +916,15 @@ export class PlayerIframeController {
 
   protected hookParagraphClick() {
     const win = this.win
-    if (!win) return
+    const doc = this.doc
+    if (!win || !doc) return
     const click = (e: Event, paraIndex: number) => {
       eventBan(e)
       this.player.gotoParagraph(paraIndex).catch(console.error)
     }
     const dblclick = (e: Event, paraIndex: number) => {
       eventBan(e)
-      win.getSelection()?.removeAllRanges()
+      doc.getSelection()?.removeAllRanges()
       this.player.bookmarks
         .toggleBookmark({
           section: this.states.pos.section,
@@ -942,7 +970,7 @@ export class PlayerIframeController {
     const onMove = (event: TouchEvent) => {
       eventBan(event)
       if (startPoint === undefined) return
-      const selection = win.getSelection()
+      const selection = doc.getSelection()
       if (selection?.type === 'Range') {
         startPoint = undefined
         return

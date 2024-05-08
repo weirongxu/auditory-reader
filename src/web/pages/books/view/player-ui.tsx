@@ -1,34 +1,45 @@
 import {
   AccountTree,
-  Bookmark,
-  BookmarkBorder,
-  Bookmarks,
+  BookmarkAdd,
+  BookmarkRemove,
+  CollectionsBookmark,
   FastForward,
   FastRewind,
   FirstPage,
+  NoteAdd,
   Pause,
   PlayArrow,
   Save,
   SkipNext,
   SkipPrevious,
   Start,
+  Try,
 } from '@mui/icons-material'
 import {
   Autocomplete,
   Button,
   ButtonGroup,
   Chip,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Popover,
   TextField,
+  Typography,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
+import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
+import { eventBan } from '../../../../core/util/dom.js'
 import { async } from '../../../../core/util/promise.js'
+import { useConfirmHotkey } from '../../../common/confirm.js'
+import { FlexBox } from '../../../components/flex-box.js'
+import { Textarea } from '../../../components/textarea.js'
 import {
   useAutoSection,
   useDisabledVertical,
@@ -48,6 +59,10 @@ import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
+import {
+  useBookmarkNoteDialog,
+  useBookmarkRangeNoteDialog,
+} from './bookmark-dialogs.js'
 
 function TooltipButton({
   tooltip,
@@ -173,11 +188,13 @@ export function usePlayerUI({
   pos,
   started,
   activeNavs,
+  selection,
   reload,
 }: BookContextProps & {
   started: boolean
   player: Player
   activeNavs?: BookNav[]
+  selection?: BookTypes.PropertyBookmarkRange
   reload: () => void
 }) {
   const nav = useNavigate()
@@ -185,9 +202,9 @@ export function usePlayerUI({
     bookmarks,
     BookPanelView,
     setViewPanelType,
-    toggleBookmark,
     activeBookmark,
-  } = useBookPanel(book, player, activeNavs, pos)
+    activeBookmarkRange,
+  } = useBookPanel(book, player, activeNavs, pos, selection)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
@@ -213,33 +230,52 @@ export function usePlayerUI({
       disabledVertical,
     })
 
+  const bookmarkNoteOpen = useBookmarkNoteDialog()
+  const bookmarkRangeNoteOpen = useBookmarkRangeNoteDialog()
+
   const PlayerCtrlGroup = useMemo(() => {
     const buttons: JSX.Element[] = [
-      <Button
+      <TooltipButton
         key="nav"
+        tooltip={<span>t</span>}
         onClick={() => {
           setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
         }}
       >
         <AccountTree />
-      </Button>,
-      <Button
+      </TooltipButton>,
+      <TooltipButton
         key="bookmarks"
+        tooltip={<span>m</span>}
         onClick={() => {
           setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
         }}
       >
-        <Bookmarks />
-      </Button>,
-      <Button
+        <CollectionsBookmark />
+      </TooltipButton>,
+      <TooltipButton
         key="bookmark"
+        tooltip={<span>b</span>}
         onClick={() => {
-          toggleBookmark()
+          void player.bookmarks.toggleBookmark(pos)
         }}
       >
-        {activeBookmark ? <Bookmark /> : <BookmarkBorder />}
-      </Button>,
+        {activeBookmark ? <BookmarkRemove /> : <BookmarkAdd />}
+      </TooltipButton>,
     ]
+
+    if (activeBookmark || selection)
+      buttons.push(
+        <TooltipButton
+          tooltip={<span>shift + b</span>}
+          onClick={() => {
+            if (selection) bookmarkRangeNoteOpen()
+            else bookmarkNoteOpen()
+          }}
+        >
+          <NoteAdd />
+        </TooltipButton>,
+      )
 
     if (!collapsed)
       buttons.push(
@@ -317,15 +353,17 @@ export function usePlayerUI({
     return <ButtonGroup>{buttons}</ButtonGroup>
   }, [
     activeBookmark,
+    activeBookmarkRange,
     collapsed,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
     isLastSection,
     player,
+    pos,
+    selection,
     setViewPanelType,
     started,
-    toggleBookmark,
   ])
 
   const TimerRemainUI = useMemo(() => {
@@ -423,7 +461,6 @@ export function usePlayerUI({
     speechSpeed,
     autoNextSection,
     isPersonReplace,
-    toggleBookmark,
     BookPanelView,
     curIsBookmark: activeBookmark,
   }

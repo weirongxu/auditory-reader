@@ -35,15 +35,15 @@ import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
 import { Speech } from '../../../core/util/speech.js'
-import { useConfirm } from '../../common/confirm.js'
+import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
-import * as styles from './index.module.scss'
 import { useBookEditDialog } from './edit.js'
+import * as styles from './index.module.scss'
 
 const DragType = 'book'
 type DragItem = {
@@ -58,11 +58,9 @@ function viewPath(uuid: string) {
 }
 
 function useRemoveBooks(reload: () => void) {
-  const confirm = useConfirm()
-
   const removeBooks = useCallback(
     (books: BookTypes.Entity[]) => {
-      confirm({
+      uiConfirm({
         title: t('remove'),
         description: (
           <ul>
@@ -82,7 +80,7 @@ function useRemoveBooks(reload: () => void) {
         })
         .catch(console.error)
     },
-    [confirm, reload],
+    [reload],
   )
 
   return removeBooks
