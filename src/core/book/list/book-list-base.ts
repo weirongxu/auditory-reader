@@ -102,6 +102,7 @@ export abstract class BookListBase {
       name: entityJson.name,
       type: entityJson.type,
       langCode: entityJson.langCode,
+      isFavorited: entityJson.isFavorited,
       uuid: entityJson.uuid,
       createdAt: new Date(entityJson.createdAt),
       updatedAt: new Date(entityJson.updatedAt),
@@ -116,6 +117,8 @@ export abstract class BookListBase {
     if (!entityJson) return
     if (update.langCode) entityJson.langCode = update.langCode
     if (update.name) entityJson.name = update.name
+    if (update.isFavorited !== undefined)
+      entityJson.isFavorited = update.isFavorited
     await this.write()
   }
 
@@ -128,7 +131,7 @@ export abstract class BookListBase {
       uuid: entity.uuid,
       type: entity.type,
       langCode: entity.langCode,
-      isFavorited: false,
+      isFavorited: entity.isFavorited,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
       isTmp: entity.isTmp,

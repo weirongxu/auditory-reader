@@ -1,4 +1,10 @@
-import { Add, DragIndicator, MoreVert } from '@mui/icons-material'
+import {
+  Add,
+  DragIndicator,
+  MoreVert,
+  Star,
+  StarBorder,
+} from '@mui/icons-material'
 import {
   Alert,
   Button,
@@ -44,6 +50,7 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
+import { booksUpdateRouter } from '../../../core/api/books/update.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -473,6 +480,37 @@ function BookRow({
           }}
         ></Checkbox>
       </TableCell>
+      <TableCell align="center" style={{ cursor: 'pointer' }}>
+        {book.isFavorited ? (
+          <Star
+            onClick={() => {
+              async(async () => {
+                await booksUpdateRouter.action({
+                  uuid: book.uuid,
+                  update: {
+                    isFavorited: false,
+                  },
+                })
+                reload()
+              })
+            }}
+          />
+        ) : (
+          <StarBorder
+            onClick={() => {
+              async(async () => {
+                await booksUpdateRouter.action({
+                  uuid: book.uuid,
+                  update: {
+                    isFavorited: true,
+                  },
+                })
+                reload()
+              })
+            }}
+          />
+        )}
+      </TableCell>
       <TableCell padding="none">
         <img
           onClick={() => {
@@ -717,6 +755,7 @@ export function BookList() {
                   }}
                 ></Checkbox>
               </TableCell>
+              <TableCell>{t('favorite')}</TableCell>
               <TableCell padding="none">{t('cover')}</TableCell>
               <TableCell>{t('bookName')}</TableCell>
               <TableCell padding="none"></TableCell>

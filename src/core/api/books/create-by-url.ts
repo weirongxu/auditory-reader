@@ -34,6 +34,7 @@ export const booksCreateByUrlRouter = new URouter<
     name: body.name,
     type: 'epub',
     langCode: body.langCode,
+    isFavorited: false,
     createdAt: date,
     updatedAt: date,
     isTmp: body.isTmp ?? false,

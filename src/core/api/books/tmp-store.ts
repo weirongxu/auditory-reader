@@ -27,6 +27,7 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
     name: bookEntityTmp.entity.name,
     type: bookEntityTmp.entity.type,
     langCode: bookEntityTmp.entity.langCode,
+    isFavorited: bookEntityTmp.entity.isFavorited,
     createdAt: new Date(),
     updatedAt: new Date(),
     isTmp: false,

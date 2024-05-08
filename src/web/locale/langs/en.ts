@@ -119,6 +119,7 @@ export const langEn = {
   update: 'Update',
   export: 'Export',
   bookName: 'Book name',
+  favorite: 'Favorite',
   cover: 'Cover',
   nav: 'Table contents',
   bookmark: 'Bookmark',

@@ -117,6 +117,7 @@ export const langZh = {
   update: '更新',
   export: '导出',
   bookName: '书名',
+  favorite: '喜欢',
   cover: '封面',
   nav: '导航',
   bookmark: '书签',

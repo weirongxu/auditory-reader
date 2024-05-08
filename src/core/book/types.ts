@@ -18,8 +18,8 @@ export namespace BookTypes {
     uuid: EntityUUID
     name: string
     type: EntityType
-    isFavorited: boolean
     langCode: LangCode
+    isFavorited: boolean
     createdAt: string
     updatedAt: string
     isTmp: boolean
@@ -30,6 +30,7 @@ export namespace BookTypes {
     name: string
     type: EntityType
     langCode: LangCode
+    isFavorited: boolean
     createdAt: Date
     updatedAt: Date
     isTmp: boolean
@@ -38,6 +39,7 @@ export namespace BookTypes {
   export type EntityUpdate = {
     name?: string
     langCode?: LangCode
+    isFavorited?: boolean
   }
 
   export type PropertyJson = {
