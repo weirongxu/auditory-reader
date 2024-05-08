@@ -275,6 +275,19 @@ function useHomeHotKeys({
       if (currentBook) void moveBooksTop(selectedBooks)
     }
 
+    const toggleFavorite = () => {
+      if (currentBook)
+        async(async () => {
+          await booksUpdateRouter.action({
+            uuid: currentBook.uuid,
+            update: {
+              isFavorited: !currentBook.isFavorited,
+            },
+          })
+          reload()
+        })
+    }
+
     const speech = new Speech()
     const speakBookName = () => {
       if (!currentBook) return
@@ -300,6 +313,7 @@ function useHomeHotKeys({
       [{ ctrl: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],
       [{ ctrl: true, key: 'ArrowUp' }, t('hotkey.goMovePrev'), movePrev],
       [{ ctrl: true, key: 'ArrowDown' }, t('hotkey.goMoveNext'), moveNext],
+      ['s', t('hotkey.favorite'), toggleFavorite],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',

@@ -66,6 +66,7 @@ export const langEn = {
     goMovePrev: 'Move selection to previous',
     goMoveNext: 'Move selection to next',
     goMoveTop: 'Move selection to top',
+    favorite: 'Toggle favorite',
     edit: 'Edit current selection',
     select: 'Toggle select',
     selectShift: 'Mark from last select to current as selected',

@@ -64,6 +64,7 @@ export const langZh = {
     goMovePrev: '挪到上一个',
     goMoveNext: '挪到下一个',
     goMoveTop: '挪到顶部',
+    favorite: '开关喜欢',
     edit: '编辑当前选择',
     select: '开关选择',
     selectShift: '把最后一次选择至当位置的标记为选择',
