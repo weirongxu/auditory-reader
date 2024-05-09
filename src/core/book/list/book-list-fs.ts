@@ -30,7 +30,7 @@ export class BookListFS extends BookListBase {
   protected async readJson(): Promise<BookTypes.Json> {
     const jsonPath = this.jsonPath
     if (!fs.existsSync(jsonPath)) {
-      return { list: [] }
+      return this.getDefaultJson()
     } else {
       const str = await fs.promises.readFile(jsonPath, 'utf8')
       return JSON.parse(str) as BookTypes.Json

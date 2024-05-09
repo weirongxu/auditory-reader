@@ -10,6 +10,7 @@ export namespace BookTypes {
   export type EntityUUID = LiteralUnion<'$tmp', string>
 
   export type Json = {
+    version: number
     list: EntityJson[]
     tmp?: EntityJson
   }

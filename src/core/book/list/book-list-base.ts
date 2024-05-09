@@ -6,6 +6,8 @@ import type { BookTypes } from '../types.js'
 export abstract class BookListBase {
   protected json?: BookTypes.Json
 
+  protected version = 1
+
   constructor(protected readonly account: string) {}
 
   get tmpUuid() {
@@ -14,6 +16,13 @@ export abstract class BookListBase {
 
   isTmpUuid(uuid: string) {
     return this.json?.tmp?.uuid === uuid
+  }
+
+  protected getDefaultJson(): BookTypes.Json {
+    return {
+      version: this.version,
+      list: [],
+    }
   }
 
   protected async getJson(): Promise<BookTypes.Json> {
