@@ -64,21 +64,32 @@ export namespace BookTypes {
     note?: string
   }
 
-  export interface PropertyNote extends PropertyPosition {
-    uuid: string
-    type: 'text'
-    brief: string
-    content: string
-    note?: string
-    range: PropertyBookmarkRange
-  }
-
   export interface PropertyBookmark extends PropertyPosition {
     uuid: string
     type: 'text'
     brief: string
     note?: string
     ranges?: PropertyBookmarkRange[]
+  }
+
+  export type PropertyNoteRangePosition = {
+    start: number
+    end: number
+  }
+
+  export interface PropertyNoteRange extends PropertyNoteRangePosition {
+    selectedText: string
+  }
+
+  export interface PropertyNote extends PropertyPosition {
+    uuid: string
+    type: 'text'
+    brief: string
+    content: string
+    note?: string
+    range?: PropertyNoteRange
+    group?: string
+    color?: string
   }
 
   export interface PageParamsRequired {

@@ -40,6 +40,7 @@ export abstract class BookEntityBase {
       paragraph: 0,
     })
     await this.bookmarksDeleteAll()
+    await this.notesDeleteAll()
   }
 
   abstract delete(): Promise<void>
@@ -64,13 +65,13 @@ export abstract class BookEntityBase {
     await this.writeProp(prop)
   }
 
+  private sortBookmarks(bookmarks: BookTypes.PropertyBookmark[]) {
+    return orderBy(bookmarks, 'asc', (b) => [b.section, b.paragraph])
+  }
+
   async bookmarksGet(): Promise<BookTypes.PropertyBookmark[]> {
     const prop = await this.readProp()
     return prop.bookmarks ?? []
-  }
-
-  private sortBookmarks(bookmarks: BookTypes.PropertyBookmark[]) {
-    return orderBy(bookmarks, 'asc', (b) => [b.section, b.paragraph])
   }
 
   async bookmarksAdd(bookmarks: BookTypes.PropertyBookmark[]) {
@@ -107,6 +108,44 @@ export abstract class BookEntityBase {
   async bookmarksDeleteAll() {
     const prop = await this.readProp()
     if (prop.bookmarks) prop.bookmarks = []
+    await this.writeProp(prop)
+  }
+
+  private sortNotes(notes: BookTypes.PropertyNote[]) {
+    return orderBy(notes, 'asc', (n) => [
+      n.section,
+      n.paragraph,
+      n.range?.start ?? 0,
+    ])
+  }
+
+  async notesGet(): Promise<BookTypes.PropertyNote[]> {
+    const prop = await this.readProp()
+    return prop.notes ?? []
+  }
+
+  async notesUnsert(notes: BookTypes.PropertyNote[]) {
+    const prop = await this.readProp()
+    prop.notes ??= []
+    for (const note of notes) {
+      const index = prop.notes.findIndex((b) => b.uuid === note.uuid)
+      if (index !== -1) prop.notes[index] = note
+      else prop.notes.push(note)
+    }
+    prop.notes = this.sortNotes(prop.notes)
+    await this.writeProp(prop)
+  }
+
+  async notesDelete(noteUuids: string[]) {
+    const prop = await this.readProp()
+    if (prop.notes)
+      prop.notes = prop.notes.filter((b) => !noteUuids.includes(b.uuid))
+    await this.writeProp(prop)
+  }
+
+  async notesDeleteAll() {
+    const prop = await this.readProp()
+    if (prop.notes) prop.notes = []
     await this.writeProp(prop)
   }
 }
