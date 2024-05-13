@@ -232,7 +232,7 @@ export function usePlayerUI({
       </TooltipButton>,
       <TooltipButton
         key="annotations"
-        tooltip={<span>shift + m</span>}
+        tooltip={<span>m</span>}
         onClick={() => {
           setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation'))
         }}
@@ -241,7 +241,7 @@ export function usePlayerUI({
       </TooltipButton>,
       <TooltipButton
         key="annotation"
-        tooltip={<span>v</span>}
+        tooltip={<span>b</span>}
         onClick={() => {
           void player.annotations.toggle(pos, selection ?? null)
         }}
@@ -326,7 +326,7 @@ export function usePlayerUI({
     buttons.push(
       <TooltipButton
         key="bookmarks"
-        tooltip={<span>m</span>}
+        tooltip={<span>shift + m</span>}
         onClick={() => {
           setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
         }}
