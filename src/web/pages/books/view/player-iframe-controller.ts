@@ -154,10 +154,6 @@ export class PlayerIframeController {
       }
     })
 
-    this.states.uiEvents.on('bookmarks', () => {
-      this.updateBookmarks()
-    })
-
     this.states.uiEvents.on('annotations', () => {
       this.updateAnnotations()
     })
@@ -671,7 +667,6 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.annotationHl.reCreateRoot(doc)
-      this.updateBookmarks()
       this.updateAnnotations()
     }
   }
@@ -1277,23 +1272,6 @@ export class PlayerIframeController {
       this.#paragraphLastActive?.elem.classList.remove(PARA_ACTIVE_CLASS)
       this.#paragraphLastActive = item
       item.elem.classList.add(PARA_ACTIVE_CLASS)
-    }).catch(console.error)
-  }
-
-  protected updateBookmarks() {
-    this.tryManipulateDOM(() => {
-      if (!this.states.bookmarks || !this.doc) return
-      for (const item of Array.from(
-        this.doc.querySelectorAll(`.${PARA_BOOKMARK_CLASS}`),
-      )) {
-        item.classList.remove(PARA_BOOKMARK_CLASS)
-      }
-      for (const bookmark of this.states.bookmarks) {
-        if (bookmark.section !== this.states.pos.section) continue
-        const item = this.readableParts.at(bookmark.paragraph)
-        if (!item) continue
-        item.elem.classList.add(PARA_BOOKMARK_CLASS)
-      }
     }).catch(console.error)
   }
 
