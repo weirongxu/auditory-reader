@@ -105,10 +105,19 @@ function AnnotationItem({
               >
                 <MenuItem
                   onClick={() => {
+                    openNoteEdit(annotation, player)
+                  }}
+                >
+                  <NoteAdd fontSize="small" />
+                  {t('note')}
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
                     void player.annotations.remove(annotation)
                     setAnchorMenu(null)
                   }}
                 >
+                  <Delete fontSize="small" />
                   {t('remove')}
                 </MenuItem>
               </Menu>
