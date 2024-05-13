@@ -38,6 +38,7 @@
     "howler": "^2.2.4",
     "htmlparser2": "^9.1.0",
     "i18next": "^23.11.1",
+    "invert-color": "^2.0.0",
     "is-plain-obj": "^4.1.0",
     "ismobilejs": "^1.1.1",
     "isomorphic-fetch": "^3.0.0",

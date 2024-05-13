@@ -4,12 +4,12 @@ import { booksCoverRouter } from './books/cover.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
 import { booksDeleteBookmarksRouter } from './books/delete-bookmarks.js'
-import { booksDeleteNotesRouter } from './books/delete-notes.js'
+import { booksDeleteAnnotationsRouter } from './books/delete-annotations.js'
 import { booksDownloadRouter } from './books/download.js'
 import { booksFetchUrlInfoRouter } from './books/fetch-url-info.js'
 import { booksMoveOffsetRouter } from './books/move-offset.js'
 import { booksMoveTopRouter } from './books/move-top.js'
-import { booksNotesRouter } from './books/notes.js'
+import { booksAnnotationsRouter } from './books/annotations.js'
 import { booksPageRouter } from './books/page.js'
 import { booksPositionRouter } from './books/position.js'
 import { booksRemoveRouter } from './books/remove.js'
@@ -17,7 +17,7 @@ import { booksRenderRouter } from './books/render.js'
 import { booksShowRouter } from './books/show.js'
 import { booksSyncPositionRouter } from './books/sync-position.js'
 import { booksTmpStoreRouter } from './books/tmp-store.js'
-import { booksUnsertNotesRouter } from './books/unsert-notes.js'
+import { booksUpsertAnnotationsRouter } from './books/upsert-annotations.js'
 import { booksUpdateBookmarksRouter } from './books/update-bookmarks.js'
 import { booksUpdateRouter } from './books/update.js'
 import { booksViewRouter } from './books/view.js'
@@ -45,9 +45,9 @@ export const ROUTERS = [
   booksAddBookmarksRouter,
   booksUpdateBookmarksRouter,
   booksDeleteBookmarksRouter,
-  booksNotesRouter,
-  booksUnsertNotesRouter,
-  booksDeleteNotesRouter,
+  booksAnnotationsRouter,
+  booksUpsertAnnotationsRouter,
+  booksDeleteAnnotationsRouter,
   booksUpdateRouter,
   booksViewRouter,
   booksCoverRouter,

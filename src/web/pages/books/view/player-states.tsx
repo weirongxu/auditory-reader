@@ -18,6 +18,7 @@ type PlayerStates = {
 
 type PlayerReadonlyStates = {
   bookmarks: BookTypes.PropertyBookmark[] | undefined
+  annotations: BookTypes.PropertyAnnotation[] | undefined
   isPersonReplace: boolean
   speechSpeed: number
   voice: null | SpeechSynthesisVoice
@@ -92,6 +93,7 @@ export class PlayerStatesManager {
 
   #readonlyStates: PlayerReadonlyStates = {
     bookmarks: [],
+    annotations: [],
     isPersonReplace: false,
     speechSpeed: 1,
     voice: null,
@@ -106,6 +108,10 @@ export class PlayerStatesManager {
 
   get bookmarks() {
     return this.#readonlyStates.bookmarks
+  }
+
+  get annotations() {
+    return this.#readonlyStates.annotations
   }
 
   get voice() {
@@ -215,6 +221,7 @@ export function usePlayerUISync(
   player: Player,
   {
     bookmarks,
+    annotations,
     isPersonReplace,
     speechSpeed,
     voice,
@@ -228,6 +235,10 @@ export function usePlayerUISync(
   useEffect(() => {
     player.states.syncUIState('bookmarks', bookmarks)
   }, [player, bookmarks])
+
+  useEffect(() => {
+    player.states.syncUIState('annotations', annotations)
+  }, [player, annotations])
 
   useEffect(() => {
     player.states.syncUIState('isPersonReplace', isPersonReplace)

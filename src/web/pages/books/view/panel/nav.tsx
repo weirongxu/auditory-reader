@@ -1,10 +1,9 @@
-import { ChevronRight } from '@mui/icons-material'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
+import { eventBan } from '../../../../../core/util/dom.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
-import { eventBan } from '../../../../../core/util/dom.js'
 
 function NavList({
   navs,
@@ -38,8 +37,7 @@ function NavList({
                 if (nav.href) player.gotoUrlPath(nav.href).catch(console.error)
               }}
             >
-              {isSelected && <ChevronRight className="selected-icon" />}
-              <div className={textCls.join(' ')}>{nav.label}</div>
+              <span className={textCls.join(' ')}>{nav.label}</span>
             </div>
             <NavList
               navs={nav.children}

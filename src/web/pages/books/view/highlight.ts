@@ -1,21 +1,42 @@
-import {
-  PARA_HIGHLIGHT_CLASS,
-  PARA_IGNORE_CLASS,
-} from '../../../../core/consts.js'
+import { PARA_IGNORE_CLASS } from '../../../../core/consts.js'
 import { sum } from '../../../../core/util/collection.js'
 import { isElement, isTextNode } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
-import type { ReadablePart, Rect } from './types.js'
+import type { ReadablePart } from './types.js'
 
 const enum FindRangePosType {
   found,
   skip,
 }
 
-export class Highlight {
+export type HighlightBlock = {
+  node: ReadablePart
+  charIndex: number
+  charLength: number
+  color?: string
+}
+
+export type HighlightRange = {
+  range: Range
+  color?: string
+}
+
+export type HighlightRect = {
+  top: number
+  bottom: number
+  left: number
+  right: number
+  width: number
+  height: number
+  color?: string
+}
+
+export abstract class BaseHighlight {
   highlightedElems: HTMLElement[] = []
+  abstract rootClass: string
+  abstract ignoreClass: string | null
 
   constructor(
     protected iframeCtrl: PlayerIframeController,
@@ -30,12 +51,10 @@ export class Highlight {
   #cacheHlRectMap = new Map<number, HTMLDivElement>()
 
   public reCreateRoot(doc: Document) {
-    doc
-      .querySelectorAll(`.${PARA_HIGHLIGHT_CLASS}`)
-      .forEach((div) => div.remove())
+    doc.querySelectorAll(`.${this.rootClass}`).forEach((div) => div.remove())
 
     this.#hlRoot = doc.createElement('div')
-    this.#hlRoot.classList.add(PARA_HIGHLIGHT_CLASS)
+    this.#hlRoot.classList.add(this.rootClass)
     doc.documentElement.appendChild(this.#hlRoot)
     this.#cacheHlRectMap.clear()
   }
@@ -48,15 +67,16 @@ export class Highlight {
     })
   }
 
-  #highlightCharsByRects(range: Range) {
+  #highlightCharsByRects(ranges: HighlightRange[], scrollTo: boolean) {
     const doc = this.doc
     const hlRoot = this.#hlRoot
     if (!doc || !hlRoot) return
 
-    const getRectDiv = (idx: number) => {
+    const getRectDiv = (idx: number, color: string | undefined) => {
       let div = this.#cacheHlRectMap.get(idx)
       if (!div) {
         div = doc.createElement('div')
+        if (color) div.style.backgroundColor = color
         this.#cacheHlRectMap.set(idx, div)
         hlRoot.appendChild(div)
       }
@@ -64,17 +84,21 @@ export class Highlight {
     }
 
     const containerRect = doc.documentElement.getBoundingClientRect()
-    const rects: Rect[] = [...range.getClientRects()].map((rect) => ({
-      width: rect.width,
-      height: rect.height,
-      left: rect.left - containerRect.left,
-      right: rect.right - containerRect.right,
-      top: rect.top - containerRect.top,
-      bottom: rect.bottom - containerRect.top,
-    }))
+    const rects: HighlightRect[] = ranges
+      .map((range) =>
+        [...range.range.getClientRects()].map((rect) => ({
+          width: rect.width,
+          height: rect.height,
+          left: rect.left - containerRect.left,
+          right: rect.right - containerRect.right,
+          top: rect.top - containerRect.top,
+          bottom: rect.bottom - containerRect.top,
+        })),
+      )
+      .flat()
     this.#highlightHide()
     for (const [idx, rect] of rects.entries()) {
-      const div = getRectDiv(idx)
+      const div = getRectDiv(idx, rect.color)
       div.style.display = 'block'
       div.style.top = `${rect.top}px`
       div.style.left = `${rect.left}px`
@@ -82,10 +106,10 @@ export class Highlight {
       div.style.height = `${rect.height}px`
     }
 
-    this.#scrollToRects(rects)
+    if (scrollTo) this.#scrollToRects(rects)
   }
 
-  #scrollToRects = throttleFn(1000, (rects: Rect[]) => {
+  #scrollToRects = throttleFn(1000, (rects: HighlightRect[]) => {
     if (!this.doc) return
     if (!rects.length) return
 
@@ -129,7 +153,11 @@ export class Highlight {
         continue
       }
 
-      if (isElement(child) && child.closest(`.${PARA_IGNORE_CLASS}`))
+      if (
+        this.ignoreClass &&
+        isElement(child) &&
+        child.closest(`.${this.ignoreClass}`)
+      )
         // ignore class
         continue
 
@@ -161,31 +189,37 @@ export class Highlight {
     }
   }
 
-  #highlightChars(node: ReadablePart, charIndex: number, charLength: number) {
+  #highlightChars(blocks: HighlightBlock[], scrollTo: boolean) {
     if (!this.doc) return
 
-    // get range
-    const range = document.createRange()
-    const start = this.#getChildAndIndex(node.elem, charIndex)
-    if (!start) return
-    const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
-    if (!end) return
-    try {
-      range.setStart(start.node, start.index)
-      range.setEnd(end.node, end.index)
-    } catch (error) {
-      console.error(error)
-      // skip range index error
-      return
+    const ranges: HighlightRange[] = []
+    for (const block of blocks) {
+      const { node, charIndex, charLength, color } = block
+      // get range
+      const range = document.createRange()
+      const start = this.#getChildAndIndex(node.elem, charIndex)
+      if (!start) continue
+      const end = this.#getChildAndIndex(node.elem, charIndex + charLength)
+      if (!end) continue
+      try {
+        range.setStart(start.node, start.index)
+        range.setEnd(end.node, end.index)
+      } catch (error) {
+        console.error(error)
+        // skip range index error
+        continue
+      }
+
+      ranges.push({ range, color })
     }
 
-    this.#highlightCharsByRects(range)
+    this.#highlightCharsByRects(ranges, scrollTo)
   }
 
-  highlight(node: ReadablePart, charIndex: number, charLength: number) {
+  highlight(blocks: HighlightBlock[], scrollTo: boolean) {
     this.iframeCtrl
       .tryManipulateDOM(() => {
-        this.#highlightChars(node, charIndex, charLength)
+        this.#highlightChars(blocks, scrollTo)
       })
       .catch(console.error)
   }

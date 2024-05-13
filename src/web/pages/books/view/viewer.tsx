@@ -1,5 +1,5 @@
 import { CircularProgress } from '@mui/material'
-import { useSyncedRef, useUnmountEffect } from '@react-hookz/web'
+import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -14,10 +14,6 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import { ViewProgressBar } from './progress-bar.js'
 import type { BookContextProps } from './types'
-import {
-  useBookmarkNoteDialog,
-  useBookmarkRangeNoteDialog,
-} from './bookmark-dialogs.js'
 
 export function useViewer({
   uuid,
@@ -37,7 +33,6 @@ export function useViewer({
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
-  const posRef = useSyncedRef<BookTypes.PropertyPosition>(pos)
 
   const player = usePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
@@ -66,9 +61,6 @@ export function useViewer({
     selection,
     reload,
   })
-
-  const bookmarkNoteOpen = useBookmarkNoteDialog()
-  const bookmarkRangeNoteOpen = useBookmarkRangeNoteDialog()
 
   const MainContent = useMemo(
     () => (
@@ -123,19 +115,20 @@ export function useViewer({
         () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav')),
       ],
       [
-        'm',
+        { shift: true, key: 'M' },
         t('hotkey.bookmarksPanelToggle'),
         () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
       ],
       [
-        'b',
-        t('hotkey.bookmarkToggle'),
-        () => player.bookmarks.toggleBookmark(posRef.current),
+        'm',
+        t('hotkey.annotationsPanelToggle'),
+        () =>
+          setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation')),
       ],
       [
-        { shift: true, key: 'B' },
-        t('hotkey.bookmarkNote'),
-        () => (selection ? bookmarkRangeNoteOpen() : bookmarkNoteOpen()),
+        'b',
+        t('hotkey.annotationToggle'),
+        () => player.annotations.toggle(pos, selection ?? null),
       ],
       ['u', t('hotkey.goBack'), () => nav('../../')],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
@@ -161,7 +154,7 @@ export function useViewer({
       ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
       ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
-  }, [addHotkeys, nav, player, posRef, setViewPanelType])
+  }, [addHotkeys, nav, player, pos, selection, setViewPanelType])
 
   // leave
   useUnmountEffect(() => {

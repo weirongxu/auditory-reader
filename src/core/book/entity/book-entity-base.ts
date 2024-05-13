@@ -40,7 +40,7 @@ export abstract class BookEntityBase {
       paragraph: 0,
     })
     await this.bookmarksDeleteAll()
-    await this.notesDeleteAll()
+    await this.annotationsDeleteAll()
   }
 
   abstract delete(): Promise<void>
@@ -111,41 +111,46 @@ export abstract class BookEntityBase {
     await this.writeProp(prop)
   }
 
-  private sortNotes(notes: BookTypes.PropertyNote[]) {
-    return orderBy(notes, 'asc', (n) => [
-      n.section,
-      n.paragraph,
+  private sortAnnotations(annotations: BookTypes.PropertyAnnotation[]) {
+    return orderBy(annotations, 'asc', (n) => [
+      n.pos.section,
+      n.pos.paragraph,
       n.range?.start ?? 0,
     ])
   }
 
-  async notesGet(): Promise<BookTypes.PropertyNote[]> {
+  async annotationsGet(): Promise<BookTypes.PropertyAnnotation[]> {
     const prop = await this.readProp()
-    return prop.notes ?? []
+    return prop.annotations ?? []
   }
 
-  async notesUnsert(notes: BookTypes.PropertyNote[]) {
+  async annotationsUpsert(annotations: BookTypes.PropertyAnnotation[]) {
     const prop = await this.readProp()
-    prop.notes ??= []
-    for (const note of notes) {
-      const index = prop.notes.findIndex((b) => b.uuid === note.uuid)
-      if (index !== -1) prop.notes[index] = note
-      else prop.notes.push(note)
+    prop.annotations ??= []
+    for (const annotation of annotations) {
+      const index = prop.annotations.findIndex(
+        (b) => b.uuid === annotation.uuid,
+      )
+      if (index !== -1) prop.annotations[index] = annotation
+      else prop.annotations.push(annotation)
     }
-    prop.notes = this.sortNotes(prop.notes)
+    prop.annotations = this.sortAnnotations(prop.annotations)
+    await this.writeProp(prop)
+    return prop.annotations
+  }
+
+  async annotationsDelete(annotationUuids: string[]) {
+    const prop = await this.readProp()
+    if (prop.annotations)
+      prop.annotations = prop.annotations.filter(
+        (b) => !annotationUuids.includes(b.uuid),
+      )
     await this.writeProp(prop)
   }
 
-  async notesDelete(noteUuids: string[]) {
+  async annotationsDeleteAll() {
     const prop = await this.readProp()
-    if (prop.notes)
-      prop.notes = prop.notes.filter((b) => !noteUuids.includes(b.uuid))
-    await this.writeProp(prop)
-  }
-
-  async notesDeleteAll() {
-    const prop = await this.readProp()
-    if (prop.notes) prop.notes = []
+    if (prop.annotations) prop.annotations = []
     await this.writeProp(prop)
   }
 }

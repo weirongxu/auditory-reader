@@ -1,4 +1,4 @@
-import { ChevronRight, Delete, MoreVert } from '@mui/icons-material'
+import { Delete, MoreVert } from '@mui/icons-material'
 import { Menu, MenuItem } from '@mui/material'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -45,9 +45,6 @@ function BookmarkItem({
         }}
       >
         <div className="item">
-          {isSelected && !isMobile && (
-            <ChevronRight className="selected-icon" />
-          )}
           <div
             className={textCls.join(' ')}
             style={{ fontSize: 13 }}
@@ -230,6 +227,13 @@ export function useBookViewBookmarks(
       player.bookmarks.reload = undefined
     }
   }, [player.bookmarks, reload])
+
+  useEffect(() => {
+    player.annotations.reload = reload
+    return () => {
+      player.annotations.reload = undefined
+    }
+  }, [player.annotations, reload])
 
   const activeBookmarkIndex = useMemo(() => {
     const idx = bookmarks?.findIndex(

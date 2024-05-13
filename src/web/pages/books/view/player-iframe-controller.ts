@@ -10,9 +10,11 @@ import {
   IMG_MAX_HEIGHT_CLASS,
   IMG_MAX_WIDTH_CLASS,
   PARA_ACTIVE_CLASS,
+  PARA_ANNOTATION_CLASS,
   PARA_BOOKMARK_CLASS,
   PARA_BOX_CLASS,
-  PARA_HIGHLIGHT_CLASS,
+  ROOT_ANNOTATION_HIGHLIGHT_CLASS,
+  ROOT_UTTERER_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
 import {
   isFirefox,
@@ -49,6 +51,8 @@ import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
 import { iframeWinAtom } from '../../../atoms.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { AnnotationHighlight } from './annotation-highlight.js'
+import type { HighlightBlock } from './highlight.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -82,6 +86,7 @@ export class PlayerIframeController {
   public doc?: Document
   public events = new Emitter<{ scroll: void }>()
   public isVertical = false
+  public annotationHl: AnnotationHighlight
 
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
@@ -136,6 +141,8 @@ export class PlayerIframeController {
       location.href,
     ).toString()
 
+    this.annotationHl = new AnnotationHighlight(this, states)
+
     this.states.events.on('pos', () => {
       this.updateParagraphActive()
       this.updateActiveNavs()
@@ -149,6 +156,10 @@ export class PlayerIframeController {
 
     this.states.uiEvents.on('bookmarks', () => {
       this.updateBookmarks()
+    })
+
+    this.states.uiEvents.on('annotations', () => {
+      this.updateAnnotations()
     })
 
     let firstPageListChanged = true
@@ -659,7 +670,9 @@ export class PlayerIframeController {
       this.hookImgs(doc)
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
+      this.annotationHl.reCreateRoot(doc)
       this.updateBookmarks()
+      this.updateAnnotations()
     }
   }
 
@@ -681,6 +694,7 @@ export class PlayerIframeController {
             userOperator: false,
           })
         this.player.utterer.hl.highlightHide()
+        this.updateAnnotations()
       }
     })
   })
@@ -828,14 +842,15 @@ export class PlayerIframeController {
 
       ${hoverStyle}
 
-      .${PARA_HIGHLIGHT_CLASS} > div {
+      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div, .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div {
         background-color: var(--main-bg-highlight) !important;
         color: var(--main-fg-highlight) !important;
         position: absolute;
         user-select: none;
+        pointer-events: none;
       }
 
-      .${PARA_BOOKMARK_CLASS} {
+      .${PARA_BOOKMARK_CLASS}, .${PARA_ANNOTATION_CLASS} {
         text-decoration-line: underline;
         text-decoration-style: dashed;
         text-decoration-thickness: 1px;
@@ -920,17 +935,18 @@ export class PlayerIframeController {
     if (!win || !doc) return
     const click = (e: Event, paraIndex: number) => {
       eventBan(e)
-      this.player.gotoParagraph(paraIndex).catch(console.error)
+      void this.player.gotoParagraph(paraIndex)
     }
     const dblclick = (e: Event, paraIndex: number) => {
       eventBan(e)
       doc.getSelection()?.removeAllRanges()
-      this.player.bookmarks
-        .toggleBookmark({
+      void this.player.annotations.toggle(
+        {
           section: this.states.pos.section,
           paragraph: paraIndex,
-        })
-        .catch(console.error)
+        },
+        null,
+      )
     }
     this.readableParts.forEach((n, i) => {
       if (n.type === 'text') {
@@ -1278,6 +1294,34 @@ export class PlayerIframeController {
         if (!item) continue
         item.elem.classList.add(PARA_BOOKMARK_CLASS)
       }
+    }).catch(console.error)
+  }
+
+  protected updateAnnotations() {
+    this.tryManipulateDOM(() => {
+      if (!this.states.annotations || !this.doc) return
+      for (const item of Array.from(
+        this.doc.querySelectorAll(`.${PARA_ANNOTATION_CLASS}`),
+      )) {
+        item.classList.remove(PARA_ANNOTATION_CLASS)
+      }
+      const hlBlocks: HighlightBlock[] = []
+      for (const annotation of this.states.annotations) {
+        if (annotation.pos.section !== this.states.pos.section) continue
+        const node = this.readableParts.at(annotation.pos.paragraph)
+        if (!node) continue
+        if (!annotation.range) {
+          node.elem.classList.add(PARA_ANNOTATION_CLASS)
+          continue
+        }
+        hlBlocks.push({
+          node,
+          charIndex: annotation.range.start,
+          charLength: annotation.range.end - annotation.range.start,
+          color: 'var(--main-bg-blue)',
+        })
+      }
+      this.annotationHl.highlight(hlBlocks, false)
     }).catch(console.error)
   }
 

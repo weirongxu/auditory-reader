@@ -3,8 +3,8 @@ import { useMemo } from 'react'
 import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useViewPanelType } from '../../../../store.js'
-import { BookmarkDialogs } from '../bookmark-dialogs.js'
 import type { Player } from '../player.js'
+import { useBookViewAnnotations } from './annotations.js'
 import { useBookViewBookmarks } from './bookmarks.js'
 import { useBookViewNav } from './nav.js'
 
@@ -17,8 +17,14 @@ export function useBookPanel(
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
-  const { bookmarks, BookmarkView, activeBookmark, activeBookmarkRange } =
-    useBookViewBookmarks(book, player, pos, selection)
+  const { bookmarks, BookmarkView, activeBookmark } = useBookViewBookmarks(
+    book,
+    player,
+    pos,
+    selection,
+  )
+  const { annotations, AnnotationView, activeAnnotation } =
+    useBookViewAnnotations(book, player, pos, selection)
 
   const BookPanelView = useMemo(
     () => (
@@ -41,6 +47,12 @@ export function useBookPanel(
               {BookmarkView}
             </>
           )}
+          {viewPanelType === 'annotation' && (
+            <>
+              <h3>{t('annotation')}</h3>
+              {AnnotationView}
+            </>
+          )}
         </div>
         <div
           className={[
@@ -49,23 +61,12 @@ export function useBookPanel(
           ].join(' ')}
           onClick={() => setViewPanelType('none')}
         ></div>
-        <BookmarkDialogs
-          player={player}
-          pos={pos}
-          selection={selection}
-          activeBookmark={activeBookmark}
-          activeBookmarkRange={activeBookmarkRange}
-        />
       </>
     ),
     [
+      AnnotationView,
       BookmarkView,
       NavTreeView,
-      activeBookmark,
-      activeBookmarkRange,
-      player,
-      pos,
-      selection,
       setViewPanelType,
       viewPanelType,
     ],
@@ -74,17 +75,19 @@ export function useBookPanel(
   return useMemo(
     () => ({
       bookmarks,
-      BookPanelView,
-      setViewPanelType,
       activeBookmark,
-      activeBookmarkRange,
+      annotations,
+      activeAnnotation,
+      setViewPanelType,
+      BookPanelView,
     }),
     [
       bookmarks,
-      BookPanelView,
-      setViewPanelType,
       activeBookmark,
-      activeBookmarkRange,
+      annotations,
+      activeAnnotation,
+      setViewPanelType,
+      BookPanelView,
     ],
   )
 }

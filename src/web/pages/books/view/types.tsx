@@ -32,12 +32,3 @@ export interface TextAlias {
   source: string
   target: string
 }
-
-export interface Rect {
-  top: number
-  bottom: number
-  left: number
-  right: number
-  width: number
-  height: number
-}

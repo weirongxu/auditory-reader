@@ -760,7 +760,7 @@ export function BookList() {
           <TableHead>
             <TableRow>
               <TableCell width="8px" padding="none"></TableCell>
-              <TableCell padding="none">
+              <TableCell width="10px" padding="none">
                 <Checkbox
                   title={t('all')}
                   checked={allSelected}
@@ -769,7 +769,7 @@ export function BookList() {
                   }}
                 ></Checkbox>
               </TableCell>
-              <TableCell>{t('favorite')}</TableCell>
+              <TableCell width="10px">{t('favorite')}</TableCell>
               <TableCell padding="none">{t('cover')}</TableCell>
               <TableCell>{t('bookName')}</TableCell>
               <TableCell padding="none"></TableCell>

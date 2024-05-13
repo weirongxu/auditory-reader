@@ -3,43 +3,34 @@ import {
   BookmarkAdd,
   BookmarkRemove,
   CollectionsBookmark,
+  CollectionsBookmarkOutlined,
   FastForward,
   FastRewind,
   FirstPage,
-  NoteAdd,
   Pause,
   PlayArrow,
   Save,
   SkipNext,
   SkipPrevious,
   Start,
-  Try,
 } from '@mui/icons-material'
 import {
   Autocomplete,
   Button,
   ButtonGroup,
   Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   IconButton,
   Popover,
   TextField,
-  Typography,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
-import { eventBan } from '../../../../core/util/dom.js'
 import { async } from '../../../../core/util/promise.js'
-import { useConfirmHotkey } from '../../../common/confirm.js'
-import { FlexBox } from '../../../components/flex-box.js'
-import { Textarea } from '../../../components/textarea.js'
 import {
   useAutoSection,
   useDisabledVertical,
@@ -59,10 +50,6 @@ import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
-import {
-  useBookmarkNoteDialog,
-  useBookmarkRangeNoteDialog,
-} from './bookmark-dialogs.js'
 
 function TooltipButton({
   tooltip,
@@ -200,10 +187,11 @@ export function usePlayerUI({
   const nav = useNavigate()
   const {
     bookmarks,
-    BookPanelView,
-    setViewPanelType,
     activeBookmark,
-    activeBookmarkRange,
+    annotations,
+    activeAnnotation,
+    setViewPanelType,
+    BookPanelView,
   } = useBookPanel(book, player, activeNavs, pos, selection)
   const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
@@ -220,6 +208,7 @@ export function usePlayerUI({
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerUISync(player, {
       bookmarks,
+      annotations,
       autoNextSection,
       isPersonReplace,
       speechSpeed,
@@ -229,9 +218,6 @@ export function usePlayerUI({
       fontSize,
       disabledVertical,
     })
-
-  const bookmarkNoteOpen = useBookmarkNoteDialog()
-  const bookmarkRangeNoteOpen = useBookmarkRangeNoteDialog()
 
   const PlayerCtrlGroup = useMemo(() => {
     const buttons: JSX.Element[] = [
@@ -245,37 +231,24 @@ export function usePlayerUI({
         <AccountTree />
       </TooltipButton>,
       <TooltipButton
-        key="bookmarks"
-        tooltip={<span>m</span>}
+        key="annotations"
+        tooltip={<span>shift + m</span>}
         onClick={() => {
-          setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
+          setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation'))
         }}
       >
         <CollectionsBookmark />
       </TooltipButton>,
       <TooltipButton
-        key="bookmark"
-        tooltip={<span>b</span>}
+        key="annotation"
+        tooltip={<span>v</span>}
         onClick={() => {
-          void player.bookmarks.toggleBookmark(pos)
+          void player.annotations.toggle(pos, selection ?? null)
         }}
       >
-        {activeBookmark ? <BookmarkRemove /> : <BookmarkAdd />}
+        {activeAnnotation ? <BookmarkRemove /> : <BookmarkAdd />}
       </TooltipButton>,
     ]
-
-    if (activeBookmark || selection)
-      buttons.push(
-        <TooltipButton
-          tooltip={<span>shift + b</span>}
-          onClick={() => {
-            if (selection) bookmarkRangeNoteOpen()
-            else bookmarkNoteOpen()
-          }}
-        >
-          <NoteAdd />
-        </TooltipButton>,
-      )
 
     if (!collapsed)
       buttons.push(
@@ -350,10 +323,21 @@ export function usePlayerUI({
         </Button>,
       )
 
+    buttons.push(
+      <TooltipButton
+        key="bookmarks"
+        tooltip={<span>m</span>}
+        onClick={() => {
+          setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
+        }}
+      >
+        <CollectionsBookmarkOutlined />
+      </TooltipButton>,
+    )
+
     return <ButtonGroup>{buttons}</ButtonGroup>
   }, [
-    activeBookmark,
-    activeBookmarkRange,
+    activeAnnotation,
     collapsed,
     isFirstParagraph,
     isFirstSection,

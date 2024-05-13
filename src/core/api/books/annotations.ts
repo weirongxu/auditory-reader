@@ -3,11 +3,11 @@ import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'
 import type { BookViewQuery } from './view.js'
 
-export const booksNotesRouter = new URouter<
+export const booksAnnotationsRouter = new URouter<
   BookViewQuery,
-  BookTypes.PropertyNote[]
->('books/notes').routeLogined(async ({ req, userInfo }) => {
+  BookTypes.PropertyAnnotation[]
+>('books/annotations').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
-  return bookEntity.notesGet()
+  return bookEntity.annotationsGet()
 })

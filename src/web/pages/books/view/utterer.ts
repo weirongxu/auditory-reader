@@ -1,5 +1,4 @@
 import { Speech, type SpeakResult } from '../../../../core/util/speech.js'
-import { Highlight } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states'
@@ -10,11 +9,12 @@ import {
   shutterPlay,
 } from './sound.js'
 import type { ReadablePartText } from './types.js'
+import { UttererHighlight } from './utterer-highlight.js'
 
 const speakRetriedMax = 3
 
 export class Utterer {
-  hl: Highlight
+  hl: UttererHighlight
   states: PlayerStatesManager
   speech: Speech
 
@@ -24,7 +24,7 @@ export class Utterer {
     iframeCtrler: PlayerIframeController,
   ) {
     this.states = states
-    this.hl = new Highlight(iframeCtrler, states)
+    this.hl = new UttererHighlight(iframeCtrler, states)
 
     this.speech = new Speech()
   }
@@ -42,7 +42,16 @@ export class Utterer {
       isPersonReplace: this.states.isPersonReplace,
       alias: this.player.iframeCtrler.alias,
       onBoundary: (event) => {
-        this.hl.highlight(node, event.charIndex, event.charLength)
+        this.hl.highlight(
+          [
+            {
+              node,
+              charIndex: event.charIndex,
+              charLength: event.charLength,
+            },
+          ],
+          true,
+        )
       },
     })
   }

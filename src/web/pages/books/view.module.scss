@@ -37,7 +37,7 @@
       }
 
       h3 {
-        padding: 0 8px;
+        padding: 0;
         margin: 0;
         border-bottom: 1px solid var(--main-fg);
       }
@@ -60,7 +60,7 @@
           display: flex;
           > .text {
             flex: 1;
-            padding: 4px;
+            padding: 2px;
             font-weight: bolder;
             &.clickable {
               cursor: pointer;
@@ -68,6 +68,14 @@
             &:hover {
               background-color: var(--main-bg-hover);
               color: var(--main-fg-hover);
+            }
+            &.active {
+              background-color: var(--main-bg-active);
+              color: var(--main-fg-active);
+            }
+            border: 2px solid transparent;
+            &.selected {
+              border: 2px solid var(--main-bg-blue);
             }
             .note {
               font-size: 12px;
@@ -116,26 +124,6 @@
     .panel-content {
       overflow-y: auto;
       overflow-x: hidden;
-    }
-
-    .book-bookmarks,
-    .book-nav {
-      li {
-        .item {
-          position: relative;
-          > .text {
-            &.active {
-              background-color: var(--main-bg-active);
-              color: var(--main-fg-active);
-            }
-          }
-          > .selected-icon {
-            position: absolute;
-            top: 0;
-            left: -18px;
-          }
-        }
-      }
     }
 
     .book-nav {
