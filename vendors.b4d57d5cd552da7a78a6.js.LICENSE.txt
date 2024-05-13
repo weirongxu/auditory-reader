@@ -20,6 +20,8 @@
  *  MIT License
  */
 
+/*! @license https://github.com/onury/invert-color */
+
 /**
  * @license React
  * react-dom.production.min.js
