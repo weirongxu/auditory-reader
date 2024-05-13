@@ -847,8 +847,9 @@ export class PlayerIframeController {
 
       .${PARA_BOOKMARK_CLASS}, .${PARA_ANNOTATION_CLASS} {
         text-decoration-line: underline;
-        text-decoration-style: dashed;
-        text-decoration-thickness: 1px;
+        text-decoration-style: solid;
+        text-decoration-thickness: 2px;
+        text-decoration-color: var(--main-bg-blue);
         text-underline-offset: 4px;
       }
     `

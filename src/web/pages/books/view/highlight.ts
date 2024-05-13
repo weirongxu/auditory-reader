@@ -1,4 +1,3 @@
-import { PARA_IGNORE_CLASS } from '../../../../core/consts.js'
 import { sum } from '../../../../core/util/collection.js'
 import { isElement, isTextNode } from '../../../../core/util/dom.js'
 import { throttleFn } from '../../../../core/util/timer.js'
@@ -141,7 +140,7 @@ export abstract class BaseHighlight {
       if (isTextNode(child)) {
         // text
         if (!child.textContent) continue
-        if (remainIndex < child.textContent.length) {
+        if (remainIndex <= child.textContent.length) {
           return {
             type: FindRangePosType.found,
             node: child,

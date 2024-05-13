@@ -6,7 +6,7 @@ import {
   Typography,
 } from '@mui/material'
 import { t } from 'i18next'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { FlexBox } from '../../../../components/flex-box.js'
@@ -17,6 +17,11 @@ export function useAnnotationNoteDialog({ player }: { player: Player }) {
   const [editAnnotation, setEditAnnotation] =
     useState<BookTypes.PropertyAnnotation | null>(null)
   const [note, setNote] = useState<string>()
+
+  useEffect(() => {
+    if (!editAnnotation) return
+    setNote(editAnnotation.note)
+  }, [editAnnotation])
 
   const onOk = useCallback(() => {
     if (editAnnotation)
