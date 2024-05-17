@@ -443,16 +443,16 @@ export class PlayerIframeController {
     }
 
     const goalLeft = goalPageIndex * this.viewOffsetWidth
+    await this.pageListScrollToLeft(goalLeft, { abortCtrl })
     if (jump) {
       const page = this.pageList.at(goalPageIndex)
-      if (page?.topmost) await this.player.gotoParagraph(page.topmost.paragraph)
-      else await this.pageListScrollToLeft(goalLeft, { abortCtrl })
-    } else {
-      await this.pageListScrollToLeft(goalLeft, { abortCtrl })
+      if (page?.topmost)
+        await this.player.gotoParagraph(page.topmost.paragraph, false)
     }
 
     this.#pushPageListLast = undefined
   }
+
   public async scrollToPercent(percent: number, jump: boolean) {
     const scrollElement = this.doc?.scrollingElement
     // eslint-disable-next-line no-console
@@ -931,7 +931,7 @@ export class PlayerIframeController {
     if (!win || !doc) return
     const click = (e: Event, paraIndex: number) => {
       eventBan(e)
-      void this.player.gotoParagraph(paraIndex)
+      void this.player.gotoParagraph(paraIndex, false)
     }
     const dblclick = (e: Event, paraIndex: number) => {
       eventBan(e)

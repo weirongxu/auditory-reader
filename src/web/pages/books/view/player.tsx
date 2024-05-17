@@ -96,19 +96,25 @@ export class Player {
     return this.states.pos.section === this.book.spines.length - 1
   }
 
-  private async checkAndGotoPos(to: {
+  private async checkAndGotoPos({
+    section,
+    paragraph,
+    scrollToParagraph = true,
+    animated = true,
+  }: {
     section?: number
     paragraph?: number
+    scrollToParagraph?: boolean
     animated?: boolean
   }) {
     if (
-      to.section !== undefined &&
-      (to.section < 0 || to.section >= this.book.spines.length)
+      section !== undefined &&
+      (section < 0 || section >= this.book.spines.length)
     )
       return
 
-    const section = to.section ?? this.states.pos.section
-    const paragraph = to.paragraph ?? this.states.pos.paragraph
+    section ??= this.states.pos.section
+    paragraph ??= this.states.pos.paragraph
 
     if (this.states.pos.section === section) {
       // Same section
@@ -119,15 +125,16 @@ export class Player {
 
       this.states.pos = {
         section,
-        paragraph: to.paragraph ?? this.states.pos.paragraph,
+        paragraph,
       }
-      await this.iframeCtrler.scrollToCurParagraph(to.animated)
+      if (scrollToParagraph)
+        await this.iframeCtrler.scrollToCurParagraph(animated)
     } else {
       // Change section
       await this.iframeCtrler.load({
         section,
-        paragraph: to.paragraph,
-        animated: to.animated,
+        paragraph,
+        animated,
       })
     }
 
@@ -189,19 +196,21 @@ export class Player {
     )
   }
 
-  async gotoParagraph(paragraph: number) {
-    await this.checkAndGotoPos({ paragraph })
+  async gotoParagraph(paragraph: number, scrollToParagraph = true) {
+    await this.checkAndGotoPos({ paragraph, scrollToParagraph })
   }
 
-  async prevParagraph() {
+  async prevParagraph(scrollToParagraph = true) {
     if (this.states.pos.paragraph === 0) await this.prevSection(-1)
-    else await this.gotoParagraph(this.states.pos.paragraph - 1)
+    else
+      await this.gotoParagraph(this.states.pos.paragraph - 1, scrollToParagraph)
   }
 
-  async nextParagraph() {
+  async nextParagraph(scrollToParagraph = true) {
     if (this.states.pos.paragraph >= this.iframeCtrler.readableParts.length - 1)
       await this.nextSection()
-    else await this.gotoParagraph(this.states.pos.paragraph + 1)
+    else
+      await this.gotoParagraph(this.states.pos.paragraph + 1, scrollToParagraph)
   }
 }
 

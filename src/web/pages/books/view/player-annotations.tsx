@@ -131,8 +131,8 @@ export class PlayerAnnotations {
   closestIndexByPos(pos: BookTypes.PropertyPosition) {
     const annotations = this.player.states.annotations
     if (!annotations) return null
-    const index = annotations.findIndex(
-      (n) => n.pos.section === pos.section && n.pos.paragraph === pos.paragraph,
+    const index = annotations.findLastIndex(
+      (n) => n.pos.section === pos.section && n.pos.paragraph <= pos.paragraph,
     )
     if (index === -1) return null
     return index
