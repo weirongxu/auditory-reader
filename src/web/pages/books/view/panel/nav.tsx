@@ -37,7 +37,7 @@ function NavList({
                 if (nav.href) player.gotoUrlPath(nav.href).catch(console.error)
               }}
             >
-              <span className={textCls.join(' ')}>{nav.label}</span>
+              <div className={textCls.join(' ')}>{nav.label}</div>
             </div>
             <NavList
               navs={nav.children}
