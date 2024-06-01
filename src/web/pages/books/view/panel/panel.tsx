@@ -13,7 +13,7 @@ export function useBookPanel(
   player: Player,
   activeNavs: BookNav[] | undefined,
   pos: BookTypes.PropertyPosition,
-  selection: BookTypes.PropertyBookmarkRange | undefined,
+  selection: BookTypes.PropertyAnnotationRange | undefined,
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
@@ -21,7 +21,6 @@ export function useBookPanel(
     book,
     player,
     pos,
-    selection,
   )
   const { annotations, AnnotationView, activeAnnotation } =
     useBookViewAnnotations(book, player, pos, selection)

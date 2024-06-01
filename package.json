@@ -15,6 +15,7 @@
     "dev:server:node": "node --loader ts-node/esm src/server/index.ts",
     "test": "jest src",
     "test:watch": "jest src --watch",
+    "test:types": "tsc --noEmit",
     "predeploy": "webpack build --mode production --env=app_public_path=/auditory-reader/ --env app_mode=service-worker",
     "deploy": "gh-pages -d sw-public",
     "start": "node lib/server/index.js",

@@ -61,16 +61,6 @@ function BookmarkItem({
                 note: {textEllispse(bookmark.note, 30)}
               </div>
             )}
-            <div className="range">
-              {bookmark.ranges?.map((range, i) => (
-                <div key={i}>
-                  <span className="selected-text">{range.selectedText}</span>
-                  <div className="note">
-                    note: {textEllispse(range.note, 30)}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
           {!isMobile && (
             <>
@@ -208,7 +198,6 @@ export function useBookViewBookmarks(
   book: BookView,
   player: Player,
   pos: BookTypes.PropertyPosition,
-  selection: BookTypes.PropertyBookmarkRange | undefined,
 ) {
   const uuid = book.item.uuid
   const { data: bookmarks, reload } = useAction(
@@ -250,13 +239,6 @@ export function useBookViewBookmarks(
     [bookmarks, activeBookmarkIndex],
   )
 
-  const activeBookmarkRange = useMemo(() => {
-    if (!activeBookmark || !selection) return
-    return activeBookmark.ranges?.find(
-      (range) => range.start === selection.start || range.end === selection.end,
-    )
-  }, [activeBookmark, selection])
-
   return {
     bookmarks,
     BookmarkView: (
@@ -267,6 +249,5 @@ export function useBookViewBookmarks(
       ></Bookmarks>
     ),
     activeBookmark,
-    activeBookmarkRange,
   }
 }

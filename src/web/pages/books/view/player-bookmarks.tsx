@@ -58,45 +58,14 @@ export class PlayerBookmarks {
     })
   }
 
-  async syncBookmarkWithRange(
-    pos: BookTypes.PropertyPosition,
-    bookmark: BookTypes.PropertyBookmark | undefined,
-    selection: BookTypes.PropertyBookmarkRange,
-    note?: string,
-  ) {
-    if (!bookmark) {
-      bookmark = await this.addBookmark(pos)
-      if (!bookmark) return
-    }
-    const ranges =
-      bookmark.ranges?.filter(
-        (r) => r.start !== selection.start || r.end !== selection.end,
-      ) ?? []
-    ranges.push({ ...selection, note })
-    await this.updateBookmark({
-      ...bookmark,
-      ranges,
-    })
-  }
-
   async removeBookmark(bookmark: BookTypes.PropertyBookmark) {
-    if (bookmark.note || (bookmark.ranges && bookmark.ranges.length > 0)) {
+    if (bookmark.note) {
       await uiConfirm({
         title: t('prompt.bookmarkRemoveConfirm'),
         description: (
           <>
             <p>{bookmark.brief}</p>
             <p>Note: {bookmark.note}</p>
-            {bookmark.ranges && bookmark.ranges.length > 0 && (
-              <ul>
-                {bookmark.ranges.map((range, i) => (
-                  <li key={i}>
-                    <p>Selected: {range.selectedText}</p>
-                    <p>Note: {range.note}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
           </>
         ),
       })

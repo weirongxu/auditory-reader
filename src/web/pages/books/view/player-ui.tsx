@@ -181,7 +181,7 @@ export function usePlayerUI({
   started: boolean
   player: Player
   activeNavs?: BookNav[]
-  selection?: BookTypes.PropertyBookmarkRange
+  selection?: BookTypes.PropertyAnnotationRange
   reload: () => void
 }) {
   const nav = useNavigate()

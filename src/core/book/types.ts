@@ -54,22 +54,11 @@ export namespace BookTypes {
     paragraph: number
   }
 
-  export type PropertyBookmarkRangePosition = {
-    start: number
-    end: number
-  }
-
-  export interface PropertyBookmarkRange extends PropertyBookmarkRangePosition {
-    selectedText: string
-    note?: string
-  }
-
   export interface PropertyBookmark extends PropertyPosition {
     uuid: string
     type: 'text'
     brief: string
     note?: string
-    ranges?: PropertyBookmarkRange[]
   }
 
   export type PropertyAnnotationRangePosition = {
@@ -79,6 +68,7 @@ export namespace BookTypes {
 
   export interface PropertyAnnotationRange
     extends PropertyAnnotationRangePosition {
+    paragraph: number
     selectedText: string
   }
 

@@ -28,7 +28,7 @@ export function useViewer({
   const [loading, setLoading] = useState<boolean>(false)
   const [scrollPercent, setScrollPercent] = useState<number | undefined>()
   const [selection, setSelection] = useState<
-    BookTypes.PropertyBookmarkRange | undefined
+    BookTypes.PropertyAnnotationRange | undefined
   >()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()

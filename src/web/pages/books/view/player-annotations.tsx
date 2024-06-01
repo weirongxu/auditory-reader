@@ -117,10 +117,11 @@ export class PlayerAnnotations {
   ): number | null {
     const annotations = this.player.states.annotations
     if (!annotations) return null
+    const paragraph = range?.paragraph ?? pos.paragraph
     const index = annotations.findIndex(
       (n) =>
         n.pos.section === pos.section &&
-        n.pos.paragraph === pos.paragraph &&
+        n.pos.paragraph === paragraph &&
         n.range?.start === range?.start &&
         n.range?.end === range?.end,
     )
@@ -138,7 +139,7 @@ export class PlayerAnnotations {
     return index
   }
 
-  byPos(
+  protected byPos(
     pos: BookTypes.PropertyPosition,
     range: BookTypes.PropertyAnnotationRange | null,
   ) {

@@ -620,7 +620,7 @@ export class PlayerIframeController {
       doc.addEventListener('selectionchange', () => {
         const boxSelector = `.${PARA_BOX_CLASS}`
         const getSelectionRange = ():
-          | BookTypes.PropertyBookmarkRange
+          | BookTypes.PropertyAnnotationRange
           | undefined => {
           const sel = doc.getSelection()
           if (!sel || sel.rangeCount <= 0) return
@@ -634,11 +634,15 @@ export class PlayerIframeController {
             ? parent
             : parent.closest(boxSelector)
           if (!elem) return
+          const paragraph = this.readableParts.findIndex(
+            (part) => part.elem === elem,
+          )
+          if (paragraph === -1) return
           const preCaretRange = range.cloneRange()
           preCaretRange.selectNodeContents(elem)
           preCaretRange.setEnd(range.endContainer, range.endOffset)
           const start = preCaretRange.toString().length - length
-          return { start, end: start + length, selectedText }
+          return { paragraph, start, end: start + length, selectedText }
         }
         this.states.selection = getSelectionRange()
       })

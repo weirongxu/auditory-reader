@@ -13,7 +13,7 @@ type PlayerStates = {
   activeNavs: BookNav[]
   loading: boolean
   scrollPercent: number | undefined
-  selection: BookTypes.PropertyBookmarkRange | undefined
+  selection: BookTypes.PropertyAnnotationRange | undefined
 }
 
 type PlayerReadonlyStates = {
@@ -86,7 +86,7 @@ export class PlayerStatesManager {
     return this.#states.selection
   }
 
-  set selection(selection: BookTypes.PropertyBookmarkRange | undefined) {
+  set selection(selection: BookTypes.PropertyAnnotationRange | undefined) {
     this.#states.selection = selection
     this.events.fire('selection', selection)
   }
@@ -178,7 +178,7 @@ export function usePlayerSync(
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
     setScrollPercent: Dispatch<number | undefined>
-    setSelection: Dispatch<BookTypes.PropertyBookmarkRange | undefined>
+    setSelection: Dispatch<BookTypes.PropertyAnnotationRange | undefined>
   },
 ) {
   useEffect(() => {
