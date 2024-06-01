@@ -1187,6 +1187,7 @@ export class PlayerIframeController {
     } else {
       pageCount = Math.round(this.pageListScrollWidth / this.viewOffsetWidth)
     }
+    if (pageCount < 1) pageCount = 1
 
     this.pageListCount = pageCount
     // eslint-disable-next-line no-console
