@@ -68,7 +68,6 @@ export namespace BookTypes {
 
   export interface PropertyAnnotationRange
     extends PropertyAnnotationRangePosition {
-    paragraph: number
     selectedText: string
   }
 

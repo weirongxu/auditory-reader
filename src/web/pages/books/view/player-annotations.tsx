@@ -117,11 +117,10 @@ export class PlayerAnnotations {
   ): number | null {
     const annotations = this.player.states.annotations
     if (!annotations) return null
-    const paragraph = range?.paragraph ?? pos.paragraph
     const index = annotations.findIndex(
       (n) =>
         n.pos.section === pos.section &&
-        n.pos.paragraph === paragraph &&
+        n.pos.paragraph === pos.paragraph &&
         n.range?.start === range?.start &&
         n.range?.end === range?.end,
     )

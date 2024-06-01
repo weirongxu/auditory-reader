@@ -619,8 +619,8 @@ export class PlayerIframeController {
 
       doc.addEventListener('selectionchange', () => {
         const boxSelector = `.${PARA_BOX_CLASS}`
-        const getSelectionRange = ():
-          | BookTypes.PropertyAnnotationRange
+        const getSelectionPosRange = ():
+          | (BookTypes.PropertyAnnotationRange & { paragraph: number })
           | undefined => {
           const sel = doc.getSelection()
           if (!sel || sel.rangeCount <= 0) return
@@ -644,7 +644,20 @@ export class PlayerIframeController {
           const start = preCaretRange.toString().length - length
           return { paragraph, start, end: start + length, selectedText }
         }
-        this.states.selection = getSelectionRange()
+        const posRange = getSelectionPosRange()
+        if (posRange) {
+          this.states.pos = {
+            ...this.states.pos,
+            paragraph: posRange.paragraph,
+          }
+          this.states.selection = {
+            start: posRange.start,
+            end: posRange.end,
+            selectedText: posRange.selectedText,
+          }
+        } else {
+          this.states.selection = undefined
+        }
       })
 
       this.updateColorTheme(this.colorScheme)
