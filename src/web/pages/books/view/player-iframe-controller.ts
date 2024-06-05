@@ -751,6 +751,7 @@ export class PlayerIframeController {
           */
           columns: var(--main-column-count) var(--main-column-width) !important;
           column-gap: ${this.pageListGap}px !important;
+          column-fill: auto !important;
         }
         .${COLUMN_BREAK_CLASS} {
           content: ' ';
