@@ -3,7 +3,10 @@ import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'
 
 export type BookPost = {
-  page?: number
+  filter: Partial<BookTypes.FilterParams>
+  page: {
+    page?: number
+  }
 }
 
 export type BookPage = {
@@ -17,8 +20,8 @@ export const booksPageRouter = new URouter<BookPost, BookPage>(
   'books/page',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
-  const page = body.page ?? 1
-  const data = await bookManager.list(userInfo.account).page({ page })
+  const { page, filter } = body
+  const data = await bookManager.list(userInfo.account).page(filter, page)
   return {
     items: data.items,
     current: data.page,

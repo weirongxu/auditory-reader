@@ -3,14 +3,14 @@ import { URouter } from '../../route/router.js'
 
 export type BookMoveOffsetItQuery = {
   uuid: string
-  offset: number
+  afterUuid: string
 }
 
-export const booksMoveOffsetRouter = new URouter<BookMoveOffsetItQuery>(
-  'books/move-offset',
+export const booksMoveAfterRouter = new URouter<BookMoveOffsetItQuery>(
+  'books/move-after',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const book = bookManager.list(userInfo.account)
-  await book.moveOffset(body.uuid, body.offset)
+  await book.moveAfter(body.uuid, body.afterUuid)
   return { ok: true }
 })

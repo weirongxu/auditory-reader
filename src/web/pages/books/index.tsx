@@ -12,11 +12,13 @@ import {
   Checkbox,
   Chip,
   CircularProgress,
+  FormControlLabel,
   IconButton,
   Menu,
   MenuItem,
   Pagination,
   Paper,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -29,14 +31,15 @@ import { t } from 'i18next'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getBooksCoverPath } from '../../../core/api/books/cover.js'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
-import { booksMoveOffsetRouter } from '../../../core/api/books/move-offset.js'
+import { booksMoveAfterRouter } from '../../../core/api/books/move-after.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
 import type { BookPage } from '../../../core/api/books/page.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
+import { booksUpdateRouter } from '../../../core/api/books/update.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
@@ -50,7 +53,6 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
-import { booksUpdateRouter } from '../../../core/api/books/update.js'
 
 const DragType = 'book'
 type DragItem = {
@@ -62,6 +64,26 @@ type DragItem = {
 
 function viewPath(uuid: string) {
   return `/books/view/${uuid}`
+}
+
+const moveOffset = async (
+  books: BookTypes.Entity[],
+  currentIndex: number,
+  offset: number,
+) => {
+  if (offset === 0) return
+  const currentEntity = books.at(currentIndex)
+  if (!currentEntity) return
+  const uuid = currentEntity.uuid
+  const targetIndex = currentIndex + offset
+  if (targetIndex <= 0) return await booksMoveTopRouter.action({ uuid })
+  const afterIndex = targetIndex < currentIndex ? targetIndex - 1 : targetIndex
+  const afterBook = books.at(afterIndex)
+  if (!afterBook) return
+  await booksMoveAfterRouter.action({
+    uuid,
+    afterUuid: afterBook.uuid,
+  })
 }
 
 function useRemoveBooks(reload: () => void) {
@@ -167,6 +189,10 @@ function useSelector(books: BookTypes.Entity[] | null) {
 }
 
 function useHomeHotKeys({
+  activedIndex,
+  setActivedIndex,
+  setArchived,
+  setFavorited,
   setPage,
   dataBooks,
   selectTo,
@@ -176,6 +202,10 @@ function useHomeHotKeys({
   moveBooksTop,
   removeBooks,
 }: {
+  activedIndex: number
+  setActivedIndex: Dispatch<SetStateAction<number>>
+  setArchived: Dispatch<SetStateAction<boolean>>
+  setFavorited: Dispatch<SetStateAction<boolean>>
   setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
@@ -185,7 +215,6 @@ function useHomeHotKeys({
   moveBooksTop: (books: BookTypes.Entity[]) => Promise<void>
   removeBooks: (books: BookTypes.Entity[]) => void
 }) {
-  const [activedIndex, setActivedIndex] = useState(0)
   const [isPersonReplace] = usePersonReplace()
   const [speechSpeed] = useSpeechSpeed()
   const { getVoice } = useGetVoice()
@@ -196,6 +225,12 @@ function useHomeHotKeys({
   const currentBook = useMemo(
     () => dataBooks?.items[activedIndex],
     [activedIndex, dataBooks],
+  )
+
+  const actionBooks = useMemo(
+    () =>
+      selectedBooks.length ? selectedBooks : currentBook ? [currentBook] : [],
+    [currentBook, selectedBooks],
   )
 
   useEffect(() => {
@@ -244,22 +279,16 @@ function useHomeHotKeys({
     }
 
     const movePrev = async () => {
-      if (!currentBook) return
+      if (!currentBook || !dataBooks) return
       goPrev()
-      await booksMoveOffsetRouter.action({
-        uuid: currentBook.uuid,
-        offset: -1,
-      })
+      await moveOffset(dataBooks.items, activedIndex, -1)
       reload()
     }
 
     const moveNext = async () => {
-      if (!currentBook) return
+      if (!currentBook || !dataBooks) return
       goNext()
-      await booksMoveOffsetRouter.action({
-        uuid: currentBook.uuid,
-        offset: 1,
-      })
+      await moveOffset(dataBooks.items, activedIndex, 1)
       reload()
     }
 
@@ -268,24 +297,47 @@ function useHomeHotKeys({
     }
 
     const removeBook = () => {
-      if (currentBook) removeBooks(selectedBooks)
+      if (currentBook) removeBooks(actionBooks)
     }
 
     const moveBookTop = () => {
-      if (currentBook) void moveBooksTop(selectedBooks)
+      if (currentBook) void moveBooksTop(actionBooks)
+    }
+
+    const toggleListArchive = () => {
+      setArchived((v) => !v)
+    }
+
+    const toggleListFavorite = () => {
+      setFavorited((v) => !v)
+    }
+
+    const toggleArchive = () => {
+      async(async () => {
+        for (const book of actionBooks) {
+          await booksUpdateRouter.action({
+            uuid: book.uuid,
+            update: {
+              isArchived: !book.isArchived,
+            },
+          })
+        }
+        reload()
+      })
     }
 
     const toggleFavorite = () => {
-      if (currentBook)
-        async(async () => {
+      async(async () => {
+        for (const book of actionBooks) {
           await booksUpdateRouter.action({
-            uuid: currentBook.uuid,
+            uuid: book.uuid,
             update: {
-              isFavorited: !currentBook.isFavorited,
+              isFavorited: !book.isFavorited,
             },
           })
-          reload()
-        })
+        }
+        reload()
+      })
     }
 
     const speech = new Speech()
@@ -313,7 +365,14 @@ function useHomeHotKeys({
       [{ ctrl: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],
       [{ ctrl: true, key: 'ArrowUp' }, t('hotkey.goMovePrev'), movePrev],
       [{ ctrl: true, key: 'ArrowDown' }, t('hotkey.goMoveNext'), moveNext],
-      ['s', t('hotkey.favorite'), toggleFavorite],
+      [
+        ['s', { shift: true, key: 'E' }],
+        t('hotkey.listArchive'),
+        toggleListArchive,
+      ],
+      [['s', 'b'], t('hotkey.listFavorite'), toggleListFavorite],
+      ['b', t('hotkey.favorite'), toggleFavorite],
+      [{ shift: true, key: 'E' }, t('hotkey.listArchive'), toggleArchive],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',
@@ -342,6 +401,7 @@ function useHomeHotKeys({
       [{ shift: true, key: 'K' }, t('hotkey.speakBookName'), speakBookName],
     ])
   }, [
+    actionBooks,
     activedIndex,
     addHotkeys,
     currentBook,
@@ -355,12 +415,12 @@ function useHomeHotKeys({
     removeBooks,
     selectAll,
     selectTo,
-    selectedBooks,
+    setActivedIndex,
+    setArchived,
+    setFavorited,
     setPage,
     speechSpeed,
   ])
-
-  return { activedIndex }
 }
 
 function BookButtons({
@@ -391,6 +451,20 @@ function BookButtons({
         onClose={() => setAnchorEl(null)}
       >
         <MenuItem onClick={() => openBookEdit(book.uuid)}>{t('edit')}</MenuItem>
+        <MenuItem
+          onClick={() => {
+            async(async () => {
+              await booksUpdateRouter.action({
+                uuid: book.uuid,
+                update: {
+                  isArchived: !book.isArchived,
+                },
+              })
+            })
+          }}
+        >
+          {book.isArchived ? t('unarchive') : t('archive')}
+        </MenuItem>
         <MenuItem onClick={() => exportBook()}>{t('export')} Epub</MenuItem>
       </Menu>
     </>
@@ -583,11 +657,24 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
 }
 
 export function BookList() {
+  const { state } = useLocation()
+  const locationInPage = state?.locationInPage as
+    | BookTypes.LocationInPageState
+    | undefined
   const theme = useTheme()
-  const [page, setPage] = useState<number>(1)
+  const [page, setPage] = useState<number>(locationInPage?.page ?? 1)
+  const [activedIndex, setActivedIndex] = useState(locationInPage?.index ?? 0)
+  const [archived, setArchived] = useState(false)
+  const [favorited, setFavorited] = useState(false)
   const { data: dataBooks, reload } = useAction(
     booksPageRouter,
-    { page },
+    {
+      filter: {
+        archive: archived ? 'archived' : 'active',
+        favorite: favorited ? 'favorited' : 'all',
+      },
+      page: { page },
+    },
     {
       autoLoad: false,
       clearWhenReload: false,
@@ -621,7 +708,11 @@ export function BookList() {
     [reload],
   )
 
-  const { activedIndex } = useHomeHotKeys({
+  useHomeHotKeys({
+    activedIndex,
+    setActivedIndex,
+    setArchived,
+    setFavorited,
     setPage,
     dataBooks,
     reload,
@@ -650,17 +741,18 @@ export function BookList() {
   const onDrop = useCallback(
     (item: DragItem) => {
       async(async () => {
-        const srcBook = books?.find((it) => it.uuid === item.uuid)
-        if (!srcBook) return
-        const offset = item.hoverIndex - item.startIndex
-        if (offset === 0) return
+        if (!dataBooks) return
         setLoading(true)
-        await booksMoveOffsetRouter.action({ uuid: item.uuid, offset })
+        await moveOffset(
+          dataBooks.items,
+          item.startIndex,
+          item.hoverIndex - item.startIndex,
+        )
         reload()
         setLoading(false)
       })
     },
-    [books, reload],
+    [dataBooks, reload],
   )
 
   const onCancel = useCallback(() => {
@@ -732,6 +824,13 @@ export function BookList() {
     bottomRight: AddBtn,
   })
 
+  useEffect(() => {
+    if (!books) return
+    if (books.length <= 0 && page > 1) {
+      setPage(1)
+    }
+  }, [books, page])
+
   if (loading || !dataBooks || !books) return <CircularProgress />
 
   const Pager =
@@ -744,59 +843,80 @@ export function BookList() {
       ></Pagination>
     ) : null
 
-  if (!books.length)
-    return <Alert severity="warning">{t('prompt.noBooks')}</Alert>
-
   return (
     <>
-      {Pager}
-      <TableContainer
-        sx={{
-          marginTop: theme.spacing(2),
-        }}
-        component={Paper}
-      >
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell width="8px" padding="none"></TableCell>
-              <TableCell width="10px" padding="none">
-                <Checkbox
-                  title={t('all')}
-                  checked={allSelected}
-                  onClick={() => {
-                    selectAll()
-                  }}
-                ></Checkbox>
-              </TableCell>
-              <TableCell width="10px">{t('favorite')}</TableCell>
-              <TableCell padding="none">{t('cover')}</TableCell>
-              <TableCell>{t('bookName')}</TableCell>
-              <TableCell padding="none"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {books.map((book, index) => {
-              return (
-                <BookRow
-                  book={book}
-                  books={books}
-                  index={index}
-                  actived={activedIndex === index}
-                  onHoverMove={onHoverMove}
-                  onDrop={onDrop}
-                  onCancel={onCancel}
-                  selectTo={selectTo}
-                  selectedUuids={selectedUuids}
-                  reload={reload}
-                  key={book.uuid}
-                ></BookRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {Pager}
+      <FormControlLabel
+        label={t('archive')}
+        control={
+          <Switch
+            checked={archived}
+            onChange={(e) => setArchived(e.target.checked)}
+          />
+        }
+      ></FormControlLabel>
+      <FormControlLabel
+        label={t('favorite')}
+        control={
+          <Switch
+            checked={favorited}
+            onChange={(e) => setFavorited(e.target.checked)}
+          />
+        }
+      ></FormControlLabel>
+      {books.length <= 0 ? (
+        <Alert severity="warning">{t('prompt.noBooks')}</Alert>
+      ) : (
+        <>
+          {Pager}
+          <TableContainer
+            sx={{
+              marginTop: theme.spacing(2),
+            }}
+            component={Paper}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell width="8px" padding="none"></TableCell>
+                  <TableCell width="10px" padding="none">
+                    <Checkbox
+                      title={t('all')}
+                      checked={allSelected}
+                      onClick={() => {
+                        selectAll()
+                      }}
+                    ></Checkbox>
+                  </TableCell>
+                  <TableCell width="10px">{t('favorite')}</TableCell>
+                  <TableCell padding="none">{t('cover')}</TableCell>
+                  <TableCell>{t('bookName')}</TableCell>
+                  <TableCell padding="none"></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {books.map((book, index) => {
+                  return (
+                    <BookRow
+                      book={book}
+                      books={books}
+                      index={index}
+                      actived={activedIndex === index}
+                      onHoverMove={onHoverMove}
+                      onDrop={onDrop}
+                      onCancel={onCancel}
+                      selectTo={selectTo}
+                      selectedUuids={selectedUuids}
+                      reload={reload}
+                      key={book.uuid}
+                    ></BookRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {Pager}
+        </>
+      )}
     </>
   )
 }

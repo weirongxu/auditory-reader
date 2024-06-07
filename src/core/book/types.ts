@@ -24,6 +24,7 @@ export namespace BookTypes {
     createdAt: string
     updatedAt: string
     isTmp: boolean
+    isArchived?: boolean
   }
 
   export type Entity = {
@@ -32,6 +33,7 @@ export namespace BookTypes {
     type: EntityType
     langCode: LangCode
     isFavorited: boolean
+    isArchived: boolean
     createdAt: Date
     updatedAt: Date
     isTmp: boolean
@@ -41,6 +43,7 @@ export namespace BookTypes {
     name?: string
     langCode?: LangCode
     isFavorited?: boolean
+    isArchived?: boolean
   }
 
   export type PropertyJson = {
@@ -83,12 +86,21 @@ export namespace BookTypes {
     color?: string
   }
 
-  export interface PageParamsRequired {
+  export interface FilterParams {
+    archive: 'all' | 'active' | 'archived'
+    favorite: 'all' | 'favorited' | 'unfavorited'
+  }
+
+  export interface LocationInPageState {
+    isArchived: boolean
+    page: number
+    index: number
+  }
+
+  export interface PageParams {
     page: number
     perPage: number
   }
-
-  export type PageParams = Partial<PageParamsRequired>
 
   export interface PageResult {
     page: number

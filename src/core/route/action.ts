@@ -57,6 +57,7 @@ export function useAction<Req, Res>(
   const navigate = useNavigate()
   const refArg = useRef<Req>(arg)
   refArg.current = arg
+  const argJson = JSON.stringify(arg)
   const refOptions = useRef<ActionOptions | undefined>(options)
   refOptions.current = options
   const [data, setData] = useState<Res>()
@@ -102,6 +103,10 @@ export function useAction<Req, Res>(
     },
     [load],
   )
+
+  useEffect(() => {
+    if (argJson) reload()
+  }, [argJson, reload])
 
   return { data, reload, error }
 }

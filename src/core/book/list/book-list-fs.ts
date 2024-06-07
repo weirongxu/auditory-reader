@@ -49,11 +49,14 @@ export class BookListFS extends BookListBase {
     return new BookEntityFS(this.allBooksDir, this.toEntity(entityJson))
   }
 
-  async bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void> {
+  protected async bookAdd(
+    entity: BookTypes.Entity,
+    file: ArrayBuffer,
+  ): Promise<void> {
     await BookEntityFS.create(this.allBooksDir, entity, file)
   }
 
-  async bookDelete(entityJson: BookTypes.EntityJson): Promise<void> {
+  protected async bookDelete(entityJson: BookTypes.EntityJson): Promise<void> {
     const book = new BookEntityFS(this.allBooksDir, this.toEntity(entityJson))
     await book.delete()
   }

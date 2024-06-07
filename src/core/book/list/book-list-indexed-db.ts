@@ -27,11 +27,14 @@ export class BookListIndexedDB extends BookListBase {
     return new BookEntityIndexedDB(this.toEntity(entityJson))
   }
 
-  async bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void> {
+  protected async bookAdd(
+    entity: BookTypes.Entity,
+    file: ArrayBuffer,
+  ): Promise<void> {
     await BookEntityIndexedDB.create(entity, file)
   }
 
-  async bookDelete(entityJson: BookTypes.EntityJson): Promise<void> {
+  protected async bookDelete(entityJson: BookTypes.EntityJson): Promise<void> {
     const book = new BookEntityIndexedDB(this.toEntity(entityJson))
     await book.delete()
   }

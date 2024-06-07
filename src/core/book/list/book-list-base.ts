@@ -6,7 +6,9 @@ import type { BookTypes } from '../types.js'
 export abstract class BookListBase {
   protected json?: BookTypes.Json
 
-  protected version = 1
+  public readonly version = 1
+
+  public readonly defaultPerPage = 15
 
   constructor(protected readonly account: string) {}
 
@@ -14,7 +16,7 @@ export abstract class BookListBase {
     return this.json?.tmp?.uuid
   }
 
-  isTmpUuid(uuid: string) {
+  protected isTmpUuid(uuid: string) {
     return this.json?.tmp?.uuid === uuid
   }
 
@@ -37,6 +39,22 @@ export abstract class BookListBase {
     return data.list
   }
 
+  protected async listFilter({
+    archive = 'active',
+    favorite = 'all',
+  }: Partial<BookTypes.FilterParams>): Promise<BookTypes.EntityJson[]> {
+    let list = await this.list()
+    if (archive !== 'all')
+      list = list.filter((it) =>
+        archive === 'archived' ? it.isArchived : !it.isArchived,
+      )
+    if (favorite !== 'all')
+      list = list.filter((it) =>
+        favorite === 'favorited' ? it.isFavorited : !it.isFavorited,
+      )
+    return list
+  }
+
   protected async getTmp(): Promise<BookTypes.EntityJson | undefined> {
     const data = await this.getJson()
     return data.tmp
@@ -53,12 +71,8 @@ export abstract class BookListBase {
 
   protected abstract writeJson(json: BookTypes.Json): Promise<void>
 
-  async count(): Promise<number> {
-    const l = await this.list()
-    return l.length
-  }
-
-  async moveOffset(uuid: string, offset: number): Promise<void> {
+  public async moveOffset(uuid: string, offset: number): Promise<void> {
+    if (offset === 0) return
     const list = await this.list()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
@@ -69,7 +83,26 @@ export abstract class BookListBase {
     await this.write()
   }
 
-  async moveTop(uuid: string): Promise<void> {
+  public async moveAfter(uuid: string, afterUuid: string): Promise<void> {
+    if (uuid === afterUuid) return
+    const list = await this.list()
+    const entityIndex = list.findIndex((it) => it.uuid === uuid)
+    if (entityIndex === -1) return
+    const afterIndex = list.findIndex((it) => it.uuid === afterUuid)
+    if (afterIndex === -1) return
+    const targetIndex = afterIndex > entityIndex ? afterIndex : afterIndex + 1
+    if (
+      targetIndex === entityIndex ||
+      targetIndex < 0 ||
+      targetIndex >= list.length
+    )
+      return
+    const [entityJson] = list.splice(entityIndex, 1)
+    list.splice(targetIndex, 0, entityJson)
+    await this.write()
+  }
+
+  public async moveTop(uuid: string): Promise<void> {
     const list = await this.list()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
@@ -78,15 +111,14 @@ export abstract class BookListBase {
     await this.write()
   }
 
-  page(params: BookTypes.PageParams = {}): Promise<BookTypes.PageResult> {
-    return this.getPage({
-      page: params.page ?? 1,
-      perPage: params.perPage ?? 15,
-    })
-  }
-
-  async getPage({ page, perPage }: BookTypes.PageParamsRequired) {
-    const list = await this.list()
+  public async page(
+    filter: Partial<BookTypes.FilterParams>,
+    {
+      page = 1,
+      perPage = this.defaultPerPage,
+    }: Partial<BookTypes.PageParams> = {},
+  ): Promise<BookTypes.PageResult> {
+    const list = await this.listFilter(filter)
     const skipCount = perPage * (page - 1)
     const items = list
       .slice(skipCount, skipCount + perPage)
@@ -101,6 +133,26 @@ export abstract class BookListBase {
     }
   }
 
+  public async locationInPage(
+    uuid: string,
+    isArchived: boolean,
+    perPage = this.defaultPerPage,
+  ) {
+    const list = await this.listFilter({
+      archive: isArchived ? 'archived' : 'active',
+      favorite: 'all',
+    })
+    const fullIndex = list.findIndex((it) => it.uuid === uuid)
+    if (fullIndex === -1) return
+    const page = Math.floor(fullIndex / perPage) + 1
+    const index = fullIndex % perPage
+    return {
+      page,
+      index,
+      isArchived,
+    }
+  }
+
   protected async entityJson(uuid: string) {
     const list = await this.list()
     return list.find((it) => it.uuid === uuid)
@@ -112,6 +164,7 @@ export abstract class BookListBase {
       type: entityJson.type,
       langCode: entityJson.langCode,
       isFavorited: entityJson.isFavorited,
+      isArchived: Boolean(entityJson.isArchived),
       uuid: entityJson.uuid,
       createdAt: new Date(entityJson.createdAt),
       updatedAt: new Date(entityJson.updatedAt),
@@ -120,7 +173,10 @@ export abstract class BookListBase {
     return entity
   }
 
-  async update(uuid: string, update: BookTypes.EntityUpdate): Promise<void> {
+  public async update(
+    uuid: string,
+    update: BookTypes.EntityUpdate,
+  ): Promise<void> {
     const list = await this.list()
     const entityJson = list.find((it) => it.uuid === uuid)
     if (!entityJson) return
@@ -128,10 +184,12 @@ export abstract class BookListBase {
     if (update.name) entityJson.name = update.name
     if (update.isFavorited !== undefined)
       entityJson.isFavorited = update.isFavorited
+    if (update.isArchived !== undefined)
+      entityJson.isArchived = update.isArchived
     await this.write()
   }
 
-  async add(
+  public async add(
     entity: BookTypes.Entity,
     file: ArrayBuffer,
   ): Promise<BookTypes.EntityJson> {
@@ -163,7 +221,7 @@ export abstract class BookListBase {
     return entityJson
   }
 
-  async delete(uuid: string): Promise<void> {
+  public async delete(uuid: string): Promise<void> {
     const list = await this.list()
     const bookIndex = list.findIndex((b) => b.uuid === uuid)
     if (bookIndex === -1) {
@@ -176,7 +234,7 @@ export abstract class BookListBase {
     await this.write()
   }
 
-  async book(uuid: string): Promise<BookEntityBase | undefined> {
+  public async book(uuid: string): Promise<BookEntityBase | undefined> {
     const entityJson = this.isTmpUuid(uuid)
       ? await this.getTmp()
       : await this.entityJson(uuid)
@@ -188,7 +246,10 @@ export abstract class BookListBase {
     entity: BookTypes.EntityJson,
   ): BookEntityBase
 
-  abstract bookAdd(entity: BookTypes.Entity, file: ArrayBuffer): Promise<void>
+  protected abstract bookAdd(
+    entity: BookTypes.Entity,
+    file: ArrayBuffer,
+  ): Promise<void>
 
-  abstract bookDelete(entityJson: BookTypes.EntityJson): Promise<void>
+  protected abstract bookDelete(entityJson: BookTypes.EntityJson): Promise<void>
 }

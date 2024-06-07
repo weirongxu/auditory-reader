@@ -14,6 +14,8 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import { ViewProgressBar } from './progress-bar.js'
 import type { BookContextProps } from './types'
+import { async } from '../../../../core/util/promise.js'
+import { booksLocationInPageRouter } from '../../../../core/api/books/book-location.js'
 
 export function useViewer({
   uuid,
@@ -130,7 +132,19 @@ export function useViewer({
         t('hotkey.annotationToggle'),
         () => player.annotations.toggle(pos, selection ?? null),
       ],
-      ['u', t('hotkey.goBack'), () => nav('../../')],
+      [
+        'u',
+        t('hotkey.goBack'),
+        () => {
+          async(async () => {
+            const locationInPage = await booksLocationInPageRouter.action({
+              uuid: book.item.uuid,
+              isArchived: book.item.isArchived,
+            })
+            nav('../', { state: { locationInPage } })
+          })
+        },
+      ],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
       [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
       [{ shift: true, key: 'ArrowLeft' }, t('hotkey.prevSection'), prevSection],
@@ -154,7 +168,7 @@ export function useViewer({
       ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
       ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
-  }, [addHotkeys, nav, player, pos, selection, setViewPanelType])
+  }, [addHotkeys, book, nav, player, pos, selection, setViewPanelType])
 
   // leave
   useUnmountEffect(() => {

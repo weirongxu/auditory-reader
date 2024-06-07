@@ -42,7 +42,7 @@ class BookManager {
     return uuid ?? TMP_UUID
   }
 
-  list(account: string) {
+  list(account: string): BookListBase {
     let bookList = this.cacheList.get(account)
     if (!bookList) {
       bookList =
