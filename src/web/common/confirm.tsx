@@ -10,7 +10,7 @@ import { useSyncedRef } from '@react-hookz/web'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
-import { useKeyEscape } from '../hooks/useEscape.js'
+import { useKeyEscape } from '../hooks/use-escape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { globalStore } from '../store/global.js'
 

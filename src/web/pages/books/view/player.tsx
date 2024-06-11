@@ -12,6 +12,7 @@ import {
 } from './player-iframe-controller.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
+import { SingleEmitter } from '../../../../core/util/emitter.js'
 
 export class Player {
   states: PlayerStatesManager
@@ -19,6 +20,7 @@ export class Player {
   iframeCtrler: PlayerIframeController
   bookmarks: PlayerBookmarks
   annotations: PlayerAnnotations
+  unmount = new SingleEmitter<void>({ once: true })
 
   constructor(
     public book: BookView,
@@ -46,22 +48,10 @@ export class Player {
     onVisibilityChange()
     document.addEventListener('visibilitychange', onVisibilityChange)
     const startedDispose = this.states.events.on('started', onVisibilityChange)
-    this.onUnmount(() => {
+    this.unmount.on(() => {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       startedDispose()
     })
-  }
-
-  #onUnmountCallbacks: (() => void)[] = []
-  onUnmount(callback: () => void) {
-    this.#onUnmountCallbacks.push(callback)
-  }
-
-  triggerUnmount() {
-    for (const callback of this.#onUnmountCallbacks) {
-      callback()
-    }
-    this.#onUnmountCallbacks = []
   }
 
   start() {
@@ -224,7 +214,7 @@ export function usePlayer(
     player.current = new Player(book, pos, iframeRef)
   }
   useUnmountEffect(() => {
-    player.current?.triggerUnmount()
+    player.current?.unmount.fire()
   })
   usePlayerIframe(player.current)
   return player.current

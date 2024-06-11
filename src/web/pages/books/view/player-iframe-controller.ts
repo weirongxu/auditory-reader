@@ -4,6 +4,7 @@ import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
+import type { BookTypes } from '../../../../core/book/types.js'
 import {
   COLOR_SCHEME_DARK_CLASS,
   COLUMN_BREAK_CLASS,
@@ -33,7 +34,7 @@ import {
   isInputElement,
   svgToDataUri,
 } from '../../../../core/util/dom.js'
-import { Emitter } from '../../../../core/util/emitter.js'
+import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import {
   debounceFn,
@@ -41,18 +42,17 @@ import {
   type IterateAnimateOptions,
 } from '../../../../core/util/timer.js'
 import { urlSplitAnchor } from '../../../../core/util/url.js'
+import { iframeWinAtom } from '../../../atoms.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
 import { pushSnackbar } from '../../../common/snackbar.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
+import { AnnotationHighlight } from './annotation-highlight.js'
+import type { HighlightBlock } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-import { iframeWinAtom } from '../../../atoms.js'
-import type { BookTypes } from '../../../../core/book/types.js'
-import { AnnotationHighlight } from './annotation-highlight.js'
-import type { HighlightBlock } from './highlight.js'
 
 type ColorScheme = 'light' | 'dark'
 
@@ -84,7 +84,8 @@ export class PlayerIframeController {
   public alias: TextAlias[] = []
 
   public doc?: Document
-  public events = new Emitter<{ scroll: void }>()
+  public onScroll = new SingleEmitter<void>()
+  public unmount = new SingleEmitter<void>({ once: true })
   public isVertical = false
   public annotationHl: AnnotationHighlight
 
@@ -182,19 +183,7 @@ export class PlayerIframeController {
       this.onResized(this.doc)
     })
 
-    this.player.onUnmount(() => this.triggerUnmount())
-  }
-
-  #onUnmountCallbacks: (() => void)[] = []
-  onUnmount(callback: () => void) {
-    this.#onUnmountCallbacks.push(callback)
-  }
-
-  triggerUnmount() {
-    for (const callback of this.#onUnmountCallbacks) {
-      callback()
-    }
-    this.#onUnmountCallbacks = []
+    this.player.unmount.on(() => this.unmount.fire())
   }
 
   protected pageListType(): 'none' | 'double' | 'single' {
@@ -342,7 +331,7 @@ export class PlayerIframeController {
     if (!this.doc) return
     this.pageListScrollLeft = scrollLeft
     this.doc.documentElement.style.transform = `translateX(${-scrollLeft}px)`
-    this.events.fire('scroll', undefined)
+    this.onScroll.fire()
   }
 
   /**
@@ -519,7 +508,7 @@ export class PlayerIframeController {
         this.states.loading = true
         // NOTE: (visibility = none) has BUG in Safari
         this.iframe.style.opacity = '0'
-        this.triggerUnmount()
+        this.unmount.fire()
 
         const loaded = new Promise<void>((resolve) => {
           iframe.addEventListener(
@@ -617,49 +606,6 @@ export class PlayerIframeController {
           .writingMode.startsWith('vertical')
       else this.isVertical = false
 
-      doc.addEventListener('selectionchange', () => {
-        const boxSelector = `.${PARA_BOX_CLASS}`
-        const getSelectionPosRange = ():
-          | (BookTypes.PropertyAnnotationRange & { paragraph: number })
-          | undefined => {
-          const sel = doc.getSelection()
-          if (!sel || sel.rangeCount <= 0) return
-          const range = sel.getRangeAt(0)
-          const selectedText = range.toString()
-          const length = selectedText.length
-          if (!length) return
-          const parent = range.commonAncestorContainer.parentElement
-          if (!parent) return
-          const elem = parent.matches(boxSelector)
-            ? parent
-            : parent.closest(boxSelector)
-          if (!elem) return
-          const paragraph = this.readableParts.findIndex(
-            (part) => part.elem === elem,
-          )
-          if (paragraph === -1) return
-          const preCaretRange = range.cloneRange()
-          preCaretRange.selectNodeContents(elem)
-          preCaretRange.setEnd(range.endContainer, range.endOffset)
-          const start = preCaretRange.toString().length - length
-          return { paragraph, start, end: start + length, selectedText }
-        }
-        const posRange = getSelectionPosRange()
-        if (posRange) {
-          this.states.pos = {
-            ...this.states.pos,
-            paragraph: posRange.paragraph,
-          }
-          this.states.selection = {
-            start: posRange.start,
-            end: posRange.end,
-            selectedText: posRange.selectedText,
-          }
-        } else {
-          this.states.selection = undefined
-        }
-      })
-
       this.updateColorTheme(this.colorScheme)
       this.injectCSS(doc)
       this.updateFontSize(doc)
@@ -678,6 +624,7 @@ export class PlayerIframeController {
       if (this.isVertical) {
         this.hookVerticalWheel()
       }
+      this.hookSelection()
       this.hookScroll()
       this.hookALinks(doc)
       this.hookImgs(doc)
@@ -1038,7 +985,7 @@ export class PlayerIframeController {
     doc.addEventListener('touchstart', onStart)
     doc.addEventListener('touchmove', onMove)
     doc.addEventListener('touchend', onEnd)
-    this.onUnmount(() => {
+    this.unmount.on(() => {
       doc.documentElement.removeEventListener('touchstart', onStart)
       doc.documentElement.removeEventListener('touchmove', onMove)
       doc.documentElement.removeEventListener('touchend', onEnd)
@@ -1061,7 +1008,7 @@ export class PlayerIframeController {
     }
 
     doc.documentElement.addEventListener('wheel', onWheel)
-    this.onUnmount(() => {
+    this.unmount.on(() => {
       doc.documentElement.removeEventListener('wheel', onWheel)
     })
   }
@@ -1079,8 +1026,65 @@ export class PlayerIframeController {
     }
 
     doc.documentElement.addEventListener('wheel', onWheel)
-    this.onUnmount(() => {
+    this.unmount.on(() => {
       doc.documentElement.removeEventListener('wheel', onWheel)
+    })
+  }
+
+  protected hookSelection() {
+    const win = this.win
+    const doc = this.doc
+    if (!win || !doc) return
+
+    doc.addEventListener('selectionchange', () => {
+      const boxSelector = `.${PARA_BOX_CLASS}`
+      const getSelectionPosRange = ():
+        | (BookTypes.PropertyAnnotationRange & { paragraph: number })
+        | undefined => {
+        const sel = doc.getSelection()
+        if (!sel || sel.rangeCount <= 0) return
+        const range = sel.getRangeAt(0)
+        const selectedText = range.toString()
+        const length = selectedText.length
+        if (!length) return
+        const parent = range.commonAncestorContainer.parentElement
+        if (!parent) return
+        const elem = parent.matches(boxSelector)
+          ? parent
+          : parent.closest(boxSelector)
+        if (!elem) return
+        const paragraph = this.readableParts.findIndex(
+          (part) => part.elem === elem,
+        )
+        if (paragraph === -1) return
+        const preCaretRange = range.cloneRange()
+        preCaretRange.selectNodeContents(elem)
+        preCaretRange.setEnd(range.endContainer, range.endOffset)
+        const start = preCaretRange.toString().length - length
+        return { paragraph, start, end: start + length, selectedText }
+      }
+      const posRange = getSelectionPosRange()
+      if (posRange) {
+        this.states.pos = {
+          ...this.states.pos,
+          paragraph: posRange.paragraph,
+        }
+        this.states.selection = {
+          start: posRange.start,
+          end: posRange.end,
+          selectedText: posRange.selectedText,
+        }
+      } else {
+        this.states.selection = undefined
+      }
+    })
+
+    const onBlur = () => {
+      doc.getSelection()?.removeAllRanges()
+    }
+    win.addEventListener('blur', onBlur)
+    this.unmount.on(() => {
+      win.removeEventListener('blur', onBlur)
     })
   }
 
@@ -1106,15 +1110,13 @@ export class PlayerIframeController {
       this.states.scrollPercent = percent * 100
     }
     onScroll()
-    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
+    const disposeScrollEvent = this.onScroll.on(() => onScroll())
 
-    this.doc.addEventListener(
-      'scroll',
-      () => this.events.fire('scroll', undefined),
-      { passive: true },
-    )
+    this.doc.addEventListener('scroll', () => this.onScroll.fire(), {
+      passive: true,
+    })
 
-    this.onUnmount(() => {
+    this.unmount.on(() => {
       disposeScrollEvent()
     })
   }

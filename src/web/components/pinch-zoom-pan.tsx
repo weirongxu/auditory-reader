@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useKeyEscape } from '../hooks/useEscape.js'
+import { useKeyEscape } from '../hooks/use-escape.js'
 import * as styles from './pinch-zoom-pan.module.scss'
 import { eventBan } from '../../core/util/dom.js'
 

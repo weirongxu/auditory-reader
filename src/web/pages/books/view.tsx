@@ -1,11 +1,5 @@
 import { CircularProgress } from '@mui/material'
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type SetStateAction,
-} from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
@@ -17,7 +11,7 @@ import type { BookView } from '../../../core/book/book-base.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { FlexBox } from '../../components/flex-box.js'
-import { usePushTitle } from '../../hooks/useTitle.js'
+import { usePushTitle } from '../../hooks/use-title.js'
 import { NotFound } from '../not-found.js'
 import * as styles from './view.module.scss'
 import type { BookContextProps } from './view/types'
