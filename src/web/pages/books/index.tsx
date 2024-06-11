@@ -376,7 +376,7 @@ function useHomeHotKeys({
       ],
       [['s', 'b'], t('hotkey.listFavorite'), toggleListFavorite],
       ['b', t('hotkey.favorite'), toggleFavorite],
-      [{ shift: true, key: 'E' }, t('hotkey.listArchive'), toggleArchive],
+      [{ shift: true, key: 'E' }, t('hotkey.archive'), toggleArchive],
       ['/', t('hotkey.search'), focusSearchInput],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
@@ -838,12 +838,15 @@ export function BookList() {
     bottomRight: AddBtn,
   })
 
+  // reset page & activedIndex
   useEffect(() => {
     if (!books) return
-    if (books.length <= 0 && page > 1) {
-      setPage(1)
+    if (books.length <= 0) {
+      if (page > 1) setPage(1)
+    } else if (activedIndex > books.length - 1) {
+      setActivedIndex(books.length - 1)
     }
-  }, [books, page])
+  }, [activedIndex, books, page])
 
   if (loading || !dataBooks || !books) return <CircularProgress />
 
