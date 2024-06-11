@@ -676,7 +676,6 @@ export function BookList() {
       page: { page },
     },
     {
-      autoLoad: false,
       clearWhenReload: false,
     },
   )
@@ -722,10 +721,6 @@ export function BookList() {
     moveBooksTop,
     removeBooks,
   })
-
-  useEffect(() => {
-    if (page) reload()
-  }, [page, reload])
 
   const onHoverMove = useCallback(
     (dragIndex: number, hoverIndex: number) => {

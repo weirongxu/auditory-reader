@@ -57,26 +57,24 @@ export const useBookView = (uuid: string) => {
   } = useAction(booksPositionRouter, {
     uuid,
   })
-  const [pos, setPosOrigin] = useState<BookTypes.PropertyPosition>()
-  const setPos = useCallback(
-    (pos: SetStateAction<BookTypes.PropertyPosition | undefined>) => {
-      setPosOrigin(pos)
-    },
-    [],
-  )
+  const [pos, setPos] = useState<BookTypes.PropertyPosition>()
+  const section = pos?.section
+  const paragraph = pos?.paragraph
 
   const book = useBook(bookData)
 
   // get pos
   useEffect(() => {
-    if (posData) setPosOrigin(posData)
+    if (posData) setPos(posData)
   }, [posData])
 
   // sync pos
   useEffect(() => {
-    if (!pos) return
-    booksSyncPositionRouter.action({ uuid, pos }).catch(console.error)
-  }, [pos, uuid])
+    if (section === undefined || paragraph === undefined) return
+    booksSyncPositionRouter
+      .action({ uuid, pos: { section, paragraph } })
+      .catch(console.error)
+  }, [paragraph, section, uuid])
 
   const reload = useCallback(() => {
     reloadBook()

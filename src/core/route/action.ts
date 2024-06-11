@@ -42,10 +42,6 @@ type ActionOptions = {
   /**
    * @default true
    */
-  autoLoad?: boolean
-  /**
-   * @default true
-   */
   clearWhenReload?: boolean
 }
 
@@ -84,15 +80,6 @@ export function useAction<Req, Res>(
     [navigate, router],
   )
 
-  useEffect(() => {
-    if (refOptions.current?.autoLoad === false) return
-    const abort = new AbortController()
-    load(abort.signal)
-    return () => {
-      abort.abort()
-    }
-  }, [load])
-
   const reload = useCallback(
     (options?: { signal?: AbortSignal }) => {
       if (refOptions.current?.clearWhenReload !== false) {
@@ -105,7 +92,12 @@ export function useAction<Req, Res>(
   )
 
   useEffect(() => {
-    if (argJson) reload()
+    if (!argJson) return
+    const abort = new AbortController()
+    reload({ signal: abort.signal })
+    return () => {
+      abort.abort()
+    }
   }, [argJson, reload])
 
   return { data, reload, error }
