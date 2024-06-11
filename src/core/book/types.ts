@@ -89,6 +89,7 @@ export namespace BookTypes {
   export interface FilterParams {
     archive: 'all' | 'active' | 'archived'
     favorite: 'all' | 'favorited' | 'unfavorited'
+    search: string
   }
 
   export interface LocationInPageState {

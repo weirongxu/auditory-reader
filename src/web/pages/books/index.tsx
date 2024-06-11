@@ -25,6 +25,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
   useTheme,
 } from '@mui/material'
 import { t } from 'i18next'
@@ -47,6 +48,7 @@ import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { useSyncedDebounced } from '../../hooks/useSyncedDebounce.js'
 import { useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
@@ -193,6 +195,7 @@ function useHomeHotKeys({
   setActivedIndex,
   setArchived,
   setFavorited,
+  focusSearchInput,
   setPage,
   dataBooks,
   selectTo,
@@ -206,6 +209,7 @@ function useHomeHotKeys({
   setActivedIndex: Dispatch<SetStateAction<number>>
   setArchived: Dispatch<SetStateAction<boolean>>
   setFavorited: Dispatch<SetStateAction<boolean>>
+  focusSearchInput: () => void
   setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
@@ -373,6 +377,7 @@ function useHomeHotKeys({
       [['s', 'b'], t('hotkey.listFavorite'), toggleListFavorite],
       ['b', t('hotkey.favorite'), toggleFavorite],
       [{ shift: true, key: 'E' }, t('hotkey.listArchive'), toggleArchive],
+      ['/', t('hotkey.search'), focusSearchInput],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',
@@ -406,6 +411,7 @@ function useHomeHotKeys({
     addHotkeys,
     currentBook,
     dataBooks,
+    focusSearchInput,
     getVoice,
     isPersonReplace,
     moveBooksTop,
@@ -666,12 +672,18 @@ export function BookList() {
   const [activedIndex, setActivedIndex] = useState(locationInPage?.index ?? 0)
   const [archived, setArchived] = useState(false)
   const [favorited, setFavorited] = useState(false)
+
+  const [search, setSearch] = useState<string>('')
+  const searchDefered = useSyncedDebounced(search, 500)
+  const refSearchInput = useRef<HTMLInputElement | null>(null)
+
   const { data: dataBooks, reload } = useAction(
     booksPageRouter,
     {
       filter: {
         archive: archived ? 'archived' : 'active',
         favorite: favorited ? 'favorited' : 'all',
+        search: searchDefered,
       },
       page: { page },
     },
@@ -691,6 +703,12 @@ export function BookList() {
 
   const { selectedBooks, allSelected, selectedUuids, selectTo, selectAll } =
     useSelector(books)
+
+  const focusSearchInput = useCallback(() => {
+    if (refSearchInput.current) {
+      refSearchInput.current.focus()
+    }
+  }, [])
 
   const removeBooks = useRemoveBooks(reload)
 
@@ -712,6 +730,7 @@ export function BookList() {
     setActivedIndex,
     setArchived,
     setFavorited,
+    focusSearchInput,
     setPage,
     dataBooks,
     reload,
@@ -840,24 +859,39 @@ export function BookList() {
 
   return (
     <>
-      <FormControlLabel
-        label={t('archive')}
-        control={
-          <Switch
-            checked={archived}
-            onChange={(e) => setArchived(e.target.checked)}
-          />
-        }
-      ></FormControlLabel>
-      <FormControlLabel
-        label={t('favorite')}
-        control={
-          <Switch
-            checked={favorited}
-            onChange={(e) => setFavorited(e.target.checked)}
-          />
-        }
-      ></FormControlLabel>
+      <form
+        style={{
+          display: 'flex',
+        }}
+      >
+        <FormControlLabel
+          label={t('archive')}
+          control={
+            <Switch
+              checked={archived}
+              onChange={(e) => setArchived(e.target.checked)}
+            />
+          }
+        ></FormControlLabel>
+        <FormControlLabel
+          label={t('favorite')}
+          control={
+            <Switch
+              checked={favorited}
+              onChange={(e) => setFavorited(e.target.checked)}
+            />
+          }
+        ></FormControlLabel>
+        <TextField
+          label={t('search')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          inputRef={refSearchInput}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') refSearchInput.current?.blur()
+          }}
+        />
+      </form>
       {books.length <= 0 ? (
         <Alert severity="warning">{t('prompt.noBooks')}</Alert>
       ) : (

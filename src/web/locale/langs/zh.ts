@@ -1,4 +1,6 @@
-export const langZh = {
+import type { LangEn } from './en.js'
+
+export const langZh: LangEn = {
   setting: {
     title: '设置',
     autoNextSection: '自动下一章节',
@@ -69,6 +71,8 @@ export const langZh = {
     goBottom: '去到底部',
     goPagePrev: '去到上一页面',
     goPageNext: '去到下一页面',
+    goPageFirst: '去到第一页',
+    goPageLast: '去到最后一页',
     goMovePrev: '挪到上一个',
     goMoveNext: '挪到下一个',
     goMoveTop: '挪到顶部',
@@ -76,6 +80,7 @@ export const langZh = {
     listFavorite: '开关显示喜欢列表',
     archive: '开关存档',
     favorite: '开关喜欢',
+    search: '聚焦到搜索输入框',
     edit: '编辑当前选择',
     select: '开关选择',
     selectShift: '把最后一次选择至当位置的标记为选择',
@@ -137,6 +142,7 @@ export const langZh = {
   favorite: '喜欢',
   archive: '存档',
   unarchive: '取消存档',
+  search: '搜索',
   cover: '封面',
   nav: '导航',
   bookmark: '书签',

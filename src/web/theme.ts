@@ -27,7 +27,7 @@ const createAppTheme = (mode: ColorScheme) =>
         defaultProps: {
           size: 'small',
           margin: 'dense',
-          variant: 'standard',
+          variant: 'outlined',
         },
       },
       MuiSelect: {

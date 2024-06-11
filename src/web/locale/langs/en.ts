@@ -78,6 +78,7 @@ export const langEn = {
     listFavorite: 'Toggle display of list favorited books',
     archive: 'Toggle archive',
     favorite: 'Toggle favorite',
+    search: 'Focus to search input',
     edit: 'Edit current selection',
     select: 'Toggle select',
     selectShift: 'Mark from last select to current as selected',
@@ -139,6 +140,7 @@ export const langEn = {
   favorite: 'Favorite',
   archive: 'Archive',
   unarchive: 'Unarchive',
+  search: 'Search',
   cover: 'Cover',
   nav: 'Table contents',
   bookmark: 'Bookmark',
@@ -155,3 +157,5 @@ export const langEn = {
   cancel: 'Cancel',
   all: 'All',
 }
+
+export type LangEn = typeof langEn

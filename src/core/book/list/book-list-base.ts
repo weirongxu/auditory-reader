@@ -42,6 +42,7 @@ export abstract class BookListBase {
   protected async listFilter({
     archive = 'active',
     favorite = 'all',
+    search,
   }: Partial<BookTypes.FilterParams>): Promise<BookTypes.EntityJson[]> {
     let list = await this.list()
     if (archive !== 'all')
@@ -51,6 +52,10 @@ export abstract class BookListBase {
     if (favorite !== 'all')
       list = list.filter((it) =>
         favorite === 'favorited' ? it.isFavorited : !it.isFavorited,
+      )
+    if (search)
+      list = list.filter((it) =>
+        it.name.toLowerCase().includes(search.toLowerCase()),
       )
     return list
   }
