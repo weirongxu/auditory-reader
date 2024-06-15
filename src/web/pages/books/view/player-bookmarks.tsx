@@ -24,7 +24,7 @@ export class PlayerBookmarks {
     if (node.type !== 'text') {
       pushSnackbar({
         severity: 'error',
-        message: t('desc.noSuportedBookmark'),
+        message: t('desc.noSupportedBookmark'),
       })
       return
     }
