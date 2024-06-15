@@ -1,4 +1,5 @@
 import { TMP_UUID } from '../../consts.js'
+import { orderBy } from '../../util/collection.js'
 import { bookManager } from '../book-manager.js'
 import type { BookEntityBase } from '../entity/book-entity-base.js'
 import type { BookTypes } from '../types.js'
@@ -43,6 +44,7 @@ export abstract class BookListBase {
     archive = 'active',
     favorite = 'all',
     search,
+    order,
   }: Partial<BookTypes.FilterParams>): Promise<BookTypes.EntityJson[]> {
     let list = await this.list()
     if (archive !== 'all')
@@ -57,6 +59,19 @@ export abstract class BookListBase {
       list = list.filter((it) =>
         it.name.toLowerCase().includes(search.toLowerCase()),
       )
+    if (order && order !== 'default')
+      switch (order) {
+        case 'reverse':
+          list = [...list].reverse()
+          break
+        case 'name':
+          list = orderBy(list, 'asc', (it) => it.name)
+          break
+        case 'name-reverse':
+          list = orderBy(list, 'desc', (it) => it.name)
+          break
+      }
+
     return list
   }
 

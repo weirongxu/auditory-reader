@@ -81,6 +81,7 @@ export const langZh: LangEn = {
     archive: '开关存档',
     favorite: '开关喜欢',
     search: '聚焦到搜索输入框',
+    sortOrder: '选择排序',
     edit: '编辑当前选择',
     select: '开关选择',
     selectShift: '把最后一次选择至当位置的标记为选择',
@@ -97,7 +98,7 @@ export const langZh: LangEn = {
     addedBookmark: '添加了一个$t(bookmark)',
     updatedBookmark: '更新了一个$t(bookmark)',
     deletedBookmark: '删除了一个$t(bookmark)',
-    noSuportedBookmark: '不支持的$t(bookmark)类型',
+    noSupportedBookmark: '不支持的$t(bookmark)类型',
     bookmarksEmpty: '$t(bookmark)为空',
     updatedAnnotation: '更新了一个$t(annotation)',
     deletedAnnotation: '删除了一个$t(annotation)',
@@ -116,6 +117,15 @@ export const langZh: LangEn = {
     annotationRemoveConfirm: '删除此$t(annotation)和$t(note)吗?',
     uploadBook: '支持 .epub 和 .txt',
     noBooks: '这里没有书籍，添加你的第一本书吧。',
+  },
+  sortOrder: {
+    label: '排序',
+    item: {
+      default: '默认',
+      reverse: '反序',
+      name: '名称',
+      nameReverse: '名称反序',
+    },
   },
   error: {
     login: '$t(account)或$t(password)错误',

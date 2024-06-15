@@ -79,6 +79,7 @@ export const langEn = {
     archive: 'Toggle archive',
     favorite: 'Toggle favorite',
     search: 'Focus to search input',
+    sortOrder: 'Select sort order',
     edit: 'Edit current selection',
     select: 'Toggle select',
     selectShift: 'Mark from last select to current as selected',
@@ -95,7 +96,7 @@ export const langEn = {
     addedBookmark: 'Added a $t(bookmark)',
     deletedBookmark: 'Deleted a $t(bookmark)',
     updatedBookmark: 'Updated a $t(bookmark)',
-    noSuportedBookmark: 'No support $t(bookmark) type',
+    noSupportedBookmark: 'No support $t(bookmark) type',
     bookmarksEmpty: '$t(bookmark)s empty',
     updatedAnnotation: 'Updated a $t(annotation)',
     deletedAnnotation: 'Deleted a $t(annotation)',
@@ -114,6 +115,15 @@ export const langEn = {
     annotationRemoveConfirm: 'Remove this $t(annotation) with $t(note)?',
     uploadBook: 'Support .epub and .txt.',
     noBooks: 'No books here, Add your first book.',
+  },
+  sortOrder: {
+    label: 'Sort order',
+    item: {
+      default: 'Default',
+      reverse: 'Reverse',
+      name: 'Name',
+      nameReverse: 'Name reverse',
+    },
   },
   error: {
     login: '$t(account) or $t(password) error',

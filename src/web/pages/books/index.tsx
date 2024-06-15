@@ -18,6 +18,7 @@ import {
   MenuItem,
   Pagination,
   Paper,
+  Select,
   Switch,
   Table,
   TableBody,
@@ -49,14 +50,17 @@ import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { useSyncedDebounced } from '../../hooks/use-synced-debounce.js'
-import { useHotkeys } from '../../hotkey/hotkey-state.js'
+import { useHotkeys, type HotkeyItem } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
 
+type Order = BookTypes.FilterParams['order']
+
 const DragType = 'book'
+
 type DragItem = {
   name: string
   uuid: string
@@ -191,11 +195,12 @@ function useSelector(books: BookTypes.Entity[] | null) {
 }
 
 function useHomeHotKeys({
-  activedIndex,
-  setActivedIndex,
+  activatedIndex,
+  setActivatedIndex,
   setArchived,
   setFavorited,
   focusSearchInput,
+  focusOrderSelect,
   setPage,
   dataBooks,
   selectTo,
@@ -204,12 +209,14 @@ function useHomeHotKeys({
   reload,
   moveBooksTop,
   removeBooks,
+  hasOrder,
 }: {
-  activedIndex: number
-  setActivedIndex: Dispatch<SetStateAction<number>>
+  activatedIndex: number
+  setActivatedIndex: Dispatch<SetStateAction<number>>
   setArchived: Dispatch<SetStateAction<boolean>>
   setFavorited: Dispatch<SetStateAction<boolean>>
   focusSearchInput: () => void
+  focusOrderSelect: () => void
   setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
@@ -218,6 +225,7 @@ function useHomeHotKeys({
   reload: () => void
   moveBooksTop: (books: BookTypes.Entity[]) => Promise<void>
   removeBooks: (books: BookTypes.Entity[]) => void
+  hasOrder: boolean
 }) {
   const [isPersonReplace] = usePersonReplace()
   const [speechSpeed] = useSpeechSpeed()
@@ -227,8 +235,8 @@ function useHomeHotKeys({
   const nav = useNavigate()
 
   const currentBook = useMemo(
-    () => dataBooks?.items[activedIndex],
-    [activedIndex, dataBooks],
+    () => dataBooks?.items[activatedIndex],
+    [activatedIndex, dataBooks],
   )
 
   const actionBooks = useMemo(
@@ -241,23 +249,23 @@ function useHomeHotKeys({
     const count = dataBooks?.items.length ?? 0
 
     const goPrev = () => {
-      setActivedIndex((activedIndex) =>
-        activedIndex > 0 ? activedIndex - 1 : 0,
+      setActivatedIndex((activatedIndex) =>
+        activatedIndex > 0 ? activatedIndex - 1 : 0,
       )
     }
 
     const goTop = () => {
-      setActivedIndex(0)
+      setActivatedIndex(0)
     }
 
     const goNext = () => {
-      setActivedIndex((activedIndex) =>
-        activedIndex < count - 1 ? activedIndex + 1 : activedIndex,
+      setActivatedIndex((activatedIndex) =>
+        activatedIndex < count - 1 ? activatedIndex + 1 : activatedIndex,
       )
     }
 
     const goBottom = () => {
-      setActivedIndex(count - 1)
+      setActivatedIndex(count - 1)
     }
 
     const pagePrev = () => {
@@ -285,19 +293,19 @@ function useHomeHotKeys({
     const movePrev = async () => {
       if (!currentBook || !dataBooks) return
       goPrev()
-      await moveOffset(dataBooks.items, activedIndex, -1)
+      await moveOffset(dataBooks.items, activatedIndex, -1)
       reload()
     }
 
     const moveNext = async () => {
       if (!currentBook || !dataBooks) return
       goNext()
-      await moveOffset(dataBooks.items, activedIndex, 1)
+      await moveOffset(dataBooks.items, activatedIndex, 1)
       reload()
     }
 
     const select = (shift: boolean) => {
-      selectTo(activedIndex, shift)
+      selectTo(activatedIndex, shift)
     }
 
     const removeBook = () => {
@@ -356,7 +364,7 @@ function useHomeHotKeys({
       })
     }
 
-    return addHotkeys([
+    const hotkeys: HotkeyItem[] = [
       ['k', t('hotkey.goPrev'), goPrev],
       ['j', t('hotkey.goNext'), goNext],
       ['ArrowUp', t('hotkey.goPrev'), goPrev],
@@ -365,10 +373,6 @@ function useHomeHotKeys({
       ['l', t('hotkey.goPageNext'), pageNext],
       ['ArrowLeft', t('hotkey.goPagePrev'), pagePrev],
       ['ArrowRight', t('hotkey.goPageNext'), pageNext],
-      [{ ctrl: true, key: 'k' }, t('hotkey.goMovePrev'), movePrev],
-      [{ ctrl: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],
-      [{ ctrl: true, key: 'ArrowUp' }, t('hotkey.goMovePrev'), movePrev],
-      [{ ctrl: true, key: 'ArrowDown' }, t('hotkey.goMoveNext'), moveNext],
       [
         ['s', { shift: true, key: 'E' }],
         t('hotkey.listArchive'),
@@ -378,6 +382,7 @@ function useHomeHotKeys({
       ['b', t('hotkey.favorite'), toggleFavorite],
       [{ shift: true, key: 'E' }, t('hotkey.archive'), toggleArchive],
       ['/', t('hotkey.search'), focusSearchInput],
+      [['s', 's'], t('hotkey.sortOrder'), focusOrderSelect],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',
@@ -404,15 +409,27 @@ function useHomeHotKeys({
       [{ shift: true, key: 'h' }, t('hotkey.goPageFirst'), pageFirst],
       [{ shift: true, key: 'l' }, t('hotkey.goPageLast'), pageLast],
       [{ shift: true, key: 'K' }, t('hotkey.speakBookName'), speakBookName],
-    ])
+    ]
+
+    if (hasOrder)
+      hotkeys.push(
+        [{ ctrl: true, key: 'k' }, t('hotkey.goMovePrev'), movePrev],
+        [{ ctrl: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],
+        [{ ctrl: true, key: 'ArrowUp' }, t('hotkey.goMovePrev'), movePrev],
+        [{ ctrl: true, key: 'ArrowDown' }, t('hotkey.goMoveNext'), moveNext],
+      )
+
+    return addHotkeys(hotkeys)
   }, [
     actionBooks,
-    activedIndex,
+    activatedIndex,
     addHotkeys,
     currentBook,
     dataBooks,
+    focusOrderSelect,
     focusSearchInput,
     getVoice,
+    hasOrder,
     isPersonReplace,
     moveBooksTop,
     nav,
@@ -421,7 +438,7 @@ function useHomeHotKeys({
     removeBooks,
     selectAll,
     selectTo,
-    setActivedIndex,
+    setActivatedIndex,
     setArchived,
     setFavorited,
     setPage,
@@ -446,6 +463,8 @@ function BookButtons({
     )
   }, [book.uuid])
 
+  const removeBooks = useRemoveBooks(reload)
+
   return (
     <>
       <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
@@ -466,12 +485,20 @@ function BookButtons({
                   isArchived: !book.isArchived,
                 },
               })
+              reload()
             })
           }}
         >
           {book.isArchived ? t('unarchive') : t('archive')}
         </MenuItem>
         <MenuItem onClick={() => exportBook()}>{t('export')} Epub</MenuItem>
+        <MenuItem
+          onClick={() => {
+            removeBooks([book])
+          }}
+        >
+          {t('remove')}
+        </MenuItem>
       </Menu>
     </>
   )
@@ -479,7 +506,7 @@ function BookButtons({
 
 function BookRow({
   index,
-  actived,
+  activated,
   book,
   books,
   onHoverMove,
@@ -488,9 +515,10 @@ function BookRow({
   selectedUuids,
   selectTo,
   reload,
+  hasOrder,
 }: {
   index: number
-  actived: boolean
+  activated: boolean
   book: BookTypes.Entity
   books: BookTypes.Entity[]
   onHoverMove: (dragIndex: number, hoverIndex: number) => void
@@ -499,6 +527,7 @@ function BookRow({
   selectedUuids: string[]
   selectTo: (index: number, shift: boolean) => void
   reload: () => void
+  hasOrder: boolean
 }) {
   const nav = useNavigate()
   const refEl = useRef<HTMLTableRowElement>(null)
@@ -543,20 +572,20 @@ function BookRow({
   })
 
   useEffect(() => {
-    if (actived)
+    if (activated)
       refEl.current?.scrollIntoView({
         block: 'center',
       })
-  }, [actived, drop])
+  }, [activated, drop])
 
   const [coverLoaded, setCoverLoaded] = useState(false)
 
   const coverUrl = `${getBooksCoverPath(book.uuid)}`
 
   const opacity = isDragging ? 0.2 : 1
-  drop(refEl)
+  if (!hasOrder) drop(refEl)
   return (
-    <TableRow ref={refEl} key={book.uuid} sx={{ opacity }} selected={actived}>
+    <TableRow ref={refEl} key={book.uuid} sx={{ opacity }} selected={activated}>
       <TableCell
         padding="none"
         ref={drag}
@@ -564,7 +593,7 @@ function BookRow({
           cursor: 'move',
         }}
       >
-        <DragIndicator />
+        {!hasOrder && <DragIndicator />}
       </TableCell>
       <TableCell padding="none">
         <Checkbox
@@ -669,13 +698,19 @@ export function BookList() {
     | undefined
   const theme = useTheme()
   const [page, setPage] = useState<number>(locationInPage?.page ?? 1)
-  const [activedIndex, setActivedIndex] = useState(locationInPage?.index ?? 0)
+  const [activatedIndex, setActivatedIndex] = useState(
+    locationInPage?.index ?? 0,
+  )
   const [archived, setArchived] = useState(false)
   const [favorited, setFavorited] = useState(false)
 
   const [search, setSearch] = useState<string>('')
-  const searchDefered = useSyncedDebounced(search, 500)
+  const searchDeferred = useSyncedDebounced(search, 500)
   const refSearchInput = useRef<HTMLInputElement | null>(null)
+
+  const [order, setOrder] = useState<Order>('default')
+  const [openOrderSelect, setOpenOrderSelect] = useState(false)
+  const hasOrder = order !== 'default'
 
   const { data: dataBooks, reload } = useAction(
     booksPageRouter,
@@ -683,7 +718,8 @@ export function BookList() {
       filter: {
         archive: archived ? 'archived' : 'active',
         favorite: favorited ? 'favorited' : 'all',
-        search: searchDefered,
+        search: searchDeferred,
+        order,
       },
       page: { page },
     },
@@ -710,6 +746,10 @@ export function BookList() {
     }
   }, [])
 
+  const focusOrderSelect = useCallback(() => {
+    setOpenOrderSelect(true)
+  }, [])
+
   const removeBooks = useRemoveBooks(reload)
 
   const moveBooksTop = useCallback(
@@ -726,11 +766,12 @@ export function BookList() {
   )
 
   useHomeHotKeys({
-    activedIndex,
-    setActivedIndex,
+    activatedIndex,
+    setActivatedIndex,
     setArchived,
     setFavorited,
     focusSearchInput,
+    focusOrderSelect,
     setPage,
     dataBooks,
     reload,
@@ -739,6 +780,7 @@ export function BookList() {
     selectedBooks,
     moveBooksTop,
     removeBooks,
+    hasOrder,
   })
 
   const onHoverMove = useCallback(
@@ -838,15 +880,15 @@ export function BookList() {
     bottomRight: AddBtn,
   })
 
-  // reset page & activedIndex
+  // reset page & activatedIndex
   useEffect(() => {
     if (!books) return
     if (books.length <= 0) {
       if (page > 1) setPage(1)
-    } else if (activedIndex > books.length - 1) {
-      setActivedIndex(books.length - 1)
+    } else if (activatedIndex > books.length - 1) {
+      setActivatedIndex(books.length - 1)
     }
-  }, [activedIndex, books, page])
+  }, [activatedIndex, books, page])
 
   if (loading || !dataBooks || !books) return <CircularProgress />
 
@@ -862,11 +904,7 @@ export function BookList() {
 
   return (
     <>
-      <form
-        style={{
-          display: 'flex',
-        }}
-      >
+      <form>
         <FormControlLabel
           label={t('archive')}
           control={
@@ -885,15 +923,39 @@ export function BookList() {
             />
           }
         ></FormControlLabel>
-        <TextField
-          label={t('search')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          inputRef={refSearchInput}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') refSearchInput.current?.blur()
-          }}
-        />
+        <FormControlLabel
+          label=""
+          control={
+            <TextField
+              label={t('search')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              inputRef={refSearchInput}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') refSearchInput.current?.blur()
+              }}
+            />
+          }
+        ></FormControlLabel>
+        <FormControlLabel
+          label={t('sortOrder.label')}
+          control={
+            <Select
+              value={order}
+              open={openOrderSelect}
+              onOpen={() => setOpenOrderSelect(true)}
+              onClose={() => setOpenOrderSelect(false)}
+              onChange={(e) => setOrder(e.target.value as Order)}
+            >
+              <MenuItem value="default">{t('sortOrder.item.default')}</MenuItem>
+              <MenuItem value="reverse">{t('sortOrder.item.reverse')}</MenuItem>
+              <MenuItem value="name">{t('sortOrder.item.name')}</MenuItem>
+              <MenuItem value="name-reverse">
+                {t('sortOrder.item.nameReverse')}
+              </MenuItem>
+            </Select>
+          }
+        ></FormControlLabel>
       </form>
       {books.length <= 0 ? (
         <Alert severity="warning">{t('prompt.noBooks')}</Alert>
@@ -932,13 +994,14 @@ export function BookList() {
                       book={book}
                       books={books}
                       index={index}
-                      actived={activedIndex === index}
+                      activated={activatedIndex === index}
                       onHoverMove={onHoverMove}
                       onDrop={onDrop}
                       onCancel={onCancel}
                       selectTo={selectTo}
                       selectedUuids={selectedUuids}
                       reload={reload}
+                      hasOrder={hasOrder}
                       key={book.uuid}
                     ></BookRow>
                   )

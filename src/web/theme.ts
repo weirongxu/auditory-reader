@@ -73,6 +73,51 @@ const createAppTheme = (mode: ColorScheme) =>
           size: 'small',
         },
       },
+      MuiFilledInput: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiFormControl: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiFormHelperText: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiInputBase: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiInputLabel: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiListItem: {
+        defaultProps: {
+          dense: true,
+        },
+      },
+      MuiOutlinedInput: {
+        defaultProps: {
+          margin: 'dense',
+        },
+      },
+      MuiFab: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiToolbar: {
+        defaultProps: {
+          variant: 'dense',
+        },
+      },
     },
   })
 

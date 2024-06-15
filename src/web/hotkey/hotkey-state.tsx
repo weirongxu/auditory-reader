@@ -22,14 +22,19 @@ type Hotkey =
 
 type HotkeyCallback = () => void
 type HotkeyCallbackMap = Map<number, HotkeyCallback>
-type HotkeyItem = [
+type HotkeyCompiledItem = [
   key: string,
   keyDescription: string[],
   description: string,
   callback: HotkeyCallbackMap,
 ]
-type HotkeyItemList = HotkeyItem[]
-type HotkeyOption = {
+type HotkeyCompiledItemList = HotkeyCompiledItem[]
+export type HotkeyItem = [
+  hotkey: Hotkey,
+  description: string,
+  callback: () => void,
+]
+export type HotkeyOption = {
   /**
    * The default value is 1, and the higher the level, the higher the priority.
    */
@@ -37,7 +42,7 @@ type HotkeyOption = {
 }
 
 const sequenceSymbol = ' '
-const hotkeyItemsAtom = atom<HotkeyItemList>([])
+const hotkeyItemsAtom = atom<HotkeyCompiledItemList>([])
 let curKeySeq = ''
 const seqTimeout = 1000
 
@@ -84,12 +89,9 @@ function getHotkeyDesc(hotkey: Hotkey): string[] {
 
 export function useHotkeys() {
   const addHotkeys = useCallback(
-    (
-      hotkeys: [hotkey: Hotkey, description: string, callback: () => void][],
-      options: HotkeyOption = {},
-    ) => {
+    (hotkeys: HotkeyItem[], options: HotkeyOption = {}) => {
       const hotkeyItems = globalStore.get(hotkeyItemsAtom)
-      const updatedItems: { item: HotkeyItem; level: number }[] = []
+      const updatedItems: { item: HotkeyCompiledItem; level: number }[] = []
       for (const [hotkey, description, callback] of hotkeys) {
         const key = getHotkeyKey(hotkey)
         const keyDescs = getHotkeyDesc(hotkey)
@@ -113,7 +115,7 @@ export function useHotkeys() {
 
       return function dispose() {
         const hotkeyItems = globalStore.get(hotkeyItemsAtom)
-        const removeItems: HotkeyItemList = []
+        const removeItems: HotkeyCompiledItemList = []
         for (const { item, level } of updatedItems) {
           item[3].delete(level)
           if (!item[3].size) removeItems.push(item)
