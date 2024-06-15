@@ -413,7 +413,7 @@ function useHomeHotKeys({
       [{ shift: true, key: 'K' }, t('hotkey.speakBookName'), speakBookName],
     ]
 
-    if (hasOrder)
+    if (!hasOrder)
       hotkeys.push(
         [{ ctrl: true, key: 'k' }, t('hotkey.goMovePrev'), movePrev],
         [{ ctrl: true, key: 'j' }, t('hotkey.goMoveNext'), moveNext],

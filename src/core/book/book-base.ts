@@ -5,7 +5,7 @@ export interface BookView extends BookViewRes {
 }
 
 export type BookNav = {
-  /** root (minimun) level is 1 */
+  /** root (minimum) level is 1 */
   level: number
   label: string
   href?: string

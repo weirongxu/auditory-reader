@@ -205,7 +205,8 @@ export class BookEpub extends BookBase {
     if (!file) return
     const arrBuf = await file.arrayBuffer()
     const buffer = arrayBufferToBuffer(arrBuf)
-    const manifest = this.manifestItems.find((item) => item.href == href)
+    const absHref = href.startsWith('/') ? href : `/${href}`
+    const manifest = this.manifestItems.find((item) => item.href == absHref)
     return { buffer, mediaType: manifest?.mediaType }
   }
 
