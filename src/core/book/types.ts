@@ -1,5 +1,6 @@
 import type { LiteralUnion } from 'type-fest'
 import type { LangCode } from '../lang.js'
+import type { SortOrder } from './enums.js'
 
 export namespace BookTypes {
   export type EntityType = 'epub' | 'text'
@@ -89,7 +90,7 @@ export namespace BookTypes {
   export interface FilterParams {
     archive: 'all' | 'active' | 'archived'
     favorite: 'all' | 'favorited' | 'unfavorited'
-    order: 'default' | 'reverse' | 'name' | 'name-reverse'
+    order: SortOrder
     search: string
   }
 

@@ -56,8 +56,7 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
-
-type Order = BookTypes.FilterParams['order']
+import { sortOrders, type SortOrder } from '../../../core/book/enums.js'
 
 const DragType = 'book'
 
@@ -200,7 +199,8 @@ function useHomeHotKeys({
   setArchived,
   setFavorited,
   focusSearchInput,
-  focusOrderSelect,
+  orderSelectPrev,
+  orderSelectNext,
   setPage,
   dataBooks,
   selectTo,
@@ -216,7 +216,8 @@ function useHomeHotKeys({
   setArchived: Dispatch<SetStateAction<boolean>>
   setFavorited: Dispatch<SetStateAction<boolean>>
   focusSearchInput: () => void
-  focusOrderSelect: () => void
+  orderSelectPrev: () => void
+  orderSelectNext: () => void
   setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
@@ -382,7 +383,8 @@ function useHomeHotKeys({
       ['b', t('hotkey.favorite'), toggleFavorite],
       [{ shift: true, key: 'E' }, t('hotkey.archive'), toggleArchive],
       ['/', t('hotkey.search'), focusSearchInput],
-      [['s', 's'], t('hotkey.sortOrder'), focusOrderSelect],
+      [['s', 's', 'n'], t('hotkey.sortOrder'), orderSelectNext],
+      [['s', 's', 'p'], t('hotkey.sortOrder'), orderSelectPrev],
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',
@@ -426,7 +428,6 @@ function useHomeHotKeys({
     addHotkeys,
     currentBook,
     dataBooks,
-    focusOrderSelect,
     focusSearchInput,
     getVoice,
     hasOrder,
@@ -434,6 +435,8 @@ function useHomeHotKeys({
     moveBooksTop,
     nav,
     openBookEdit,
+    orderSelectNext,
+    orderSelectPrev,
     reload,
     removeBooks,
     selectAll,
@@ -708,8 +711,7 @@ export function BookList() {
   const searchDeferred = useSyncedDebounced(search, 500)
   const refSearchInput = useRef<HTMLInputElement | null>(null)
 
-  const [order, setOrder] = useState<Order>('default')
-  const [openOrderSelect, setOpenOrderSelect] = useState(false)
+  const [order, setOrder] = useState<SortOrder>('default')
   const hasOrder = order !== 'default'
 
   const { data: dataBooks, reload } = useAction(
@@ -746,9 +748,17 @@ export function BookList() {
     }
   }, [])
 
-  const focusOrderSelect = useCallback(() => {
-    setOpenOrderSelect(true)
-  }, [])
+  const orderSelectPrev = useCallback(() => {
+    const i = sortOrders.indexOf(order)
+    if (i > 0) setOrder(sortOrders[i - 1])
+    else setOrder(sortOrders[sortOrders.length - 1])
+  }, [order])
+
+  const orderSelectNext = useCallback(() => {
+    const i = sortOrders.indexOf(order)
+    if (i < sortOrders.length - 1) setOrder(sortOrders[i + 1])
+    else setOrder(sortOrders[0])
+  }, [order])
 
   const removeBooks = useRemoveBooks(reload)
 
@@ -771,7 +781,8 @@ export function BookList() {
     setArchived,
     setFavorited,
     focusSearchInput,
-    focusOrderSelect,
+    orderSelectPrev,
+    orderSelectNext,
     setPage,
     dataBooks,
     reload,
@@ -942,10 +953,7 @@ export function BookList() {
           control={
             <Select
               value={order}
-              open={openOrderSelect}
-              onOpen={() => setOpenOrderSelect(true)}
-              onClose={() => setOpenOrderSelect(false)}
-              onChange={(e) => setOrder(e.target.value as Order)}
+              onChange={(e) => setOrder(e.target.value as SortOrder)}
             >
               <MenuItem value="default">{t('sortOrder.item.default')}</MenuItem>
               <MenuItem value="reverse">{t('sortOrder.item.reverse')}</MenuItem>
