@@ -1,7 +1,6 @@
 import {
   Autocomplete,
   Button,
-  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -13,9 +12,10 @@ import { useNavigate } from 'react-router-dom'
 import { booksCreateByUrlRouter } from '../../../../core/api/books/create-by-url.js'
 import { booksFetchUrlInfoRouter } from '../../../../core/api/books/fetch-url-info.js'
 import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
+import { eventBan } from '../../../../core/util/dom.js'
 import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
-import { eventBan } from '../../../../core/util/dom.js'
+import { SpinCenter } from '../../../components/spin.js'
 
 export function AddUrl() {
   const nav = useNavigate()
@@ -31,7 +31,7 @@ export function AddUrl() {
         <DialogTitle>Fetching URL</DialogTitle>
         <DialogContent>
           <FlexBox style={{ alignItems: 'center' }}>
-            <CircularProgress />
+            <SpinCenter />
           </FlexBox>
         </DialogContent>
       </Dialog>

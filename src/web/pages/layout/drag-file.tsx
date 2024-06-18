@@ -1,11 +1,6 @@
 import { Close } from '@mui/icons-material'
-import {
-  Autocomplete,
-  CircularProgress,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Autocomplete, IconButton, TextField, Typography } from '@mui/material'
+import { Spin } from 'antd'
 import { t } from 'i18next'
 import path from 'path'
 import { useEffect, useState } from 'react'
@@ -18,10 +13,11 @@ import { TMP_UUID } from '../../../core/consts.js'
 import type { LangCode } from '../../../core/lang.js'
 import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
+import { eventBan } from '../../../core/util/dom.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 import { FlexBox } from '../../components/flex-box.js'
-import { eventBan } from '../../../core/util/dom.js'
+import { SpinFullscreen } from '../../components/spin.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
 
@@ -110,7 +106,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
     })
   }, [dragItem, nav])
 
-  if (loading) return <CircularProgress></CircularProgress>
+  if (loading) return <SpinFullscreen />
 
   return (
     <FlexBox

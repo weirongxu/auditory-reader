@@ -1,7 +1,6 @@
 import {
   Autocomplete,
   Button,
-  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -19,6 +18,7 @@ import { useAction } from '../../../core/route/action.js'
 import { eventBan } from '../../../core/util/dom.js'
 import { async } from '../../../core/util/promise.js'
 import { FlexBox } from '../../components/flex-box.js'
+import { SpinCenter } from '../../components/spin.js'
 
 function UpdateForm({
   book,
@@ -86,7 +86,7 @@ function UpdateForm({
 function BookEditReq({ uuid, reload }: { uuid: string; reload: () => void }) {
   const { data: bookItem } = useAction(booksShowRouter, { uuid })
 
-  if (!bookItem) return <CircularProgress></CircularProgress>
+  if (!bookItem) return <SpinCenter></SpinCenter>
 
   return <UpdateForm book={bookItem} reload={reload}></UpdateForm>
 }

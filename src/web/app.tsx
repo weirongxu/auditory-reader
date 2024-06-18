@@ -2,13 +2,8 @@
 import './app.scss'
 
 // modules
-import {
-  Alert,
-  CircularProgress,
-  CssBaseline,
-  ThemeProvider,
-} from '@mui/material'
-import { notification } from 'antd'
+import { Alert, CssBaseline, ThemeProvider } from '@mui/material'
+import { message, notification } from 'antd'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
@@ -17,6 +12,7 @@ import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { ConfirmProvider } from './common/confirm.js'
 import { HintTextProvider } from './common/hint-text.js'
 import { PreviewImageProvider } from './common/preview-image.js'
+import { SpinFullscreen } from './components/spin.js'
 import { useStyle } from './hooks/use-style.js'
 import { TitleProvider } from './hooks/use-title.js'
 import { HotkeysProvider } from './hotkey/hotkey-state.js'
@@ -25,6 +21,10 @@ import { registerAPI } from './service-worker/register.js'
 import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
+
+message.config({
+  duration: 3,
+})
 
 notification.config({
   placement: 'top',
@@ -60,7 +60,7 @@ function AppEntry() {
   return (
     <>
       {loadedStatus === true && <RootEntry></RootEntry>}
-      {loadedStatus === false && <CircularProgress></CircularProgress>}
+      {loadedStatus === false && <SpinFullscreen />}
       {typeof loadedStatus === 'string' && (
         <Alert title={loadedStatus} severity="error">
           {loadedStatus}

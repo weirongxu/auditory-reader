@@ -1,4 +1,4 @@
-import { notification } from 'antd'
+import { message } from 'antd'
 import { t } from 'i18next'
 import { booksAddBookmarksRouter } from '../../../../core/api/books/add-bookmarks.js'
 import { booksDeleteBookmarksRouter } from '../../../../core/api/books/delete-bookmarks.js'
@@ -22,9 +22,7 @@ export class PlayerBookmarks {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      notification.error({
-        message: t('desc.noSupportedBookmark'),
-      })
+      void message.error(t('desc.noSupportedBookmark'))
       return
     }
     const brief = node.text.slice(0, 30)
@@ -40,9 +38,7 @@ export class PlayerBookmarks {
       uuid: this.uuid,
     })
     this.reload?.()
-    notification.info({
-      message: `${t('desc.addedBookmark')} ${brief}`,
-    })
+    void message.info(`${t('desc.addedBookmark')} ${brief}`)
     return res.bookmarks.at(0)
   }
 
@@ -52,9 +48,7 @@ export class PlayerBookmarks {
       bookmarks: [bookmark],
     })
     this.reload?.()
-    notification.info({
-      message: `${t('desc.updatedBookmark')} ${bookmark.brief}`,
-    })
+    void message.info(`${t('desc.updatedBookmark')} ${bookmark.brief}`)
   }
 
   async removeBookmark(bookmark: BookTypes.PropertyBookmark) {
@@ -75,9 +69,7 @@ export class PlayerBookmarks {
       bookmarkUuids: [bookmark.uuid],
     })
     this.reload?.()
-    notification.info({
-      message: `${t('desc.deletedBookmark')} ${bookmark.brief}`,
-    })
+    void message.info(`${t('desc.deletedBookmark')} ${bookmark.brief}`)
   }
 
   posBookmark(pos: BookTypes.PropertyPosition) {

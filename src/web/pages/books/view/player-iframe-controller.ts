@@ -1,5 +1,5 @@
 import { useMountEffect } from '@react-hookz/web'
-import { notification } from 'antd'
+import { message } from 'antd'
 import path from 'path'
 import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
@@ -489,10 +489,7 @@ export class PlayerIframeController {
     const section = locate.section ?? this.states.pos.section
     let spine = this.book.spines.at(section)
     if (!spine) spine = this.book.spines.at(0)
-    if (!spine)
-      return notification.error({
-        message: 'book spine is empty',
-      })
+    if (!spine) return message.error('book spine is empty')
     // update section
     this.states.pos = { ...this.states.pos, section }
 
@@ -522,10 +519,7 @@ export class PlayerIframeController {
         await loaded
 
         const doc = iframe.contentDocument
-        if (!doc)
-          return notification.error({
-            message: 'iframe load failed',
-          })
+        if (!doc) return message.error('iframe load failed')
 
         // load readableParts & alias
         const readableExtractor = new ReadableExtractor(

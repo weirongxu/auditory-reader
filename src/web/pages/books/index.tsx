@@ -11,7 +11,6 @@ import {
   ButtonGroup,
   Checkbox,
   Chip,
-  CircularProgress,
   FormControlLabel,
   IconButton,
   Menu,
@@ -29,6 +28,7 @@ import {
   TextField,
   useTheme,
 } from '@mui/material'
+import { Spin } from 'antd'
 import { t } from 'i18next'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -42,6 +42,7 @@ import type { BookPage } from '../../../core/api/books/page.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import { booksUpdateRouter } from '../../../core/api/books/update.js'
+import { sortOrders, type SortOrder } from '../../../core/book/enums.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { async } from '../../../core/util/promise.js'
@@ -56,7 +57,7 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
-import { sortOrders, type SortOrder } from '../../../core/book/enums.js'
+import { SpinCenter } from '../../components/spin.js'
 
 const DragType = 'book'
 
@@ -901,7 +902,7 @@ export function BookList() {
     }
   }, [activatedIndex, books, page])
 
-  if (loading || !dataBooks || !books) return <CircularProgress />
+  if (loading || !dataBooks || !books) return <SpinCenter />
 
   const Pager =
     dataBooks.pageCount > 1 ? (

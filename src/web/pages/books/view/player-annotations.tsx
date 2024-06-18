@@ -1,4 +1,4 @@
-import { notification } from 'antd'
+import { message } from 'antd'
 import { t } from 'i18next'
 import invert from 'invert-color'
 import { booksDeleteAnnotationsRouter } from '../../../../core/api/books/delete-annotations.js'
@@ -39,9 +39,7 @@ export class PlayerAnnotations {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      notification.error({
-        message: t('desc.noSupportedAnnotation'),
-      })
+      void message.error(t('desc.noSupportedAnnotation'))
       return
     }
     const brief = node.text.slice(0, 30)
@@ -62,9 +60,7 @@ export class PlayerAnnotations {
       uuid: this.uuid,
     })
     this.reload?.()
-    notification.info({
-      message: `${t('desc.updatedAnnotation')} ${brief}`,
-    })
+    void message.info(`${t('desc.updatedAnnotation')} ${brief}`)
     return res.annotations.at(0)
   }
 
@@ -105,9 +101,7 @@ export class PlayerAnnotations {
       annotationUuids: [annotation.uuid],
     })
     this.reload?.()
-    notification.info({
-      message: `${t('desc.deletedAnnotation')} ${annotation.brief}`,
-    })
+    void message.info(`${t('desc.deletedAnnotation')} ${annotation.brief}`)
   }
 
   indexByPos(

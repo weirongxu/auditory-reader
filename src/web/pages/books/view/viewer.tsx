@@ -1,11 +1,13 @@
-import { CircularProgress } from '@mui/material'
 import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { booksLocationInPageRouter } from '../../../../core/api/books/book-location.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
+import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
 import { useAppTheme } from '../../../theme.js'
@@ -14,8 +16,6 @@ import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
 import { ViewProgressBar } from './progress-bar.js'
 import type { BookContextProps } from './types'
-import { async } from '../../../../core/util/promise.js'
-import { booksLocationInPageRouter } from '../../../../core/api/books/book-location.js'
 
 export function useViewer({
   uuid,
@@ -77,7 +77,7 @@ export function useViewer({
               justifyContent: 'center',
             }}
           >
-            <CircularProgress></CircularProgress>
+            <SpinCenter />
           </div>
         )}
         <iframe
