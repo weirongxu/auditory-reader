@@ -1079,13 +1079,15 @@ export class PlayerIframeController {
       }
     })
 
-    const onBlur = () => {
-      doc.getSelection()?.removeAllRanges()
+    if (isMobile) {
+      const onBlur = () => {
+        doc.getSelection()?.removeAllRanges()
+      }
+      win.addEventListener('blur', onBlur)
+      this.unmount.on(() => {
+        win.removeEventListener('blur', onBlur)
+      })
     }
-    win.addEventListener('blur', onBlur)
-    this.unmount.on(() => {
-      win.removeEventListener('blur', onBlur)
-    })
   }
 
   protected hookScroll() {
