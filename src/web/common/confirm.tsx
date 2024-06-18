@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -13,6 +12,7 @@ import { useCallback, useEffect } from 'react'
 import { useKeyEscape } from '../hooks/use-escape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { globalStore } from '../store/global.js'
+import { Button } from 'antd'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
@@ -113,8 +113,12 @@ function ConfirmDialog() {
         <DialogTitle sx={{ m: 0, p: 2 }}>{confirm?.title}</DialogTitle>
         <DialogContent dividers>{confirm?.description}</DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>{t('confirm.cancel')}</Button>
-          <Button onClick={onOk}>{t('confirm.ok')}</Button>
+          <Button type="primary" onClick={onClose}>
+            {t('confirm.cancel')}
+          </Button>
+          <Button type="primary" onClick={onOk}>
+            {t('confirm.ok')}
+          </Button>
         </DialogActions>
       </BootstrapDialog>
     </>

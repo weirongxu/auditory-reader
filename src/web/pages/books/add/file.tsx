@@ -1,4 +1,5 @@
-import { Autocomplete, Button, FormControl, TextField } from '@mui/material'
+import { Autocomplete, FormControl, TextField } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import path from 'path'
 import { useState } from 'react'
@@ -11,10 +12,10 @@ import {
   type LangCode,
 } from '../../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
+import { eventBan } from '../../../../core/util/dom.js'
 import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { InputFile } from '../../../components/input-file.js'
-import { eventBan } from '../../../../core/util/dom.js'
 
 export function AddFile() {
   const nav = useNavigate()
@@ -112,7 +113,7 @@ export function AddFile() {
           ></InputFile>
         </FormControl>
 
-        <Button fullWidth type="submit">
+        <Button block type="primary" htmlType="submit">
           {t('add')}
         </Button>
       </FlexBox>

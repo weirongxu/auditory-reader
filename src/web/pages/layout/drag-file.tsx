@@ -1,6 +1,6 @@
 import { Close } from '@mui/icons-material'
-import { Autocomplete, IconButton, TextField, Typography } from '@mui/material'
-import { Spin } from 'antd'
+import { Autocomplete, TextField, Typography } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import path from 'path'
 import { useEffect, useState } from 'react'
@@ -206,14 +206,14 @@ export function DragFile({ children }: { children: React.ReactNode }) {
         >
           <FlexBox dir="row">
             <Typography flex={1}>{t('prompt.selectLanguage')}</Typography>
-            <IconButton
+            <Button
+              shape="circle"
               onClick={() => {
                 setDragItem(null)
                 setIsInputLangCode(false)
               }}
-            >
-              <Close></Close>
-            </IconButton>
+              icon={<Close />}
+            ></Button>
           </FlexBox>
           <Autocomplete
             options={langOptions}

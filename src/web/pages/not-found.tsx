@@ -1,8 +1,8 @@
-import { Alert } from '@mui/material'
-import { useHotkeys } from '../hotkey/hotkey-state.js'
-import { useEffect } from 'react'
+import { Alert } from 'antd'
 import { t } from 'i18next'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useHotkeys } from '../hotkey/hotkey-state.js'
 
 export function NotFound({ title }: { title: string }) {
   const nav = useNavigate()
@@ -14,8 +14,10 @@ export function NotFound({ title }: { title: string }) {
   }, [addHotkeys, nav])
 
   return (
-    <Alert title={`The ${title} not found`} severity="error">
-      The {title} not found
-    </Alert>
+    <Alert
+      type="error"
+      message={`The ${title} not found`}
+      description={`The ${title} not found`}
+    ></Alert>
   )
 }

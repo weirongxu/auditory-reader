@@ -1,5 +1,5 @@
 import { Visibility } from '@mui/icons-material'
-import { Alert, Button } from '@mui/material'
+import { Alert, Button } from 'antd'
 import { t } from 'i18next'
 import { useParams } from 'react-router-dom'
 import { FlexBox } from '../../components/flex-box.js'
@@ -13,10 +13,10 @@ export function BookAddSuccessful() {
 
   return (
     <FlexBox gap={4}>
-      <Alert severity="success">{t('desc.addedBookSuccessful')}</Alert>
+      <Alert type="success" message={t('desc.addedBookSuccessful')}></Alert>
       <LinkWrap to={`/books/view/${uuid}`}>
         {(href) => (
-          <Button href={href} startIcon={<Visibility />}>
+          <Button type="primary" href={href} icon={<Visibility />}>
             {t('view')}
           </Button>
         )}

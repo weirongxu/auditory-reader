@@ -2,8 +2,8 @@
 import './app.scss'
 
 // modules
-import { Alert, CssBaseline, ThemeProvider } from '@mui/material'
-import { message, notification } from 'antd'
+import { CssBaseline, ThemeProvider } from '@mui/material'
+import { Alert, message, notification } from 'antd'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
@@ -62,9 +62,7 @@ function AppEntry() {
       {loadedStatus === true && <RootEntry></RootEntry>}
       {loadedStatus === false && <SpinFullscreen />}
       {typeof loadedStatus === 'string' && (
-        <Alert title={loadedStatus} severity="error">
-          {loadedStatus}
-        </Alert>
+        <Alert type="error" message={loadedStatus}></Alert>
       )}
     </>
   )

@@ -1,14 +1,12 @@
 import { MenuBook, Settings } from '@mui/icons-material'
 import {
-  Button,
   Drawer,
-  IconButton,
-  Link as MuiLink,
   ThemeProvider,
   Typography,
   createTheme,
   useTheme,
 } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import { useAtom } from 'jotai'
 import { useMemo, useState } from 'react'
@@ -65,9 +63,9 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       >
         <LinkWrap to="/books">
           {(href) => (
-            <MuiLink href={href}>
+            <Button type="link" size="small" href={href}>
               <MenuBook sx={{ marginRight: 1 }}></MenuBook>
-            </MuiLink>
+            </Button>
           )}
         </LinkWrap>
         <Typography
@@ -112,13 +110,14 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
         {appBarStates.bottomRight}
         <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
-          <IconButton
+          <Button
+            shape="circle"
+            type="text"
             onClick={() => {
               setShowSettings((v) => !v)
             }}
-          >
-            <Settings />
-          </IconButton>
+            icon={<Settings />}
+          ></Button>
           <Drawer
             anchor="right"
             open={showSettings}
@@ -144,7 +143,8 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                 {env.appMode === 'server' && (
                   <SettingLine>
                     <Button
-                      sx={{ flex: 1 }}
+                      type="primary"
+                      block
                       onClick={() => {
                         logoutRouter
                           .action()

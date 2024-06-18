@@ -1,11 +1,11 @@
 import {
   Autocomplete,
-  Button,
   Dialog,
   DialogContent,
   DialogTitle,
   TextField,
 } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -98,7 +98,8 @@ export function AddUrl() {
               }}
             ></TextField>
             <Button
-              sx={{ alignSelf: 'end' }}
+              style={{ alignSelf: 'center' }}
+              type="primary"
               onClick={() => {
                 if (!url) return
                 booksFetchUrlInfoRouter
@@ -114,7 +115,7 @@ export function AddUrl() {
             </Button>
           </FlexBox>
 
-          <Button fullWidth type="submit">
+          <Button block htmlType="submit" type="primary">
             {t('add')}
           </Button>
         </FlexBox>

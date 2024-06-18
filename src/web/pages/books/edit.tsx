@@ -1,12 +1,12 @@
 import {
   Autocomplete,
-  Button,
   Dialog,
   DialogContent,
   DialogTitle,
   TextField,
 } from '@mui/material'
 import { useSyncedRef } from '@react-hookz/web'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
@@ -75,7 +75,7 @@ function UpdateForm({
           )}
         ></Autocomplete>
 
-        <Button fullWidth type="submit">
+        <Button block htmlType="submit" type="primary">
           {t('update')}
         </Button>
       </FlexBox>

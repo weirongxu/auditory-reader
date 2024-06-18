@@ -1,12 +1,13 @@
-import { Button, TextField, Typography } from '@mui/material'
+import { TextField, Typography } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginRouter } from '../../core/api/login.js'
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
-import { FlexBox } from '../components/flex-box.js'
 import { eventBan } from '../../core/util/dom.js'
+import { FlexBox } from '../components/flex-box.js'
 
 export function Login() {
   const nav = useNavigate()
@@ -69,7 +70,7 @@ export function Login() {
               }}
             ></TextField>
 
-            <Button fullWidth type="submit">
+            <Button type="primary" block htmlType="submit">
               {t('submit')}
             </Button>
           </FlexBox>

@@ -1,10 +1,5 @@
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from '@mui/material'
+import { Dialog, DialogContent, DialogTitle, Typography } from '@mui/material'
+import { Button } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useState } from 'react'
 import type { BookTypes } from '../../../../../core/book/types.js'
@@ -75,7 +70,9 @@ export function useAnnotationNoteDialog({ player }: { player: Player }) {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               ></Textarea>
-              <Button type="submit">{t('update')}</Button>
+              <Button type="primary" htmlType="submit">
+                {t('update')}
+              </Button>
             </FlexBox>
           </form>
         </DialogContent>

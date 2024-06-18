@@ -14,15 +14,8 @@ import {
   SkipPrevious,
   Start,
 } from '@mui/icons-material'
-import {
-  Autocomplete,
-  Button,
-  ButtonGroup,
-  Chip,
-  IconButton,
-  Popover,
-  TextField,
-} from '@mui/material'
+import { Autocomplete, Chip, TextField } from '@mui/material'
+import { Button, Popover } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -60,43 +53,20 @@ function TooltipButton({
   onClick: React.MouseEventHandler | undefined
   children: React.ReactNode
 }) {
-  const [open, setOpen] = useState(false)
-  const [anchor, setAnchor] = useState<HTMLSpanElement>()
   return (
     <>
-      <Button
-        sx={{
-          minWidth: 30,
-          minHeight: 30,
-          padding: 0,
-          margin: 0,
-        }}
-        onMouseEnter={(e) => {
-          if (isMobile) return
-          setAnchor(e.currentTarget)
-          setOpen(true)
-        }}
-        onMouseLeave={(e) => {
-          setAnchor(e.currentTarget)
-          setOpen(false)
-        }}
-        {...btnProps}
-      ></Button>
       {!isMobile && (
         <Popover
-          sx={{ pointerEvents: 'none' }}
-          open={open}
-          anchorEl={anchor}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
+          style={{ pointerEvents: 'none' }}
+          content={tooltip}
+          placement="top"
         >
-          <div style={{ padding: 4 }}>{tooltip}</div>
+          <Button
+            style={{ padding: '14px 4px' }}
+            size="small"
+            type="primary"
+            {...btnProps}
+          ></Button>
         </Popover>
       )}
     </>
@@ -335,7 +305,7 @@ export function usePlayerUI({
       </TooltipButton>,
     )
 
-    return <ButtonGroup>{buttons}</ButtonGroup>
+    return <Button.Group>{buttons}</Button.Group>
   }, [
     activeAnnotation,
     collapsed,
@@ -390,7 +360,7 @@ export function usePlayerUI({
   const { openBookEdit } = useBookEditDialog(reload)
   const BookEditModal = useMemo(() => {
     return (
-      <Button onClick={() => openBookEdit(book.item.uuid)}>
+      <Button type="primary" onClick={() => openBookEdit(book.item.uuid)}>
         {t('editBook')}
       </Button>
     )
@@ -398,7 +368,9 @@ export function usePlayerUI({
 
   const TmpStoreBtn = useMemo(() => {
     return (
-      <IconButton
+      <Button
+        shape="circle"
+        type="text"
         title={t('tmpStore')}
         onClick={() => {
           async(async () => {
@@ -406,9 +378,8 @@ export function usePlayerUI({
             nav(`/books/added-successful/${entity.uuid}`)
           })
         }}
-      >
-        <Save />
-      </IconButton>
+        icon={<Save />}
+      ></Button>
     )
   }, [nav])
 

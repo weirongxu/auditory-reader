@@ -1,4 +1,4 @@
-import { Autocomplete, Button, TextField } from '@mui/material'
+import { Autocomplete, TextField } from '@mui/material'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -9,6 +9,7 @@ import { async } from '../../../../core/util/promise.js'
 import { splitLines } from '../../../../core/util/text.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { eventBan } from '../../../../core/util/dom.js'
+import { Button } from 'antd'
 
 export function AddText() {
   const nav = useNavigate()
@@ -87,7 +88,7 @@ export function AddText() {
           }}
         ></TextField>
 
-        <Button fullWidth type="submit">
+        <Button block htmlType="submit" type="primary">
           {t('add')}
         </Button>
       </FlexBox>

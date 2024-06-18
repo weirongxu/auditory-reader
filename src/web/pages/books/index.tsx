@@ -6,13 +6,9 @@ import {
   StarBorder,
 } from '@mui/icons-material'
 import {
-  Alert,
-  Button,
-  ButtonGroup,
   Checkbox,
   Chip,
   FormControlLabel,
-  IconButton,
   Menu,
   MenuItem,
   Pagination,
@@ -28,7 +24,7 @@ import {
   TextField,
   useTheme,
 } from '@mui/material'
-import { Spin } from 'antd'
+import { Alert, Button } from 'antd'
 import { t } from 'i18next'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -50,6 +46,7 @@ import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
 import { LinkWrap } from '../../components/link-wrap.js'
+import { SpinCenter } from '../../components/spin.js'
 import { useSyncedDebounced } from '../../hooks/use-synced-debounce.js'
 import { useHotkeys, type HotkeyItem } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
@@ -57,7 +54,6 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
-import { SpinCenter } from '../../components/spin.js'
 
 const DragType = 'book'
 
@@ -471,9 +467,13 @@ function BookButtons({
 
   return (
     <>
-      <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <Button
+        shape="circle"
+        type="text"
+        onClick={(e) => setAnchorEl(e.currentTarget)}
+      >
         <MoreVert></MoreVert>
-      </IconButton>
+      </Button>
       <Menu
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
@@ -840,9 +840,9 @@ export function BookList() {
   const OperationBtnGroup = useMemo(() => {
     return (
       !!selectedUuids.length && (
-        <ButtonGroup>
+        <Button.Group>
           <Button
-            color="secondary"
+            type="primary"
             onClick={() => {
               async(async () => {
                 await moveBooksTop(selectedBooks)
@@ -853,14 +853,15 @@ export function BookList() {
             {t('top')}
           </Button>
           <Button
-            color="error"
+            type="primary"
+            danger
             onClick={() => {
               removeBooks(selectedBooks)
             }}
           >
             {t('remove')}
           </Button>
-        </ButtonGroup>
+        </Button.Group>
       )
     )
   }, [moveBooksTop, reload, removeBooks, selectedBooks, selectedUuids.length])
@@ -878,9 +879,9 @@ export function BookList() {
     () => (
       <LinkWrap to="/books/add">
         {(href) => (
-          <IconButton href={href} title={t('add')}>
+          <Button type="text" shape="circle" href={href} title={t('add')}>
             <Add />
-          </IconButton>
+          </Button>
         )}
       </LinkWrap>
     ),
@@ -967,7 +968,7 @@ export function BookList() {
         ></FormControlLabel>
       </form>
       {books.length <= 0 ? (
-        <Alert severity="warning">{t('prompt.noBooks')}</Alert>
+        <Alert type="warning" message={t('prompt.noBooks')}></Alert>
       ) : (
         <>
           {Pager}
