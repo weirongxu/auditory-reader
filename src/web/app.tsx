@@ -8,6 +8,7 @@ import {
   CssBaseline,
   ThemeProvider,
 } from '@mui/material'
+import { notification } from 'antd'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
@@ -16,7 +17,6 @@ import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { ConfirmProvider } from './common/confirm.js'
 import { HintTextProvider } from './common/hint-text.js'
 import { PreviewImageProvider } from './common/preview-image.js'
-import { SnackbarPrivider } from './common/snackbar.js'
 import { useStyle } from './hooks/use-style.js'
 import { TitleProvider } from './hooks/use-title.js'
 import { HotkeysProvider } from './hotkey/hotkey-state.js'
@@ -25,6 +25,11 @@ import { registerAPI } from './service-worker/register.js'
 import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
 import { useAppTheme } from './theme.js'
+
+notification.config({
+  placement: 'top',
+  duration: 3,
+})
 
 function AppEntry() {
   const theme = useAppTheme()
@@ -72,7 +77,6 @@ function AppProvider() {
       <CssBaseline />
       <DndProvider backend={HTML5Backend}>
         <AppEntry></AppEntry>
-        <SnackbarPrivider></SnackbarPrivider>
         <HintTextProvider></HintTextProvider>
         <PreviewImageProvider></PreviewImageProvider>
         <ConfirmProvider></ConfirmProvider>

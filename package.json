@@ -29,6 +29,7 @@
     "@react-hookz/web": "^24.0.4",
     "@types/jsdom": "^21.1.6",
     "@types/mime-types": "^2.1.4",
+    "antd": "^5.18.2",
     "canvas": "^2.11.2",
     "dedent": "^1.5.3",
     "dnd-core": "^16.0.1",
@@ -60,7 +61,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.4",
     "@emotion/react": "^11.11.4",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
     "@raidou/eslint-config-react": "^2.0.0",
     "@types/babel__core": "^7.20.5",
     "@types/dedent": "^0.7.2",

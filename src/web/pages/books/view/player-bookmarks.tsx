@@ -1,11 +1,11 @@
+import { notification } from 'antd'
 import { t } from 'i18next'
-import type { BookTypes } from '../../../../core/book/types.js'
-import { pushSnackbar } from '../../../common/snackbar.js'
-import type { Player } from './player.js'
 import { booksAddBookmarksRouter } from '../../../../core/api/books/add-bookmarks.js'
 import { booksDeleteBookmarksRouter } from '../../../../core/api/books/delete-bookmarks.js'
 import { booksUpdateBookmarksRouter } from '../../../../core/api/books/update-bookmarks.js'
+import type { BookTypes } from '../../../../core/book/types.js'
 import { uiConfirm } from '../../../common/confirm.js'
+import type { Player } from './player.js'
 
 export class PlayerBookmarks {
   /** book uuid */
@@ -22,8 +22,7 @@ export class PlayerBookmarks {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      pushSnackbar({
-        severity: 'error',
+      notification.error({
         message: t('desc.noSupportedBookmark'),
       })
       return
@@ -41,7 +40,7 @@ export class PlayerBookmarks {
       uuid: this.uuid,
     })
     this.reload?.()
-    pushSnackbar({
+    notification.info({
       message: `${t('desc.addedBookmark')} ${brief}`,
     })
     return res.bookmarks.at(0)
@@ -53,7 +52,7 @@ export class PlayerBookmarks {
       bookmarks: [bookmark],
     })
     this.reload?.()
-    return pushSnackbar({
+    notification.info({
       message: `${t('desc.updatedBookmark')} ${bookmark.brief}`,
     })
   }
@@ -76,7 +75,7 @@ export class PlayerBookmarks {
       bookmarkUuids: [bookmark.uuid],
     })
     this.reload?.()
-    return pushSnackbar({
+    notification.info({
       message: `${t('desc.deletedBookmark')} ${bookmark.brief}`,
     })
   }

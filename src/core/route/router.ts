@@ -1,4 +1,4 @@
-import { pushSnackbar } from '../../web/common/snackbar.js'
+import { notification } from 'antd'
 import {
   ActionError,
   ActionRequestError,
@@ -77,9 +77,9 @@ export class URouter<Req = any, Res = any> {
     if (res.status === 401) throw new ActionUnauthorized()
     if (res.status.toString().startsWith('4')) {
       const json = await res.json()
-      pushSnackbar({
-        severity: 'error',
-        message: json.message,
+      notification.error({
+        message: 'Error',
+        description: json.message,
       })
       throw new ActionRequestError(json.message)
     }

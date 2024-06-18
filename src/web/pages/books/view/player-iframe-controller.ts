@@ -1,4 +1,5 @@
 import { useMountEffect } from '@react-hookz/web'
+import { notification } from 'antd'
 import path from 'path'
 import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
@@ -44,7 +45,6 @@ import {
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { iframeWinAtom } from '../../../atoms.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
-import { pushSnackbar } from '../../../common/snackbar.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import { AnnotationHighlight } from './annotation-highlight.js'
@@ -490,9 +490,8 @@ export class PlayerIframeController {
     let spine = this.book.spines.at(section)
     if (!spine) spine = this.book.spines.at(0)
     if (!spine)
-      return pushSnackbar({
+      return notification.error({
         message: 'book spine is empty',
-        severity: 'error',
       })
     // update section
     this.states.pos = { ...this.states.pos, section }
@@ -524,9 +523,8 @@ export class PlayerIframeController {
 
         const doc = iframe.contentDocument
         if (!doc)
-          return pushSnackbar({
+          return notification.error({
             message: 'iframe load failed',
-            severity: 'error',
           })
 
         // load readableParts & alias

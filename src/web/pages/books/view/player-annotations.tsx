@@ -1,10 +1,10 @@
+import { notification } from 'antd'
 import { t } from 'i18next'
 import invert from 'invert-color'
 import { booksDeleteAnnotationsRouter } from '../../../../core/api/books/delete-annotations.js'
 import { booksUpsertAnnotationsRouter } from '../../../../core/api/books/upsert-annotations.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { uiConfirm } from '../../../common/confirm.js'
-import { pushSnackbar } from '../../../common/snackbar.js'
 import type { Player } from './player.js'
 
 export class PlayerAnnotations {
@@ -39,8 +39,7 @@ export class PlayerAnnotations {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      pushSnackbar({
-        severity: 'error',
+      notification.error({
         message: t('desc.noSupportedAnnotation'),
       })
       return
@@ -63,7 +62,7 @@ export class PlayerAnnotations {
       uuid: this.uuid,
     })
     this.reload?.()
-    pushSnackbar({
+    notification.info({
       message: `${t('desc.updatedAnnotation')} ${brief}`,
     })
     return res.annotations.at(0)
@@ -106,7 +105,7 @@ export class PlayerAnnotations {
       annotationUuids: [annotation.uuid],
     })
     this.reload?.()
-    return pushSnackbar({
+    notification.info({
       message: `${t('desc.deletedAnnotation')} ${annotation.brief}`,
     })
   }
