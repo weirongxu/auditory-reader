@@ -1,23 +1,30 @@
-import { FileUpload } from '@mui/icons-material'
-import { Typography } from '@mui/material'
-import { useState } from 'react'
+import { faUpload } from '@fortawesome/free-solid-svg-icons'
+import { Typography } from 'antd'
+import { useEffect, useState } from 'react'
 import { FlexBox } from './flex-box.js'
-import * as styles from './input-file.module.scss'
+import { Icon } from './icon.js'
+import * as styles from './file-input.module.scss'
 
-export const InputFile = ({
+export const FileInput = ({
   accept,
   prompt,
+  value,
   onChange,
 }: {
   accept?: string
   prompt?: string
+  value?: File[]
   onChange?: (files: File[]) => void
 }) => {
   const [acceptedFiles, setAcceptedFiles] = useState<File[]>([])
+  useEffect(() => {
+    setAcceptedFiles(value ?? [])
+  }, [value])
+
   return (
-    <label className={styles.inputFile}>
+    <label className={styles.fileInput}>
       <input
-        hidden
+        style={{ display: 'none' }}
         accept={accept}
         multiple
         type="file"
@@ -28,11 +35,16 @@ export const InputFile = ({
         }}
       />
       {acceptedFiles.length ? (
-        <FlexBox gap={2}>
+        <FlexBox gap={5}>
           {acceptedFiles.map((file, i) => {
             return (
-              <FlexBox key={i} dir="row" gap={2}>
-                <FileUpload></FileUpload>
+              <FlexBox
+                key={i}
+                dir="row"
+                gap={5}
+                style={{ alignItems: 'center' }}
+              >
+                <Icon icon={faUpload} />
                 <div>{file.name}</div>
               </FlexBox>
             )
@@ -40,9 +52,7 @@ export const InputFile = ({
         </FlexBox>
       ) : (
         <FlexBox gap={2} style={{ justifyContent: 'center' }}>
-          {prompt && (
-            <Typography sx={{ textAlign: 'center' }}>{prompt}</Typography>
-          )}
+          {prompt && <Typography>{prompt}</Typography>}
         </FlexBox>
       )}
     </label>

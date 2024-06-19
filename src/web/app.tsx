@@ -2,7 +2,7 @@
 import './app.scss'
 
 // modules
-import { CssBaseline, ThemeProvider } from '@mui/material'
+import 'antd/dist/reset.css'
 import { Alert, message, notification } from 'antd'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
@@ -20,7 +20,7 @@ import { RootEntry } from './pages/entry.js'
 import { registerAPI } from './service-worker/register.js'
 import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
-import { useAppTheme } from './theme.js'
+import { AntdConfigProvider, useColorScheme } from './theme.js'
 
 message.config({
   duration: 3,
@@ -32,7 +32,7 @@ notification.config({
 })
 
 function AppEntry() {
-  const theme = useAppTheme()
+  const theme = useColorScheme()
   const [loadedStatus, setLoadedStatus] = useState<boolean | string>(false)
 
   useEffect(() => {
@@ -51,7 +51,7 @@ function AppEntry() {
   }, [])
 
   useEffect(() => {
-    if (theme.palette.mode === 'dark')
+    if (theme === 'dark')
       document.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
     else document.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
   }, [theme])
@@ -69,10 +69,8 @@ function AppEntry() {
 }
 
 function AppProvider() {
-  const theme = useAppTheme()
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AntdConfigProvider>
       <DndProvider backend={HTML5Backend}>
         <AppEntry></AppEntry>
         <HintTextProvider></HintTextProvider>
@@ -81,7 +79,7 @@ function AppProvider() {
         <TitleProvider></TitleProvider>
         <HotkeysProvider></HotkeysProvider>
       </DndProvider>
-    </ThemeProvider>
+    </AntdConfigProvider>
   )
 }
 

@@ -53,8 +53,7 @@ import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
 import type { ReadablePart, TextAlias } from './types.js'
 import { ReadableExtractor } from './utils/readable.js'
-
-type ColorScheme = 'light' | 'dark'
+import type { ColorScheme } from '../../../store.js'
 
 type PageListNode = {
   topmost?: {

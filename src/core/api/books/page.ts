@@ -6,6 +6,7 @@ export type BookPost = {
   filter: Partial<BookTypes.FilterParams>
   page: {
     page?: number
+    perPage?: number
   }
 }
 

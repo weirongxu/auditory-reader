@@ -1,19 +1,13 @@
-import { MenuBook, Settings } from '@mui/icons-material'
-import {
-  Drawer,
-  ThemeProvider,
-  Typography,
-  createTheme,
-  useTheme,
-} from '@mui/material'
-import { Button } from 'antd'
+import { faBook, faGear } from '@fortawesome/free-solid-svg-icons'
+import { App, Button, Drawer, Typography } from 'antd'
 import { t } from 'i18next'
 import { useAtom } from 'jotai'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
 import { FlexBox } from '../../components/flex-box.js'
+import { Icon } from '../../components/icon.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { defaultTitle, useTitle } from '../../hooks/use-title.js'
 import { DragFile } from './drag-file.js'
@@ -26,23 +20,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
-  const theme = useTheme()
-  const settingsTheme = useMemo(
-    () =>
-      createTheme(
-        {
-          components: {
-            MuiTextField: {
-              defaultProps: {
-                inputProps: { sx: { textAlign: 'right' } },
-              },
-            },
-          },
-        },
-        theme,
-      ),
-    [theme],
-  )
+  const { modal } = App.useApp()
 
   const appBar = (
     <FlexBox
@@ -64,16 +42,24 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
         <LinkWrap to="/books">
           {(href) => (
             <Button type="link" size="small" href={href}>
-              <MenuBook sx={{ marginRight: 1 }}></MenuBook>
+              <Icon size="2xl" icon={faBook} />
             </Button>
           )}
         </LinkWrap>
         <Typography
-          flex={1}
-          noWrap
-          overflow="hidden"
-          textOverflow="ellipsis"
+          style={{
+            flex: 1,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
           title={title}
+          onClick={() => {
+            void modal.info({
+              title: t('setting.title'),
+              content: title,
+            })
+          }}
         >
           {title}
         </Typography>
@@ -116,28 +102,18 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             onClick={() => {
               setShowSettings((v) => !v)
             }}
-            icon={<Settings />}
+            icon={<Icon icon={faGear} />}
           ></Button>
           <Drawer
-            anchor="right"
+            placement="right"
             open={showSettings}
             onClose={() => setShowSettings(false)}
+            title={t('setting.title')}
           >
-            <FlexBox style={{ flex: 1, padding: 8, minWidth: 300 }}>
-              <FlexBox
-                style={{
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
-                  padding: 1,
-                }}
-              >
-                <h3 style={{ margin: 0 }}>{t('setting.title')}</h3>
-              </FlexBox>
-              <FlexBox style={{ flex: 1 }}>
-                <ThemeProvider theme={settingsTheme}>
-                  {appBarStates.settings}
-                  <GlobalSettings></GlobalSettings>
-                </ThemeProvider>
+            <FlexBox style={{ flex: 1, minWidth: 300, gap: 6 }}>
+              <FlexBox style={{ flex: 1, gap: 6 }}>
+                {appBarStates.settings}
+                <GlobalSettings></GlobalSettings>
               </FlexBox>
               <FlexBox>
                 {env.appMode === 'server' && (

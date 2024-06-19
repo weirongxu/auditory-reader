@@ -1,24 +1,21 @@
-import {
-  Autocomplete,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material'
 import { useSyncedRef } from '@react-hookz/web'
-import { Button } from 'antd'
+import { Button, Form, Input, Modal } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { booksShowRouter } from '../../../core/api/books/show.js'
 import { booksUpdateRouter } from '../../../core/api/books/update.js'
 import type { BookTypes } from '../../../core/book/types.js'
-import { useOrderedLangOptions, type LangCode } from '../../../core/lang.js'
+import { type LangCode } from '../../../core/lang.js'
 import { useAction } from '../../../core/route/action.js'
-import { eventBan } from '../../../core/util/dom.js'
 import { async } from '../../../core/util/promise.js'
-import { FlexBox } from '../../components/flex-box.js'
+import { LanguageSelect } from '../../components/language-select.js'
 import { SpinCenter } from '../../components/spin.js'
+
+type Values = {
+  name: string
+  langCode: LangCode
+}
 
 function UpdateForm({
   book,
@@ -27,59 +24,44 @@ function UpdateForm({
   book: BookTypes.Entity
   reload: () => void
 }) {
-  const langOptions = useOrderedLangOptions()
-  const [name, setName] = useState<string>(book.name)
-  const [langCode, setLangCode] = useState<LangCode>(book.langCode)
+  const [form] = Form.useForm<Values>()
 
   return (
-    <form
-      onSubmit={(e) => {
-        eventBan(e)
+    <Form
+      form={form}
+      initialValues={{
+        name: book.name,
+        langCode: book.langCode,
+      }}
+      onFinish={(values) => {
         async(async () => {
           await booksUpdateRouter.action({
             uuid: book.uuid,
             update: {
-              name,
-              langCode,
+              name: values.name,
+              langCode: values.langCode,
             },
           })
           reload()
         })
       }}
     >
-      <FlexBox gap={8}>
-        <TextField
-          autoFocus
-          required
-          label={t('bookName')}
-          placeholder={t('prompt.inputBookName')}
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value)
-          }}
-        ></TextField>
-
-        <Autocomplete
-          options={langOptions}
-          value={langOptions.find((l) => l.value === langCode)}
-          onChange={(_, value) => {
-            if (value?.value) setLangCode(value.value)
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder={t('prompt.selectLanguage')}
-              label={t('language')}
-              required
-            />
-          )}
-        ></Autocomplete>
-
+      <Form.Item label={t('bookName')} name="name" rules={[{ required: true }]}>
+        <Input autoFocus placeholder={t('prompt.inputBookName')}></Input>
+      </Form.Item>
+      <Form.Item
+        label={t('language')}
+        name="langCode"
+        rules={[{ required: true }]}
+      >
+        <LanguageSelect />
+      </Form.Item>
+      <Form.Item>
         <Button block htmlType="submit" type="primary">
           {t('update')}
         </Button>
-      </FlexBox>
-    </form>
+      </Form.Item>
+    </Form>
   )
 }
 
@@ -130,19 +112,21 @@ export function BookEditDialog() {
   }, [setBookEditDialog])
 
   return (
-    <Dialog open={!!bookEditDialog.uuid} onClose={onClose} fullWidth>
-      <DialogTitle>{t('editBook')}</DialogTitle>
-      <DialogContent>
-        {bookEditDialog.uuid && (
-          <BookEditReq
-            uuid={bookEditDialog.uuid}
-            reload={() => {
-              onClose()
-              bookEditDialog.reloads.forEach((r) => r())
-            }}
-          ></BookEditReq>
-        )}
-      </DialogContent>
-    </Dialog>
+    <Modal
+      open={!!bookEditDialog.uuid}
+      onCancel={onClose}
+      title={t('editBook')}
+      footer={false}
+    >
+      {bookEditDialog.uuid && (
+        <BookEditReq
+          uuid={bookEditDialog.uuid}
+          reload={() => {
+            onClose()
+            bookEditDialog.reloads.forEach((r) => r())
+          }}
+        ></BookEditReq>
+      )}
+    </Modal>
   )
 }

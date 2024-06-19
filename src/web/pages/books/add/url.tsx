@@ -1,125 +1,99 @@
-import {
-  Autocomplete,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  TextField,
-} from '@mui/material'
-import { Button } from 'antd'
+import { Button, Form, Input, Space } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateByUrlRouter } from '../../../../core/api/books/create-by-url.js'
 import { booksFetchUrlInfoRouter } from '../../../../core/api/books/fetch-url-info.js'
-import { useOrderedLangOptions, type LangCode } from '../../../../core/lang.js'
-import { eventBan } from '../../../../core/util/dom.js'
+import { type LangCode } from '../../../../core/lang.js'
 import { async } from '../../../../core/util/promise.js'
-import { FlexBox } from '../../../components/flex-box.js'
-import { SpinCenter } from '../../../components/spin.js'
+import { LanguageSelect } from '../../../components/language-select.js'
+
+type Values = {
+  name: string
+  langCode: LangCode
+  url: string
+}
 
 export function AddUrl() {
   const nav = useNavigate()
-  const langOptions = useOrderedLangOptions()
-  const [name, setName] = useState<string>()
-  const [langCode, setLangCode] = useState<LangCode>()
-  const [url, setUrl] = useState<string>()
-  const [isFetching, setIsFetching] = useState(false)
+  const [isFetchingURL, setIsFetchingURL] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [form] = Form.useForm<Values>()
 
   return (
     <>
-      <Dialog open={isFetching}>
-        <DialogTitle>Fetching URL</DialogTitle>
-        <DialogContent>
-          <FlexBox style={{ alignItems: 'center' }}>
-            <SpinCenter />
-          </FlexBox>
-        </DialogContent>
-      </Dialog>
-      <form
+      <Form
+        form={form}
         style={{
           margin: '20px auto 0',
           maxWidth: '800px',
         }}
-        onSubmit={(e) => {
-          eventBan(e)
+        initialValues={{
+          name: '',
+          langCode: null,
+          url: '',
+        }}
+        onFinish={(values) => {
           async(async () => {
-            if (!name) return
-            if (!url) return
-            if (!langCode) return
-            setIsFetching(true)
             try {
+              setSubmitted(true)
               const entity = await booksCreateByUrlRouter.action({
-                name,
-                langCode,
-                url,
+                name: values.name,
+                langCode: values.langCode,
+                url: values.url,
               })
               nav(`/books/added-successful/${entity.uuid}`)
             } finally {
-              setIsFetching(false)
+              setSubmitted(false)
             }
           })
         }}
       >
-        <FlexBox gap={8}>
-          <TextField
-            required
-            label={t('bookName')}
-            placeholder={t('prompt.inputBookName')}
-            value={name ?? ''}
-            onChange={(e) => {
-              setName(e.target.value)
-            }}
-          ></TextField>
-
-          <Autocomplete
-            options={langOptions}
-            value={langOptions.find((l) => l.value === langCode) ?? null}
-            onChange={(_, value) => {
-              if (value?.value) setLangCode(value.value)
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder={t('prompt.selectLanguage')}
-                label={t('language')}
-                required
-              />
-            )}
-          ></Autocomplete>
-
-          <FlexBox dir="row" gap={4}>
-            <TextField
-              required
-              label={t('url')}
-              sx={{ flex: 1 }}
-              value={url ?? ''}
-              onChange={(e) => {
-                setUrl(e.target.value)
-              }}
-            ></TextField>
+        <Form.Item
+          label={t('bookName')}
+          name="name"
+          rules={[{ required: true }]}
+        >
+          <Input placeholder={t('prompt.inputBookName')}></Input>
+        </Form.Item>
+        <Form.Item
+          label={t('language')}
+          name="langCode"
+          rules={[{ required: true }]}
+        >
+          <LanguageSelect />
+        </Form.Item>
+        <Form.Item label={t('url')} name="url" rules={[{ required: true }]}>
+          <Space.Compact style={{ width: '100%' }}>
+            <Input></Input>
             <Button
               style={{ alignSelf: 'center' }}
               type="primary"
+              loading={isFetchingURL}
               onClick={() => {
+                const url = form.getFieldValue('url')
                 if (!url) return
+                setIsFetchingURL(true)
                 booksFetchUrlInfoRouter
                   .action({ url })
                   .then((info) => {
-                    setName(info.title)
-                    if (info.lang) setLangCode(info.lang)
+                    form.setFieldValue('name', info.title)
+                    if (info.lang) form.setFieldValue('langCode', info.lang)
                   })
                   .catch(console.error)
+                  .finally(() => setIsFetchingURL(false))
               }}
             >
               {t('extractUrlInfo')}
             </Button>
-          </FlexBox>
-
-          <Button block htmlType="submit" type="primary">
+          </Space.Compact>
+        </Form.Item>
+        <Form.Item>
+          <Button block htmlType="submit" type="primary" loading={submitted}>
             {t('add')}
           </Button>
-        </FlexBox>
-      </form>
+        </Form.Item>
+      </Form>
     </>
   )
 }

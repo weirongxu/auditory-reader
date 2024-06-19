@@ -1,5 +1,9 @@
-import { Delete, MoreVert, NoteAdd } from '@mui/icons-material'
-import { Menu, MenuItem } from '@mui/material'
+import {
+  faEllipsisVertical,
+  faNoteSticky,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons'
+import { Dropdown } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { booksAnnotationsRouter } from '../../../../../core/api/books/annotations.js'
@@ -10,6 +14,7 @@ import { isMobile } from '../../../../../core/util/browser.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { textEllispse } from '../../../../../core/util/text.js'
 import { SwipeAction } from '../../../../common/swipe-action.js'
+import { Icon } from '../../../../components/icon.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
 import type { Player } from '../player.js'
 import { useAnnotationNoteDialog } from './annotations-dialogs.js'
@@ -18,7 +23,7 @@ function AnnotationItem({
   annotation,
   openNoteEdit,
   isSelected,
-  isActived,
+  isActivated,
   player,
 }: {
   annotation: BookTypes.PropertyAnnotation
@@ -27,14 +32,31 @@ function AnnotationItem({
     player: Player,
   ) => void
   isSelected: boolean
-  isActived: boolean
+  isActivated: boolean
   player: Player
 }) {
-  const [anchorMenu, setAnchorMenu] = useState<HTMLDivElement | null>(null)
-
   const textCls: string[] = ['text', 'clickable']
-  if (isActived) textCls.push('active')
+  if (isActivated) textCls.push('active')
   if (isSelected) textCls.push('selected')
+
+  const menuItems = [
+    {
+      key: 'note',
+      icon: <Icon icon={faNoteSticky} size="sm" />,
+      label: t('note'),
+      onClick: () => {
+        openNoteEdit(annotation, player)
+      },
+    },
+    {
+      key: 'remove',
+      icon: <Icon icon={faTrash} size="sm" />,
+      label: t('remove'),
+      onClick: () => {
+        void player.annotations.remove(annotation)
+      },
+    },
+  ]
 
   return (
     <li
@@ -43,87 +65,72 @@ function AnnotationItem({
     >
       <SwipeAction
         left={{
-          node: <NoteAdd fontSize="small" />,
+          node: <Icon icon={faNoteSticky} size="sm" />,
           width: 30,
           trigger: () => {
             openNoteEdit(annotation, player)
           },
         }}
         right={{
-          node: <Delete fontSize="small" />,
+          node: <Icon icon={faTrash} size="sm" />,
           width: 30,
           trigger: () => {
             void player.annotations.remove(annotation)
           },
         }}
       >
-        <div
-          className="item"
-          onContextMenu={(event) => {
-            eventBan(event)
-            // TODO
+        <Dropdown
+          menu={{
+            items: menuItems,
           }}
+          trigger={['contextMenu']}
         >
-          <div
-            className={textCls.join(' ')}
-            style={{ fontSize: 13 }}
-            onClick={(event) => {
-              eventBan(event)
-              player
-                .gotoSection(annotation.pos.section, annotation.pos.paragraph)
-                .catch(console.error)
-            }}
-          >
-            {annotation.brief}
-            {annotation.range && (
-              <div className="range">
-                <span className="selected-text">
-                  {annotation.range.selectedText}
-                </span>
-              </div>
-            )}
-            {annotation.note && (
-              <div className="note">
-                note: {textEllispse(annotation.note, 30)}
+          <div className="item">
+            <div
+              className={textCls.join(' ')}
+              style={{ fontSize: 13 }}
+              onClick={(event) => {
+                eventBan(event)
+                player
+                  .gotoSection(annotation.pos.section, annotation.pos.paragraph)
+                  .catch(console.error)
+              }}
+            >
+              {annotation.brief}
+              {annotation.range && (
+                <div className="range">
+                  <span className="selected-text">
+                    {annotation.range.selectedText}
+                  </span>
+                </div>
+              )}
+              {annotation.note && (
+                <div className="note">
+                  note: {textEllispse(annotation.note, 30)}
+                </div>
+              )}
+            </div>
+            {!isMobile && (
+              <div className="btn">
+                <Dropdown
+                  menu={{
+                    items: menuItems,
+                  }}
+                >
+                  <div>
+                    <Icon
+                      icon={faEllipsisVertical}
+                      style={{
+                        paddingLeft: '8px',
+                        paddingRight: '8px',
+                      }}
+                    />
+                  </div>
+                </Dropdown>
               </div>
             )}
           </div>
-          {!isMobile && (
-            <>
-              <div
-                className="btn"
-                onClick={(event) => {
-                  setAnchorMenu(event.currentTarget)
-                }}
-              >
-                <MoreVert></MoreVert>
-              </div>
-              <Menu
-                open={!!anchorMenu}
-                anchorEl={anchorMenu}
-                onClose={() => setAnchorMenu(null)}
-              >
-                <MenuItem
-                  onClick={() => {
-                    openNoteEdit(annotation, player)
-                  }}
-                >
-                  <NoteAdd fontSize="small" />
-                  {t('note')}
-                </MenuItem>
-                <MenuItem
-                  onClick={() => {
-                    void player.annotations.remove(annotation)
-                    setAnchorMenu(null)
-                  }}
-                >
-                  <Delete fontSize="small" />
-                  {t('remove')}
-                </MenuItem>
-              </Menu>
-            </>
-          )}
-        </div>
+        </Dropdown>
       </SwipeAction>
     </li>
   )
@@ -235,7 +242,7 @@ function Annotations({
               key={idx}
               annotation={annotation}
               openNoteEdit={openNoteEdit}
-              isActived={activeAnnotationIndex === idx}
+              isActivated={activeAnnotationIndex === idx}
               isSelected={selectedIndex === idx}
               player={player}
             ></AnnotationItem>

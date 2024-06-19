@@ -10,7 +10,7 @@ import { FlexBox } from '../../../components/flex-box.js'
 import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
-import { useAppTheme } from '../../../theme.js'
+import { useColorScheme } from '../../../theme.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { usePlayer } from './player.js'
@@ -47,10 +47,10 @@ export function useViewer({
   })
 
   // dark scheme
-  const theme = useAppTheme()
+  const theme = useColorScheme()
   useEffect(() => {
-    player.iframeCtrler.updateColorTheme(theme.palette.mode)
-  }, [player.iframeCtrler, theme.palette.mode])
+    player.iframeCtrler.updateColorTheme(theme)
+  }, [player.iframeCtrler, theme])
 
   const { BookPanelView } = usePlayerUI({
     uuid,

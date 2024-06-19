@@ -1,30 +1,25 @@
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons'
 import {
-  Add,
-  DragIndicator,
-  MoreVert,
-  Star,
-  StarBorder,
-} from '@mui/icons-material'
+  faAdd,
+  faEllipsisVertical,
+  faGripVertical,
+  faStar,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons'
 import {
+  Alert,
+  Button,
   Checkbox,
-  Chip,
-  FormControlLabel,
-  Menu,
-  MenuItem,
+  Dropdown,
+  Form,
+  Input,
   Pagination,
-  Paper,
   Select,
+  Space,
   Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  useTheme,
-} from '@mui/material'
-import { Alert, Button } from 'antd'
+  Tag,
+  type InputRef,
+} from 'antd'
 import { t } from 'i18next'
 import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -45,6 +40,7 @@ import { async } from '../../../core/util/promise.js'
 import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
+import { Icon } from '../../components/icon.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { SpinCenter } from '../../components/spin.js'
 import { useSyncedDebounced } from '../../hooks/use-synced-debounce.js'
@@ -453,7 +449,6 @@ function BookButtons({
   book: BookTypes.Entity
   reload: () => void
 }) {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const { openBookEdit } = useBookEditDialog(reload)
 
   const exportBook = useCallback(() => {
@@ -466,45 +461,47 @@ function BookButtons({
   const removeBooks = useRemoveBooks(reload)
 
   return (
-    <>
-      <Button
-        shape="circle"
-        type="text"
-        onClick={(e) => setAnchorEl(e.currentTarget)}
-      >
-        <MoreVert></MoreVert>
-      </Button>
-      <Menu
-        open={Boolean(anchorEl)}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-      >
-        <MenuItem onClick={() => openBookEdit(book.uuid)}>{t('edit')}</MenuItem>
-        <MenuItem
-          onClick={() => {
-            async(async () => {
-              await booksUpdateRouter.action({
-                uuid: book.uuid,
-                update: {
-                  isArchived: !book.isArchived,
-                },
+    <Dropdown
+      trigger={['click']}
+      menu={{
+        items: [
+          {
+            key: 'edit',
+            label: t('edit'),
+            onClick: () => openBookEdit(book.uuid),
+          },
+          {
+            key: 'archive',
+            label: book.isArchived ? t('unarchive') : t('archive'),
+            onClick: () => {
+              async(async () => {
+                await booksUpdateRouter.action({
+                  uuid: book.uuid,
+                  update: {
+                    isArchived: !book.isArchived,
+                  },
+                })
+                reload()
               })
-              reload()
-            })
-          }}
-        >
-          {book.isArchived ? t('unarchive') : t('archive')}
-        </MenuItem>
-        <MenuItem onClick={() => exportBook()}>{t('export')} Epub</MenuItem>
-        <MenuItem
-          onClick={() => {
-            removeBooks([book])
-          }}
-        >
-          {t('remove')}
-        </MenuItem>
-      </Menu>
-    </>
+            },
+          },
+          {
+            key: 'export',
+            label: `${t('export')} Epub`,
+            onClick: () => exportBook(),
+          },
+          {
+            key: 'remove',
+            label: t('remove'),
+            onClick: () => removeBooks([book]),
+          },
+        ],
+      }}
+    >
+      <Button shape="circle" type="text">
+        <Icon icon={faEllipsisVertical} />
+      </Button>
+    </Dropdown>
   )
 }
 
@@ -589,27 +586,36 @@ function BookRow({
   const opacity = isDragging ? 0.2 : 1
   if (!hasOrder) drop(refEl)
   return (
-    <TableRow ref={refEl} key={book.uuid} sx={{ opacity }} selected={activated}>
-      <TableCell
-        padding="none"
+    <tr
+      ref={refEl}
+      key={book.uuid}
+      style={{
+        opacity,
+        background: activated ? 'var(--main-bg-active)' : 'var(--main-bg)',
+      }}
+    >
+      <td
         ref={drag}
-        sx={{
+        style={{
           cursor: 'move',
         }}
       >
-        {!hasOrder && <DragIndicator />}
-      </TableCell>
-      <TableCell padding="none">
+        {!hasOrder && (
+          <Icon size="lg" icon={faGripVertical} style={{ marginLeft: 4 }} />
+        )}
+      </td>
+      <td>
         <Checkbox
           checked={selectedUuids.includes(book.uuid)}
           onClick={(event) => {
             selectTo(index, event.shiftKey)
           }}
         ></Checkbox>
-      </TableCell>
-      <TableCell align="center" style={{ cursor: 'pointer' }}>
+      </td>
+      <td align="center" style={{ cursor: 'pointer' }}>
         {book.isFavorited ? (
-          <Star
+          <Icon
+            icon={faStar}
             onClick={() => {
               async(async () => {
                 await booksUpdateRouter.action({
@@ -623,7 +629,8 @@ function BookRow({
             }}
           />
         ) : (
-          <StarBorder
+          <Icon
+            icon={faStarRegular}
             onClick={() => {
               async(async () => {
                 await booksUpdateRouter.action({
@@ -637,8 +644,8 @@ function BookRow({
             }}
           />
         )}
-      </TableCell>
-      <TableCell padding="none">
+      </td>
+      <td>
         <img
           onClick={() => {
             globalStore.set(previewImgSrcAtom, coverUrl)
@@ -654,8 +661,8 @@ function BookRow({
           src={coverUrl}
           alt={`${book.name} ${t('cover')}`}
         />
-      </TableCell>
-      <TableCell
+      </td>
+      <td
         className={styles.hover}
         title={book.createdAt.toLocaleString()}
         onClick={() => {
@@ -663,11 +670,11 @@ function BookRow({
         }}
       >
         {book.name}
-      </TableCell>
-      <TableCell padding="none">
+      </td>
+      <td>
         <BookButtons book={book} reload={reload}></BookButtons>
-      </TableCell>
-    </TableRow>
+      </td>
+    </tr>
   )
 }
 
@@ -686,12 +693,13 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
   if (!canDrop) return <></>
 
   return (
-    <Chip
+    <Tag
       ref={drop}
       color={isOver ? 'error' : 'warning'}
-      size={isOver ? 'medium' : undefined}
-      label={t('prompt.dropHereToRemove')}
-    />
+      icon={isOver ? <Icon icon={faTrash} /> : null}
+    >
+      {t('prompt.dropHereToRemove')}
+    </Tag>
   )
 }
 
@@ -700,8 +708,8 @@ export function BookList() {
   const locationInPage = state?.locationInPage as
     | BookTypes.LocationInPageState
     | undefined
-  const theme = useTheme()
   const [page, setPage] = useState<number>(locationInPage?.page ?? 1)
+  const [perPage, setPerPage] = useState<number>(15)
   const [activatedIndex, setActivatedIndex] = useState(
     locationInPage?.index ?? 0,
   )
@@ -710,7 +718,7 @@ export function BookList() {
 
   const [search, setSearch] = useState<string>('')
   const searchDeferred = useSyncedDebounced(search, 500)
-  const refSearchInput = useRef<HTMLInputElement | null>(null)
+  const refSearchInput = useRef<InputRef | null>(null)
 
   const [order, setOrder] = useState<SortOrder>('default')
   const hasOrder = order !== 'default'
@@ -724,7 +732,7 @@ export function BookList() {
         search: searchDeferred,
         order,
       },
-      page: { page },
+      page: { page, perPage },
     },
     {
       clearWhenReload: false,
@@ -843,6 +851,7 @@ export function BookList() {
         <Button.Group>
           <Button
             type="primary"
+            size="small"
             onClick={() => {
               async(async () => {
                 await moveBooksTop(selectedBooks)
@@ -854,6 +863,7 @@ export function BookList() {
           </Button>
           <Button
             type="primary"
+            size="small"
             danger
             onClick={() => {
               removeBooks(selectedBooks)
@@ -880,7 +890,7 @@ export function BookList() {
       <LinkWrap to="/books/add">
         {(href) => (
           <Button type="text" shape="circle" href={href} title={t('add')}>
-            <Add />
+            <Icon icon={faAdd} />
           </Button>
         )}
       </LinkWrap>
@@ -908,81 +918,71 @@ export function BookList() {
   const Pager =
     dataBooks.pageCount > 1 ? (
       <Pagination
-        sx={{ marginTop: 2 }}
-        onChange={(_, page) => setPage(page)}
-        page={page}
-        count={dataBooks.pageCount}
+        onChange={(page) => setPage(page)}
+        pageSize={perPage}
+        onShowSizeChange={(_, size) => setPerPage(size)}
+        current={page}
+        total={dataBooks.count}
       ></Pagination>
     ) : null
 
   return (
     <>
-      <form>
-        <FormControlLabel
-          label={t('archive')}
-          control={
-            <Switch
-              checked={archived}
-              onChange={(e) => setArchived(e.target.checked)}
-            />
-          }
-        ></FormControlLabel>
-        <FormControlLabel
-          label={t('favorite')}
-          control={
-            <Switch
-              checked={favorited}
-              onChange={(e) => setFavorited(e.target.checked)}
-            />
-          }
-        ></FormControlLabel>
-        <FormControlLabel
-          label=""
-          control={
-            <TextField
-              label={t('search')}
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Form layout="inline">
+          <Form.Item label={t('archive')}>
+            <Switch checked={archived} onChange={(v) => setArchived(v)} />
+          </Form.Item>
+          <Form.Item label={t('favorite')}>
+            <Switch checked={favorited} onChange={(v) => setFavorited(v)} />
+          </Form.Item>
+          <Form.Item label={t('search')}>
+            <Input
               value={search}
+              placeholder={t('search')}
               onChange={(e) => setSearch(e.target.value)}
-              inputRef={refSearchInput}
+              ref={refSearchInput}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') refSearchInput.current?.blur()
               }}
-            />
-          }
-        ></FormControlLabel>
-        <FormControlLabel
-          label={t('sortOrder.label')}
-          control={
+            ></Input>
+          </Form.Item>
+          <Form.Item label={t('sortOrder.label')}>
             <Select
               value={order}
-              onChange={(e) => setOrder(e.target.value as SortOrder)}
-            >
-              <MenuItem value="default">{t('sortOrder.item.default')}</MenuItem>
-              <MenuItem value="reverse">{t('sortOrder.item.reverse')}</MenuItem>
-              <MenuItem value="name">{t('sortOrder.item.name')}</MenuItem>
-              <MenuItem value="name-reverse">
-                {t('sortOrder.item.nameReverse')}
-              </MenuItem>
-            </Select>
-          }
-        ></FormControlLabel>
-      </form>
-      {books.length <= 0 ? (
-        <Alert type="warning" message={t('prompt.noBooks')}></Alert>
-      ) : (
-        <>
-          {Pager}
-          <TableContainer
-            sx={{
-              marginTop: theme.spacing(2),
-            }}
-            component={Paper}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell width="8px" padding="none"></TableCell>
-                  <TableCell width="10px" padding="none">
+              onChange={(v) => setOrder(v)}
+              popupMatchSelectWidth={false}
+              options={[
+                {
+                  label: t('sortOrder.item.default'),
+                  value: 'default',
+                },
+                {
+                  label: t('sortOrder.item.reverse'),
+                  value: 'reverse',
+                },
+                {
+                  label: t('sortOrder.item.name'),
+                  value: 'name',
+                },
+                {
+                  label: t('sortOrder.item.nameReverse'),
+                  value: 'name-reverse',
+                },
+              ]}
+            ></Select>
+          </Form.Item>
+        </Form>
+        {books.length <= 0 ? (
+          <Alert type="warning" message={t('prompt.noBooks')}></Alert>
+        ) : (
+          <>
+            {Pager}
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>
                     <Checkbox
                       title={t('all')}
                       checked={allSelected}
@@ -990,14 +990,14 @@ export function BookList() {
                         selectAll()
                       }}
                     ></Checkbox>
-                  </TableCell>
-                  <TableCell width="10px">{t('favorite')}</TableCell>
-                  <TableCell padding="none">{t('cover')}</TableCell>
-                  <TableCell>{t('bookName')}</TableCell>
-                  <TableCell padding="none"></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+                  </th>
+                  <th>{t('favorite')}</th>
+                  <th>{t('cover')}</th>
+                  <th>{t('bookName')}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
                 {books.map((book, index) => {
                   return (
                     <BookRow
@@ -1016,12 +1016,12 @@ export function BookList() {
                     ></BookRow>
                   )
                 })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          {Pager}
-        </>
-      )}
+              </tbody>
+            </table>
+            {Pager}
+          </>
+        )}
+      </Space>
     </>
   )
 }

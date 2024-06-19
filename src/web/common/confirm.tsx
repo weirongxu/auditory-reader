@@ -1,18 +1,13 @@
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  styled,
-} from '@mui/material'
 import { useSyncedRef } from '@react-hookz/web'
+import { Button, Modal, Space } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 import { useKeyEscape } from '../hooks/use-escape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { globalStore } from '../store/global.js'
-import { Button } from 'antd'
+import { Icon } from '../components/icon.js'
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
@@ -43,15 +38,6 @@ export function useConfirm() {
 
   return confirm
 }
-
-const BootstrapDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialogContent-root': {
-    padding: theme.spacing(2),
-  },
-  '& .MuiDialogActions-root': {
-    padding: theme.spacing(1),
-  },
-}))
 
 export const useConfirmHotkey = ({
   enable = true,
@@ -109,18 +95,28 @@ function ConfirmDialog() {
 
   return (
     <>
-      <BootstrapDialog open={!!confirm} onClose={onClose}>
-        <DialogTitle sx={{ m: 0, p: 2 }}>{confirm?.title}</DialogTitle>
-        <DialogContent dividers>{confirm?.description}</DialogContent>
-        <DialogActions>
+      <Modal
+        open={!!confirm}
+        onOk={onOk}
+        onCancel={onClose}
+        title={
+          <Space>
+            <Icon icon={faQuestionCircle} size="lg" color="#ff4d4f" />
+            {confirm?.title}
+          </Space>
+        }
+        footer={false}
+      >
+        {confirm?.description}
+        <Space>
           <Button type="primary" onClick={onClose}>
             {t('confirm.cancel')}
           </Button>
           <Button type="primary" onClick={onOk}>
             {t('confirm.ok')}
           </Button>
-        </DialogActions>
-      </BootstrapDialog>
+        </Space>
+      </Modal>
     </>
   )
 }

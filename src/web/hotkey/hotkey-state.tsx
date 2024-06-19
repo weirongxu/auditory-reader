@@ -1,14 +1,14 @@
-import { Dialog, DialogContent, DialogTitle } from '@mui/material'
+import { Modal } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
-import { eventBan, isInputElement } from '../../core/util/dom.js'
-import { useKeyEscape } from '../hooks/use-escape.js'
-import * as styles from './hotkey-state.module.scss'
-import { globalStore } from '../store/global.js'
 import { orderBy } from '../../core/util/collection.js'
+import { eventBan, isInputElement } from '../../core/util/dom.js'
 import { capitalize } from '../../core/util/text.js'
 import { iframeWinAtom } from '../atoms.js'
+import { useKeyEscape } from '../hooks/use-escape.js'
+import { globalStore } from '../store/global.js'
+import * as styles from './hotkey-state.module.scss'
 
 type Hotkey =
   | string
@@ -224,30 +224,31 @@ export function HotkeysProvider() {
   )
 
   return (
-    <Dialog
-      maxWidth={false}
+    <Modal
       open={open}
-      onClose={() => {
+      width="auto"
+      style={{ maxWidth: '1000px' }}
+      onCancel={() => {
         setOpen(false)
       }}
+      title={t('hotkey.title')}
+      footer={false}
+      zIndex={10000}
     >
-      <DialogTitle>{t('hotkey.title')}</DialogTitle>
-      <DialogContent>
-        <ul className={styles.hotkeyList}>
-          {orderBy(hotkeyItems, 'asc', ([key]) => key).map(
-            ([, keyDescs, description], i) => (
-              <li key={i}>
-                <div className="keys">
-                  {keyDescs.map((k, j) => (
-                    <kbd key={j}>{k}</kbd>
-                  ))}
-                </div>
-                <div className="desc">{description}</div>
-              </li>
-            ),
-          )}
-        </ul>
-      </DialogContent>
-    </Dialog>
+      <ul className={styles.hotkeyList}>
+        {orderBy(hotkeyItems, 'asc', ([key]) => key).map(
+          ([, keyDescs, description], i) => (
+            <li key={i}>
+              <div className="keys">
+                {keyDescs.map((k, j) => (
+                  <kbd key={j}>{k}</kbd>
+                ))}
+              </div>
+              <div className="desc">{description}</div>
+            </li>
+          ),
+        )}
+      </ul>
+    </Modal>
   )
 }

@@ -1,21 +1,19 @@
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons'
 import {
-  AccountTree,
-  BookmarkAdd,
-  BookmarkRemove,
-  CollectionsBookmark,
-  CollectionsBookmarkOutlined,
-  FastForward,
-  FastRewind,
-  FirstPage,
-  Pause,
-  PlayArrow,
-  Save,
-  SkipNext,
-  SkipPrevious,
-  Start,
-} from '@mui/icons-material'
-import { Autocomplete, Chip, TextField } from '@mui/material'
-import { Button, Popover } from 'antd'
+  faBackward,
+  faBackwardFast,
+  faBookBookmark,
+  faBookmark,
+  faDownLeftAndUpRightToCenter,
+  faFloppyDisk,
+  faFolderTree,
+  faForward,
+  faForwardFast,
+  faPause,
+  faPlay,
+  faUpRightAndDownLeftFromCenter,
+} from '@fortawesome/free-solid-svg-icons'
+import { Button, Popover, Select, Space, Tag } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -24,6 +22,7 @@ import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
+import { Icon } from '../../../components/icon.js'
 import {
   useAutoSection,
   useDisabledVertical,
@@ -44,6 +43,21 @@ import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
 
+function ControlButton(props: {
+  disabled?: boolean
+  onClick: React.MouseEventHandler | undefined
+  children: React.ReactNode
+}) {
+  return (
+    <Button
+      style={{ padding: '14px 4px' }}
+      size="small"
+      type="primary"
+      {...props}
+    ></Button>
+  )
+}
+
 function TooltipButton({
   tooltip,
   ...btnProps
@@ -54,22 +68,13 @@ function TooltipButton({
   children: React.ReactNode
 }) {
   return (
-    <>
-      {!isMobile && (
-        <Popover
-          style={{ pointerEvents: 'none' }}
-          content={tooltip}
-          placement="top"
-        >
-          <Button
-            style={{ padding: '14px 4px' }}
-            size="small"
-            type="primary"
-            {...btnProps}
-          ></Button>
-        </Popover>
-      )}
-    </>
+    <Popover
+      style={{ pointerEvents: 'none' }}
+      content={isMobile ? null : tooltip}
+      placement="top"
+    >
+      <ControlButton {...btnProps} />
+    </Popover>
   )
 }
 
@@ -128,14 +133,15 @@ function TimerRemainBadge({
   if (!stopTimerEnabled) return <></>
 
   return (
-    <Chip
+    <Tag
       onClick={() => {
         refUsedSeconds.current = 0
         setResetCount((c) => c + 1)
         setRemainSeconds(stopTimerSeconds)
       }}
-      label={remainDisplay}
-    ></Chip>
+    >
+      {remainDisplay}
+    </Tag>
   )
 }
 
@@ -198,7 +204,7 @@ export function usePlayerUI({
           setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
         }}
       >
-        <AccountTree />
+        <Icon icon={faFolderTree} />
       </TooltipButton>,
       <TooltipButton
         key="annotations"
@@ -207,7 +213,7 @@ export function usePlayerUI({
           setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation'))
         }}
       >
-        <CollectionsBookmark />
+        <Icon icon={faBookBookmark} />
       </TooltipButton>,
       <TooltipButton
         key="annotation"
@@ -216,7 +222,11 @@ export function usePlayerUI({
           void player.annotations.toggle(pos, selection ?? null)
         }}
       >
-        {activeAnnotation ? <BookmarkRemove /> : <BookmarkAdd />}
+        {activeAnnotation ? (
+          <Icon icon={faBookmark} />
+        ) : (
+          <Icon icon={faBookmarkRegular} />
+        )}
       </TooltipButton>,
     ]
 
@@ -230,7 +240,7 @@ export function usePlayerUI({
             player.prevSection().catch(console.error)
           }}
         >
-          <SkipPrevious />
+          <Icon icon={faBackwardFast} />
         </TooltipButton>,
         <TooltipButton
           key="prev-paragraph"
@@ -240,7 +250,7 @@ export function usePlayerUI({
             player.prevParagraph().catch(console.error)
           }}
         >
-          <FastRewind />
+          <Icon icon={faBackward} />
         </TooltipButton>,
       )
 
@@ -253,7 +263,7 @@ export function usePlayerUI({
           else player.start()
         }}
       >
-        {started ? <Pause /> : <PlayArrow />}
+        {started ? <Icon icon={faPause} /> : <Icon icon={faPlay} />}
       </TooltipButton>,
     )
 
@@ -267,7 +277,7 @@ export function usePlayerUI({
             player.nextParagraph().catch(console.error)
           }}
         >
-          <FastForward />
+          <Icon icon={faForward} />
         </TooltipButton>,
         <TooltipButton
           key="next-section"
@@ -277,33 +287,25 @@ export function usePlayerUI({
             player.nextSection().catch(console.error)
           }}
         >
-          <SkipNext />
+          <Icon icon={faForwardFast} />
         </TooltipButton>,
       )
 
     if (isMobile)
       buttons.push(
-        <Button
+        <ControlButton
           key="collapse"
           onClick={() => {
             setCollapsed((c) => !c)
           }}
         >
-          {collapsed ? <Start /> : <FirstPage />}
-        </Button>,
+          {collapsed ? (
+            <Icon icon={faUpRightAndDownLeftFromCenter} />
+          ) : (
+            <Icon icon={faDownLeftAndUpRightToCenter} />
+          )}
+        </ControlButton>,
       )
-
-    buttons.push(
-      <TooltipButton
-        key="bookmarks"
-        tooltip={<span>shift + m</span>}
-        onClick={() => {
-          setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark'))
-        }}
-      >
-        <CollectionsBookmarkOutlined />
-      </TooltipButton>,
-    )
 
     return <Button.Group>{buttons}</Button.Group>
   }, [
@@ -342,17 +344,13 @@ export function usePlayerUI({
   )
   const SelectVoices = useMemo(() => {
     return (
-      <SettingLine>
-        <Autocomplete
-          key="select-voices"
-          sx={{ width: 280 }}
+      <SettingLine key="select-voices">
+        <Select
+          style={{ width: '100%' }}
+          value={voiceURI}
+          onChange={(value) => setVoiceURI(value)}
           options={voiceOptions}
-          value={voiceOptions.find((v) => v.value === voiceURI)}
-          onChange={(_, value) => {
-            setVoiceURI(value?.value ?? null)
-          }}
-          renderInput={(params) => <TextField {...params} size="small" />}
-        ></Autocomplete>
+        ></Select>
       </SettingLine>
     )
   }, [setVoiceURI, voiceOptions, voiceURI])
@@ -360,7 +358,7 @@ export function usePlayerUI({
   const { openBookEdit } = useBookEditDialog(reload)
   const BookEditModal = useMemo(() => {
     return (
-      <Button type="primary" onClick={() => openBookEdit(book.item.uuid)}>
+      <Button block type="primary" onClick={() => openBookEdit(book.item.uuid)}>
         {t('editBook')}
       </Button>
     )
@@ -378,7 +376,7 @@ export function usePlayerUI({
             nav(`/books/added-successful/${entity.uuid}`)
           })
         }}
-        icon={<Save />}
+        icon={<Icon icon={faFloppyDisk} />}
       ></Button>
     )
   }, [nav])
@@ -397,10 +395,10 @@ export function usePlayerUI({
 
   const appSettings = useMemo(() => {
     return (
-      <>
+      <Space direction="vertical">
         {BookEditModal}
         {SelectVoices}
-      </>
+      </Space>
     )
   }, [BookEditModal, SelectVoices])
 

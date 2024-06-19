@@ -5,3 +5,19 @@
     color: var(--main-fg-hover);
   }
 }
+
+.table {
+  font-size: 14px;
+  border-collapse: collapse;
+  width: 100%;
+  :global {
+    tr > th {
+      padding: 4px 4px;
+      border-bottom: 1px solid var(--main-border);
+    }
+    td {
+      padding: 0px 4px;
+      border-bottom: 1px solid var(--main-border);
+    }
+  }
+}

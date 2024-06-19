@@ -72,6 +72,14 @@ export default (env, argv) => {
             'sass-loader',
           ],
         },
+        {
+          test: /\.css$/i,
+          use: [
+            isProd ? MiniCssExtractPlugin.loader : 'style-loader',
+            // Translates CSS into CommonJS
+            'css-loader',
+          ],
+        },
       ],
     },
     optimization: {

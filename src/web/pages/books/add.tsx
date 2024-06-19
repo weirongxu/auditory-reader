@@ -1,22 +1,36 @@
-import { Tab, Tabs } from '@mui/material'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { AddFile } from './add/file.js'
 import { AddText } from './add/text.js'
 import { AddUrl } from './add/url.js'
+import { Tabs } from 'antd'
+
+type TabType = 'text' | 'file' | 'url'
 
 export function BookAdd() {
-  const [tab, setTab] = useState(0)
+  const [tab, setTab] = useState<TabType>('text')
   return (
-    <>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-        <Tab label={t('text')}></Tab>
-        <Tab label={t('file')}></Tab>
-        <Tab label={t('url')}></Tab>
-      </Tabs>
-      {tab === 0 && <AddText></AddText>}
-      {tab === 1 && <AddFile></AddFile>}
-      {tab === 2 && <AddUrl></AddUrl>}
-    </>
+    <Tabs
+      defaultActiveKey={tab}
+      onChange={(k) => setTab(k as TabType)}
+      destroyInactiveTabPane
+      items={[
+        {
+          key: 'text',
+          label: t('text'),
+          children: <AddText />,
+        },
+        {
+          key: 'file',
+          label: t('file'),
+          children: <AddFile />,
+        },
+        {
+          key: 'url',
+          label: t('url'),
+          children: <AddUrl />,
+        },
+      ]}
+    ></Tabs>
   )
 }

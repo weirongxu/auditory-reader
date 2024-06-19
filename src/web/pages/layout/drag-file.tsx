@@ -1,6 +1,5 @@
-import { Close } from '@mui/icons-material'
-import { Autocomplete, TextField, Typography } from '@mui/material'
-import { Button } from 'antd'
+import { faClose } from '@fortawesome/free-solid-svg-icons'
+import { Button, Form, Typography } from 'antd'
 import { t } from 'i18next'
 import path from 'path'
 import { useEffect, useState } from 'react'
@@ -11,12 +10,14 @@ import { booksFetchUrlInfoRouter } from '../../../core/api/books/fetch-url-info.
 import { BookEpub } from '../../../core/book/book-epub.js'
 import { TMP_UUID } from '../../../core/consts.js'
 import type { LangCode } from '../../../core/lang.js'
-import { parseLangCode, useOrderedLangOptions } from '../../../core/lang.js'
+import { parseLangCode } from '../../../core/lang.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 import { eventBan } from '../../../core/util/dom.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 import { FlexBox } from '../../components/flex-box.js'
+import { Icon } from '../../components/icon.js'
+import { LanguageSelect } from '../../components/language-select.js'
 import { SpinFullscreen } from '../../components/spin.js'
 
 type DragItem = DragItemUrl | DragItemEpub | DragItemText
@@ -62,7 +63,6 @@ export function DragFile({ children }: { children: React.ReactNode }) {
   const [isInputLangCode, setIsInputLangCode] = useState(false)
   const [loading, setLoading] = useState(false)
   const nav = useNavigate()
-  const langOptions = useOrderedLangOptions()
 
   useEffect(() => {
     async(async () => {
@@ -205,32 +205,28 @@ export function DragFile({ children }: { children: React.ReactNode }) {
           }}
         >
           <FlexBox dir="row">
-            <Typography flex={1}>{t('prompt.selectLanguage')}</Typography>
+            <Typography style={{ flex: 1 }}>
+              {t('prompt.selectLanguage')}
+            </Typography>
             <Button
               shape="circle"
+              type="text"
               onClick={() => {
                 setDragItem(null)
                 setIsInputLangCode(false)
               }}
-              icon={<Close />}
+              icon={<Icon icon={faClose} />}
             ></Button>
           </FlexBox>
-          <Autocomplete
-            options={langOptions}
-            onChange={(_, value) => {
-              if (!dragItem || !value?.value) return
-              setDragItem({ ...dragItem, langCode: value.value })
-              setIsInputLangCode(false)
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder={t('prompt.selectLanguage')}
-                label={t('language')}
-                required
-              />
-            )}
-          ></Autocomplete>
+          <Form.Item label={t('language')} name="langCode" required>
+            <LanguageSelect
+              onChange={(value) => {
+                if (!dragItem || !value) return
+                setDragItem({ ...dragItem, langCode: value as LangCode })
+                setIsInputLangCode(false)
+              }}
+            ></LanguageSelect>
+          </Form.Item>
         </div>
       )}
       {children}

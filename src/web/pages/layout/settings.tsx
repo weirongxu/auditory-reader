@@ -1,22 +1,21 @@
-import { ArrowRight, Help } from '@mui/icons-material'
-import type { SxProps, Theme } from '@mui/material'
+import {
+  faArrowRight,
+  faQuestionCircle,
+} from '@fortawesome/free-solid-svg-icons'
 import {
   Checkbox,
-  FormControlLabel,
+  InputNumber,
   List,
-  ListItem,
   Popover,
   Radio,
-  RadioGroup,
   Slider,
-  TextField,
+  Space,
   Typography,
-} from '@mui/material'
+} from 'antd'
 import { t } from 'i18next'
-import { useState } from 'react'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
-import { isMobile } from '../../../core/util/browser.js'
 import { FlexBox } from '../../components/flex-box.js'
+import { Icon } from '../../components/icon.js'
 import {
   SPLIT_PAGE_TYPES,
   USER_COLOR_SCHEMES,
@@ -41,6 +40,7 @@ export function SettingLine({ children }: { children: React.ReactNode }) {
       gap={8}
       style={{
         alignItems: 'center',
+        width: '100%',
       }}
     >
       {children}
@@ -49,30 +49,27 @@ export function SettingLine({ children }: { children: React.ReactNode }) {
 }
 
 export function SettingLabel({
-  sx,
+  style,
   children,
 }: {
-  sx?: SxProps<Theme>
+  style?: React.CSSProperties
   children: React.ReactNode
 }) {
-  return <Typography sx={{ alignSelf: 'start', ...sx }}>{children}</Typography>
+  return (
+    <Typography style={{ alignSelf: 'start', ...style }}>{children}</Typography>
+  )
 }
 
 const AutoSectionCheckBox = () => {
   const [autoNextSection, setAutoNextSection] = useAutoSection()
   return (
     <SettingLine>
-      <FormControlLabel
-        label={t('setting.autoNextSection')}
-        control={
-          <Checkbox
-            checked={autoNextSection}
-            onChange={(v) => {
-              setAutoNextSection(v.currentTarget.checked)
-            }}
-          ></Checkbox>
-        }
-      ></FormControlLabel>
+      <Checkbox
+        checked={autoNextSection}
+        onChange={(e) => setAutoNextSection(e.target.checked)}
+      >
+        {t('setting.autoNextSection')}
+      </Checkbox>
     </SettingLine>
   )
 }
@@ -82,28 +79,23 @@ const TimerInput = () => {
   const [stopTimerSeconds, setStopTimerSeconds] = useStopTimerSeconds()
   return (
     <SettingLine>
-      <FormControlLabel
-        label={t('setting.timer')}
-        control={
-          <Checkbox
-            checked={stopTimerEnabled}
-            onChange={(e) => {
-              setStopTimerEnabled(e.target.checked)
-            }}
-          ></Checkbox>
-        }
-      ></FormControlLabel>
-      <TextField
-        type="number"
-        sx={{ width: 80 }}
+      <Checkbox
+        checked={stopTimerEnabled}
+        onChange={(e) => {
+          setStopTimerEnabled(e.target.checked)
+        }}
+      >
+        {t('setting.timer')}
+      </Checkbox>
+      <InputNumber
+        style={{ width: '80px' }}
         disabled={!stopTimerEnabled}
         value={Math.floor(stopTimerSeconds / 60)}
-        onChange={(e) => {
-          const f = parseFloat(e.target.value)
-          if (!isNaN(f)) setStopTimerSeconds(Math.floor(f * 60))
+        onChange={(v) => {
+          if (v === null) return
+          setStopTimerSeconds(Math.floor(v * 60))
         }}
-        inputProps={{ sx: { textAlign: 'right' } }}
-      ></TextField>
+      ></InputNumber>
     </SettingLine>
   )
 }
@@ -115,51 +107,38 @@ function PersonReplaceCheckBox({
   checked: boolean
   onChange: (checked: boolean) => void
 }) {
-  const [personReplaceOpened, setPersonReplaceOpened] = useState<boolean>(false)
-  const [anchor, setAnchor] = useState<any>()
-
   return (
     <>
-      <FormControlLabel
-        label={t('setting.personReplace')}
-        control={
-          <Checkbox
-            checked={checked}
-            onChange={(v) => {
-              onChange(v.currentTarget.checked)
-            }}
-          ></Checkbox>
-        }
-      ></FormControlLabel>
-      <Help
-        onMouseEnter={(e) => {
-          if (isMobile) return
-          setAnchor(e.currentTarget)
-          setPersonReplaceOpened(true)
+      <Checkbox
+        checked={checked}
+        onChange={(e) => {
+          onChange(e.target.checked)
         }}
-        onMouseLeave={(e) => {
-          setAnchor(e.currentTarget)
-          setPersonReplaceOpened(false)
-        }}
-      ></Help>
-      {!isMobile && (
-        <Popover
-          sx={{ pointerEvents: 'none' }}
-          open={personReplaceOpened}
-          anchorEl={anchor}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
+      >
+        {t('setting.personReplace')}
+      </Checkbox>
+      <Popover
+        style={{ pointerEvents: 'none' }}
+        content={
           <List>
             {Object.entries(ZH_PERSON_RULES).map(([from, to], idx) => {
               return (
-                <ListItem key={idx}>
-                  {from} <ArrowRight /> {to.word} {to.pinyin}
-                </ListItem>
+                <List.Item key={idx}>
+                  <Space>
+                    {from}
+                    <Icon icon={faArrowRight} />
+                    {to.word} ({to.pinyin})
+                  </Space>
+                </List.Item>
               )
             })}
           </List>
-        </Popover>
-      )}
+        }
+      >
+        <div>
+          <Icon size="lg" icon={faQuestionCircle} />
+        </div>
+      </Popover>
     </>
   )
 }
@@ -179,21 +158,18 @@ const PersonReplaceUI = () => {
   )
 }
 
-function DiabledVerticalCheckbox() {
+function DisabledVerticalCheckbox() {
   const [disabledVertical, setDisabledVertical] = useDisabledVertical()
   return (
     <SettingLine>
-      <FormControlLabel
-        label={t('setting.disabledVertical')}
-        control={
-          <Checkbox
-            checked={disabledVertical}
-            onChange={(v) => {
-              setDisabledVertical(v.currentTarget.checked)
-            }}
-          ></Checkbox>
-        }
-      ></FormControlLabel>
+      <Checkbox
+        checked={disabledVertical}
+        onChange={(e) => {
+          setDisabledVertical(e.target.checked)
+        }}
+      >
+        {t('setting.disabledVertical')}
+      </Checkbox>
     </SettingLine>
   )
 }
@@ -203,27 +179,25 @@ const PlaySpeed = () => {
   return (
     <SettingLine>
       <SettingLabel>{t('setting.speed')}</SettingLabel>
-      <FlexBox>
+      <FlexBox style={{ flex: 1 }}>
         <Slider
           value={speechSpeed}
-          onChange={(_, v) => {
-            setSpeechSpeed(v as number)
+          onChange={(v) => {
+            setSpeechSpeed(v)
           }}
           step={0.1}
           min={0.1}
           max={5.0}
         ></Slider>
-        <TextField
+        <InputNumber
           type="number"
           value={speechSpeed}
-          onChange={(e) => {
-            const f = parseFloat(e.target.value)
-            if (!isNaN(f)) setSpeechSpeed(f)
+          step={0.1}
+          onChange={(v) => {
+            if (v === null) return
+            setSpeechSpeed(v)
           }}
-          inputProps={{
-            step: '0.1',
-          }}
-        ></TextField>
+        ></InputNumber>
       </FlexBox>
     </SettingLine>
   )
@@ -234,26 +208,25 @@ const ColorSchemeSelect = () => {
   return (
     <>
       <SettingLine>
-        <SettingLabel sx={{ paddingTop: 1 }}>
+        <SettingLabel style={{ paddingTop: '4px' }}>
           {t('setting.userColorScheme')}
         </SettingLabel>
-        <RadioGroup
-          defaultValue={userColorScheme}
+        <Radio.Group
+          value={userColorScheme}
           onChange={(e) => {
             setUserColorScheme(e.target.value as UserColorscheme)
           }}
         >
-          {USER_COLOR_SCHEMES.map((value) => {
-            return (
-              <FormControlLabel
-                key={value}
-                label={t(value)}
-                value={value}
-                control={<Radio></Radio>}
-              ></FormControlLabel>
-            )
-          })}
-        </RadioGroup>
+          <Space direction="vertical">
+            {USER_COLOR_SCHEMES.map((value) => {
+              return (
+                <Radio key={value} value={value}>
+                  {t(value)}
+                </Radio>
+              )
+            })}
+          </Space>
+        </Radio.Group>
       </SettingLine>
     </>
   )
@@ -264,15 +237,14 @@ const ParagraphRepeatInput = () => {
   return (
     <SettingLine>
       <span>{t('setting.paragraphRepeat')}:</span>
-      <TextField
-        type="number"
-        sx={{ width: 80 }}
-        defaultValue={paragraphRepeat}
-        onChange={(e) => {
-          const f = parseInt(e.target.value, 10)
-          if (!isNaN(f)) setParagraphRepeat(f < 1 ? 1 : Math.floor(f))
+      <InputNumber
+        style={{ width: 80 }}
+        value={paragraphRepeat}
+        onChange={(v) => {
+          if (!v) return
+          setParagraphRepeat(v < 1 ? 1 : Math.floor(v))
         }}
-      ></TextField>
+      ></InputNumber>
     </SettingLine>
   )
 }
@@ -281,26 +253,25 @@ function PageListCheckBox() {
   const [pageList, setPageList] = usePageList()
   return (
     <SettingLine>
-      <SettingLabel sx={{ paddingTop: 1 }}>
+      <SettingLabel style={{ paddingTop: '4px' }}>
         {t('setting.pageList')}
       </SettingLabel>
-      <RadioGroup
-        defaultValue={pageList}
+      <Radio.Group
+        value={pageList}
         onChange={(e) => {
           setPageList(e.target.value as PageListType)
         }}
       >
-        {SPLIT_PAGE_TYPES.map((value) => {
-          return (
-            <FormControlLabel
-              key={value}
-              label={t(`setting.pageListType.${value}`)}
-              value={value}
-              control={<Radio></Radio>}
-            ></FormControlLabel>
-          )
-        })}
-      </RadioGroup>
+        <Space direction="vertical">
+          {SPLIT_PAGE_TYPES.map((value) => {
+            return (
+              <Radio key={value} value={value}>
+                {t(`setting.pageListType.${value}`)}
+              </Radio>
+            )
+          })}
+        </Space>
+      </Radio.Group>
     </SettingLine>
   )
 }
@@ -310,31 +281,30 @@ function FontSizeInput() {
   return (
     <SettingLine>
       <span>{t('setting.fontSize')}</span>
-      <TextField
-        type="number"
-        sx={{ width: 80 }}
-        defaultValue={fontSize}
-        onChange={(e) => {
-          const f = parseInt(e.target.value, 10)
-          if (!isNaN(f)) setFontSize(f < 1 ? 1 : Math.floor(f))
+      <InputNumber
+        style={{ width: 80 }}
+        value={fontSize}
+        onChange={(v) => {
+          if (v === null) return
+          setFontSize(v < 1 ? 1 : Math.floor(v))
         }}
-      ></TextField>
+      ></InputNumber>
     </SettingLine>
   )
 }
 
 export const GlobalSettings = () => {
   return (
-    <>
+    <Space direction="vertical">
       <AutoSectionCheckBox></AutoSectionCheckBox>
       <TimerInput></TimerInput>
       <PersonReplaceUI></PersonReplaceUI>
-      <DiabledVerticalCheckbox></DiabledVerticalCheckbox>
+      <DisabledVerticalCheckbox></DisabledVerticalCheckbox>
       <PlaySpeed></PlaySpeed>
       <ColorSchemeSelect></ColorSchemeSelect>
       <ParagraphRepeatInput></ParagraphRepeatInput>
       <PageListCheckBox></PageListCheckBox>
       <FontSizeInput></FontSizeInput>
-    </>
+    </Space>
   )
 }

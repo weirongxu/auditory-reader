@@ -1,5 +1,4 @@
-import { Dialog, DialogContent, DialogTitle, Typography } from '@mui/material'
-import { Button } from 'antd'
+import { Button, Form, Modal, Typography } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useState } from 'react'
 import type { BookTypes } from '../../../../../core/book/types.js'
@@ -42,41 +41,35 @@ export function useAnnotationNoteDialog({ player }: { player: Player }) {
   return {
     openNoteEdit: setEditAnnotation,
     NoteEditDialog: (
-      <Dialog
+      <Modal
         open={!!editAnnotation}
-        onClose={onClose}
-        fullWidth
-        PaperProps={{
-          style: {
-            alignItems: 'start',
-          },
-        }}
+        onCancel={onClose}
+        footer={false}
+        title={`${t('annotation')} ${t('note')}`}
       >
-        <DialogTitle>
-          {t('annotation')} {t('note')}
-        </DialogTitle>
-        <DialogContent style={{ width: '100%' }}>
-          <Typography>{editAnnotation?.brief}</Typography>
-          <form
-            onSubmit={(e) => {
-              eventBan(e)
-              void onOk()
-            }}
-          >
+        <Typography>{editAnnotation?.brief}</Typography>
+        <form
+          onSubmit={(e) => {
+            eventBan(e)
+            void onOk()
+          }}
+        >
+          <Form.Item label={t('note')}>
             <FlexBox gap={8}>
               <Textarea
-                label={t('note')}
                 autoFocus
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               ></Textarea>
-              <Button type="primary" htmlType="submit">
-                {t('update')}
-              </Button>
             </FlexBox>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              {t('update')}
+            </Button>
+          </Form.Item>
+        </form>
+      </Modal>
     ),
   }
 }

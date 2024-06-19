@@ -1,20 +1,21 @@
-import { TextField, Typography } from '@mui/material'
-import { Button } from 'antd'
+import { Button, Form, Input } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginRouter } from '../../core/api/login.js'
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
-import { eventBan } from '../../core/util/dom.js'
-import { FlexBox } from '../components/flex-box.js'
+
+type Values = {
+  account: string
+  password: string
+}
 
 export function Login() {
   const nav = useNavigate()
-  const [account, setAccount] = useState<string>('')
-  const [password, setPassword] = useState<string>('')
   const [error, setError] = useState<string>()
   const { data: user } = useAction(userRouter, null)
+  const [form] = Form.useForm()
 
   useEffect(() => {
     if (user) {
@@ -28,12 +29,12 @@ export function Login() {
     <>
       <div style={{ maxWidth: 300, margin: '50px auto 0' }}>
         <h2>Auditory Reader</h2>
-        <Typography variant="h4">{t('login')}</Typography>
+        <h4>{t('login')}</h4>
 
-        <form
-          onSubmit={(e) => {
-            eventBan(e)
-            const values = { account, password }
+        <Form<Values>
+          form={form}
+          initialValues={{ account: '', password: '' }}
+          onFinish={(values) => {
             loginRouter
               .action(values)
               .then(async (res) => {
@@ -46,35 +47,31 @@ export function Login() {
               .catch(console.error)
           }}
         >
-          <FlexBox gap={2}>
-            <TextField
-              required
-              name="account"
-              label={t('account')}
-              placeholder={t('prompt.inputAccount')}
-              onChange={(e) => {
-                setAccount(e.target.value)
-              }}
-            ></TextField>
-
-            <TextField
-              required
-              name="password"
-              label={t('password')}
+          <Form.Item
+            label={t('account')}
+            name="account"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder={t('prompt.inputAccount')}></Input>
+          </Form.Item>
+          <Form.Item
+            label={t('password')}
+            name="password"
+            rules={[{ required: true }]}
+            validateStatus={error ? 'error' : undefined}
+            help={error}
+          >
+            <Input
               type="password"
               placeholder={t('prompt.inputPassword')}
-              error={!!error}
-              helperText={error}
-              onChange={(e) => {
-                setPassword(e.target.value)
-              }}
-            ></TextField>
-
+            ></Input>
+          </Form.Item>
+          <Form.Item>
             <Button type="primary" block htmlType="submit">
               {t('submit')}
             </Button>
-          </FlexBox>
-        </form>
+          </Form.Item>
+        </Form>
       </div>
     </>
   )
