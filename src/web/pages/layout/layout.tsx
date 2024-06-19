@@ -1,5 +1,5 @@
 import { faBook, faGear } from '@fortawesome/free-solid-svg-icons'
-import { App, Button, Drawer, Typography } from 'antd'
+import { Button, Drawer, Modal, Typography } from 'antd'
 import { t } from 'i18next'
 import { useAtom } from 'jotai'
 import { useState } from 'react'
@@ -20,7 +20,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const [appBarStates] = useAtom(appBarStatesAtom)
   const [showSettings, setShowSettings] = useState(false)
   const nav = useNavigate()
-  const { modal } = App.useApp()
+  const [openedBookTitle, setOpenedBookTitle] = useState(false)
 
   const appBar = (
     <FlexBox
@@ -56,16 +56,19 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
           }}
           title={title}
           onClick={() => {
-            void modal.info({
-              title: t('bookName'),
-              content: title,
-              footer: false,
-              closable: true,
-            })
+            setOpenedBookTitle(true)
           }}
         >
           {title}
         </Typography>
+        <Modal
+          title={t('bookName')}
+          open={openedBookTitle}
+          footer={false}
+          onCancel={() => setOpenedBookTitle(false)}
+        >
+          <Typography>{title}</Typography>
+        </Modal>
       </FlexBox>
       <FlexBox dir="row" style={{ alignItems: 'center', flex: 1 }} gap={4}>
         {appBarStates.topLeft}
