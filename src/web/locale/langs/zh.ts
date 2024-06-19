@@ -130,6 +130,7 @@ export const langZh: LangEn = {
   error: {
     login: '$t(account)或$t(password)错误',
   },
+  title: '标题',
   note: '备注',
   speed: '速度',
   fontSize: '字体大小',

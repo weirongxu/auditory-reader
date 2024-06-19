@@ -646,21 +646,23 @@ function BookRow({
         )}
       </td>
       <td>
-        <img
-          onClick={() => {
-            globalStore.set(previewImgSrcAtom, coverUrl)
-          }}
-          onLoad={() => {
-            setCoverLoaded(true)
-          }}
-          style={{
-            maxHeight: '40px',
-            display: coverLoaded ? 'block' : 'none',
-            cursor: 'pointer',
-          }}
-          src={coverUrl}
-          alt={`${book.name} ${t('cover')}`}
-        />
+        <div className="cell-center">
+          <img
+            onClick={() => {
+              globalStore.set(previewImgSrcAtom, coverUrl)
+            }}
+            onLoad={() => {
+              setCoverLoaded(true)
+            }}
+            style={{
+              maxHeight: '40px',
+              display: coverLoaded ? 'block' : 'none',
+              cursor: 'pointer',
+            }}
+            src={coverUrl}
+            alt={`${book.name} ${t('cover')}`}
+          />
+        </div>
       </td>
       <td
         className={styles.hover}

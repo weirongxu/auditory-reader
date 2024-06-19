@@ -52,12 +52,15 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            cursor: 'pointer',
           }}
           title={title}
           onClick={() => {
             void modal.info({
-              title: t('setting.title'),
+              title: t('bookName'),
               content: title,
+              footer: false,
+              closable: true,
             })
           }}
         >

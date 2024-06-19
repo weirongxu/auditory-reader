@@ -128,6 +128,7 @@ export const langEn = {
   error: {
     login: '$t(account) or $t(password) error',
   },
+  title: 'Title',
   note: 'Note',
   speed: 'Speed',
   fontSize: 'Font Size',

@@ -8,16 +8,41 @@
 
 .table {
   font-size: 14px;
+  table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
   :global {
     tr > th {
       padding: 4px 4px;
       border-bottom: 1px solid var(--main-border);
+      &:nth-child(1) {
+        width: 30px;
+      }
+      &:nth-child(2) {
+        width: 30px;
+      }
+      &:nth-child(3) {
+        width: 60px;
+      }
+      &:nth-child(4) {
+        width: 50px;
+      }
+      &:nth-child(5) {
+        width: auto;
+      }
+      &:nth-child(6) {
+        width: 50px;
+      }
     }
     td {
       padding: 0px 4px;
       border-bottom: 1px solid var(--main-border);
+    }
+    .cell-center {
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 }
