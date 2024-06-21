@@ -682,6 +682,7 @@ export class PlayerIframeController {
           width: auto !important;
           height: 100% !important;
           box-sizing: border-box !important;
+          word-break: break-word !important;
           margin: 0 !important;
           padding: 0 !important;
           /* Safari iOS not support

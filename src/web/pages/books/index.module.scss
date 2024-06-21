@@ -12,9 +12,16 @@
   border-collapse: collapse;
   width: 100%;
   :global {
-    tr > th {
-      padding: 4px 4px;
+    img {
+      height: 40px;
+      display: block;
+    }
+    tr {
+      height: 40px;
       border-bottom: 1px solid var(--main-border);
+    }
+    th {
+      padding: 4px 4px;
       &:nth-child(1) {
         width: 30px;
       }
@@ -36,7 +43,6 @@
     }
     td {
       padding: 0px 4px;
-      border-bottom: 1px solid var(--main-border);
     }
     .cell-center {
       text-align: center;
