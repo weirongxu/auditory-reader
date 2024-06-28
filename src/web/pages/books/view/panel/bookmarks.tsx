@@ -8,7 +8,7 @@ import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
 import { isMobile } from '../../../../../core/util/browser.js'
 import { eventBan } from '../../../../../core/util/dom.js'
-import { textEllispse } from '../../../../../core/util/text.js'
+import { textEllipsis } from '../../../../../core/util/text.js'
 import { SwipeAction } from '../../../../common/swipe-action.js'
 import { Icon } from '../../../../components/icon.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
@@ -57,7 +57,7 @@ function BookmarkItem({
             {bookmark.brief}
             {bookmark.note && (
               <div className="note">
-                note: {textEllispse(bookmark.note, 30)}
+                note: {textEllipsis(bookmark.note, 30)}
               </div>
             )}
           </div>
