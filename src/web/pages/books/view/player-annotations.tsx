@@ -72,28 +72,32 @@ export class PlayerAnnotations {
             white: '#fafafa',
           })
         : 'var(--main-fg-blue)'
-      await uiConfirm({
-        title: t('prompt.annotationRemoveConfirm'),
-        description: (
-          <>
-            <p>{annotation.brief}</p>
-            {annotation.note && <p>Note: {annotation.note}</p>}
-            {annotation.range && (
-              <p>
-                Selected:{' '}
-                <span
-                  style={{
-                    backgroundColor: annotation.color ?? 'var(--main-bg-blue)',
-                    color: fgColor,
-                  }}
-                >
-                  {annotation.range.selectedText}
-                </span>
-              </p>
-            )}
-          </>
-        ),
-      })
+      if (
+        !(await uiConfirm({
+          title: t('prompt.annotationRemoveConfirm'),
+          description: (
+            <>
+              <p>{annotation.brief}</p>
+              {annotation.note && <p>Note: {annotation.note}</p>}
+              {annotation.range && (
+                <p>
+                  Selected:{' '}
+                  <span
+                    style={{
+                      backgroundColor:
+                        annotation.color ?? 'var(--main-bg-blue)',
+                      color: fgColor,
+                    }}
+                  >
+                    {annotation.range.selectedText}
+                  </span>
+                </p>
+              )}
+            </>
+          ),
+        }))
+      )
+        return
     }
 
     await booksDeleteAnnotationsRouter.action({

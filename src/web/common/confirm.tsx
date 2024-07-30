@@ -13,14 +13,19 @@ const confirmAtom = atom<null | {
   title: React.ReactNode
   description: React.ReactNode
   okCallback: () => void
+  cancelCallback?: () => void
 }>(null)
 
 export function uiConfirm(options: {
   title: React.ReactNode
   description: React.ReactNode
-}) {
-  return new Promise<void>((resolve) => {
-    globalStore.set(confirmAtom, { ...options, okCallback: resolve })
+}): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    globalStore.set(confirmAtom, {
+      ...options,
+      okCallback: () => resolve(true),
+      cancelCallback: () => resolve(false),
+    })
   })
 }
 
@@ -82,6 +87,11 @@ function ConfirmDialog() {
     setConfirm(null)
   }, [setConfirm])
 
+  const onCancel = useCallback(() => {
+    confirm?.cancelCallback()
+    onClose()
+  }, [confirm, onClose])
+
   const onOk = useCallback(() => {
     confirm?.okCallback()
     onClose()
@@ -90,7 +100,7 @@ function ConfirmDialog() {
   useConfirmHotkey({
     enable: !!confirm,
     onOk,
-    onClose,
+    onClose: onCancel,
   })
 
   return (

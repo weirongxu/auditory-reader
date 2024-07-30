@@ -87,25 +87,27 @@ const moveOffset = async (
 function useRemoveBooks(reload: () => void) {
   const removeBooks = useCallback(
     (books: BookTypes.Entity[]) => {
-      uiConfirm({
-        title: t('remove'),
-        description: (
-          <ul>
-            {books.map((book) => (
-              <li key={book.uuid}>{book.name}</li>
-            ))}
-          </ul>
-        ),
-      })
-        .then(async () => {
+      async(async () => {
+        if (
+          await uiConfirm({
+            title: t('remove'),
+            description: (
+              <ul>
+                {books.map((book) => (
+                  <li key={book.uuid}>{book.name}</li>
+                ))}
+              </ul>
+            ),
+          })
+        ) {
           for (const book of books) {
             await booksRemoveRouter.action({
               uuid: book.uuid,
             })
           }
           reload()
-        })
-        .catch(console.error)
+        }
+      })
     },
     [reload],
   )
