@@ -117,11 +117,6 @@ export function useViewer({
         () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav')),
       ],
       [
-        { shift: true, key: 'M' },
-        t('hotkey.bookmarksPanelToggle'),
-        () => setViewPanelType((v) => (v === 'bookmark' ? 'none' : 'bookmark')),
-      ],
-      [
         'm',
         t('hotkey.annotationsPanelToggle'),
         () =>

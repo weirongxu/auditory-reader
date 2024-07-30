@@ -5,7 +5,6 @@ import type { BookTypes } from '../../../../../core/book/types.js'
 import { useViewPanelType } from '../../../../store.js'
 import type { Player } from '../player.js'
 import { useBookViewAnnotations } from './annotations.js'
-import { useBookViewBookmarks } from './bookmarks.js'
 import { useBookViewNav } from './nav.js'
 
 export function useBookPanel(
@@ -17,11 +16,6 @@ export function useBookPanel(
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
-  const { bookmarks, BookmarkView, activeBookmark } = useBookViewBookmarks(
-    book,
-    player,
-    pos,
-  )
   const { annotations, AnnotationView, activeAnnotation } =
     useBookViewAnnotations(book, player, pos, selection)
 
@@ -40,12 +34,6 @@ export function useBookPanel(
               {NavTreeView}
             </>
           )}
-          {viewPanelType === 'bookmark' && (
-            <>
-              <h3>{t('bookmark')}</h3>
-              {BookmarkView}
-            </>
-          )}
           {viewPanelType === 'annotation' && (
             <>
               <h3>{t('annotation')}</h3>
@@ -62,31 +50,16 @@ export function useBookPanel(
         ></div>
       </>
     ),
-    [
-      AnnotationView,
-      BookmarkView,
-      NavTreeView,
-      setViewPanelType,
-      viewPanelType,
-    ],
+    [AnnotationView, NavTreeView, setViewPanelType, viewPanelType],
   )
 
   return useMemo(
     () => ({
-      bookmarks,
-      activeBookmark,
       annotations,
       activeAnnotation,
       setViewPanelType,
       BookPanelView,
     }),
-    [
-      bookmarks,
-      activeBookmark,
-      annotations,
-      activeAnnotation,
-      setViewPanelType,
-      BookPanelView,
-    ],
+    [annotations, activeAnnotation, setViewPanelType, BookPanelView],
   )
 }

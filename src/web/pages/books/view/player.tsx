@@ -5,7 +5,6 @@ import type { BookView } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { async } from '../../../../core/util/promise.js'
 import { PlayerAnnotations } from './player-annotations.js'
-import { PlayerBookmarks } from './player-bookmarks.js'
 import {
   PlayerIframeController,
   usePlayerIframe,
@@ -18,7 +17,6 @@ export class Player {
   states: PlayerStatesManager
   utterer: Utterer
   iframeCtrler: PlayerIframeController
-  bookmarks: PlayerBookmarks
   annotations: PlayerAnnotations
   unmount = new SingleEmitter<void>({ once: true })
 
@@ -31,7 +29,6 @@ export class Player {
     this.states.pos = initPos
     this.iframeCtrler = new PlayerIframeController(this, this.states, iframeRef)
     this.utterer = new Utterer(this, this.states, this.iframeCtrler)
-    this.bookmarks = new PlayerBookmarks(this)
     this.annotations = new PlayerAnnotations(this)
 
     const onVisibilityChange = () => {

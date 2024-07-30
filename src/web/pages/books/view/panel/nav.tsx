@@ -102,7 +102,7 @@ function NavTree({
     return activeNavs?.at(-1)
   }, [activeNavs])
 
-  // change selected bookmark
+  // change selected nav item
   useEffect(() => {
     if (lastActiveNav === undefined) return
     const lastActiveNavIndex = book.flattenedNavs.indexOf(lastActiveNav)

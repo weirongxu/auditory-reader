@@ -36,13 +36,13 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
 
   const buf = await bookEntityTmp.readFileBuffer()
   const pos = await bookEntityTmp.posGet()
-  const bookmarks = await bookEntityTmp.bookmarksGet()
+  const annotations = await bookEntityTmp.annotationsGet()
 
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
 
   const bookEntity = await bookManager.entity(userInfo.account, entityJson.uuid)
   await bookEntity.posSet(pos)
-  await bookEntity.bookmarksAdd(bookmarks)
+  await bookEntity.annotationsUpsert(annotations)
 
   return entityJson
 })

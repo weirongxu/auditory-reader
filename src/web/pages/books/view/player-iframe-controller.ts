@@ -13,7 +13,6 @@ import {
   IMG_MAX_WIDTH_CLASS,
   PARA_ACTIVE_CLASS,
   PARA_ANNOTATION_CLASS,
-  PARA_BOOKMARK_CLASS,
   PARA_BOX_CLASS,
   ROOT_ANNOTATION_HIGHLIGHT_CLASS,
   ROOT_UTTERER_HIGHLIGHT_CLASS,
@@ -802,7 +801,7 @@ export class PlayerIframeController {
         pointer-events: none;
       }
 
-      .${PARA_BOOKMARK_CLASS}, .${PARA_ANNOTATION_CLASS} {
+      .${PARA_ANNOTATION_CLASS} {
         text-decoration-line: underline;
         text-decoration-style: solid;
         text-decoration-thickness: 2px;

@@ -39,7 +39,6 @@ export abstract class BookEntityBase {
       section: 0,
       paragraph: 0,
     })
-    await this.bookmarksDeleteAll()
     await this.annotationsDeleteAll()
   }
 
@@ -62,52 +61,6 @@ export abstract class BookEntityBase {
   async posSet(pos: BookTypes.PropertyPosition): Promise<void> {
     const prop = await this.readProp()
     prop.position = pos
-    await this.writeProp(prop)
-  }
-
-  private sortBookmarks(bookmarks: BookTypes.PropertyBookmark[]) {
-    return orderBy(bookmarks, 'asc', (b) => [b.section, b.paragraph])
-  }
-
-  async bookmarksGet(): Promise<BookTypes.PropertyBookmark[]> {
-    const prop = await this.readProp()
-    return prop.bookmarks ?? []
-  }
-
-  async bookmarksAdd(bookmarks: BookTypes.PropertyBookmark[]) {
-    const prop = await this.readProp()
-    prop.bookmarks ??= []
-    for (const bookmark of bookmarks) {
-      prop.bookmarks.push(bookmark)
-    }
-    prop.bookmarks = this.sortBookmarks(prop.bookmarks)
-    await this.writeProp(prop)
-  }
-
-  async bookmarksUpdate(bookmarks: BookTypes.PropertyBookmark[]) {
-    const prop = await this.readProp()
-    if (!prop.bookmarks) return
-    for (const bookmark of bookmarks) {
-      const index = prop.bookmarks.findIndex((b) => b.uuid === bookmark.uuid)
-      if (index !== -1) prop.bookmarks[index] = bookmark
-    }
-    await this.writeProp(prop)
-  }
-
-  async bookmarksDelete(bookmarkUuids: string[]) {
-    const prop = await this.readProp()
-    if (prop.bookmarks) {
-      prop.bookmarks = prop.bookmarks.filter(
-        (b) => !bookmarkUuids.includes(b.uuid),
-      )
-      prop.bookmarks = this.sortBookmarks(prop.bookmarks)
-    }
-    await this.writeProp(prop)
-  }
-
-  async bookmarksDeleteAll() {
-    const prop = await this.readProp()
-    if (prop.bookmarks) prop.bookmarks = []
     await this.writeProp(prop)
   }
 

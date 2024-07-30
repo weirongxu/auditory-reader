@@ -1,7 +1,6 @@
 export const PARA_BOX_CLASS = '__para_box__'
 export const PARA_IGNORE_CLASS = '__para_ignore__'
 export const PARA_ACTIVE_CLASS = '__para_active__'
-export const PARA_BOOKMARK_CLASS = '__para_bookmark__'
 export const PARA_ANNOTATION_CLASS = '__para_annotation__'
 export const ROOT_UTTERER_HIGHLIGHT_CLASS = '__root_utterer_highlight__'
 export const ROOT_ANNOTATION_HIGHLIGHT_CLASS = '__root_annotation_highlight__'
