@@ -13,7 +13,7 @@ const confirmAtom = atom<null | {
   title: React.ReactNode
   description: React.ReactNode
   okCallback: () => void
-  cancelCallback?: () => void
+  cancelCallback: () => void
 }>(null)
 
 export function uiConfirm(options: {
@@ -34,8 +34,12 @@ export function useConfirm() {
 
   const confirm = useCallback(
     (options: { title: React.ReactNode; description: React.ReactNode }) => {
-      return new Promise<void>((resolve) => {
-        setConfirm({ ...options, okCallback: resolve })
+      return new Promise<boolean>((resolve) => {
+        setConfirm({
+          ...options,
+          okCallback: () => resolve(true),
+          cancelCallback: () => resolve(false),
+        })
       })
     },
     [setConfirm],
