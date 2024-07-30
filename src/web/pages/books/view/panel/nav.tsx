@@ -22,10 +22,10 @@ function NavList({
     <ul>
       {navs.map((nav, idx) => {
         const isSelected = selectedNav === nav
-        const isActived =
+        const isActivated =
           nav.spineIndex !== undefined && activeNavs.includes(nav)
         const textCls: string[] = ['text']
-        if (isActived) textCls.push('active')
+        if (isActivated) textCls.push('active')
         if (nav.href) textCls.push('clickable')
         if (isSelected) textCls.push('selected')
         return (

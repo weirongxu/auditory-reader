@@ -22,9 +22,9 @@ function replacePersonText(text: string): string {
   return text
 }
 
-type QoutePostion = { type: 'start' | 'end'; charIndex: number }
-function getQoutePostions(text: string): QoutePostion[] {
-  const pos: QoutePostion[] = []
+type QuotePosition = { type: 'start' | 'end'; charIndex: number }
+function getQuotePositions(text: string): QuotePosition[] {
+  const pos: QuotePosition[] = []
   for (const [i, m] of [...text.matchAll(/"|'/g)].entries()) {
     if (i % 2 === 0) {
       pos.push({
@@ -130,15 +130,15 @@ export class Speech {
     const boundaryListeners: ((event: SpeechSynthesisEvent) => void)[] = []
 
     if (quote) {
-      const quotePostions = getQoutePostions(text)
+      const quotePositions = getQuotePositions(text)
       boundaryListeners.push((event: SpeechSynthesisEvent) => {
         // quote & rain
         const quotePosIndex = findLastIndex(
-          quotePostions,
+          quotePositions,
           (p) => p.charIndex <= event.charIndex,
         )
         if (quotePosIndex === undefined) return rainStop()
-        const posPass = quotePostions.slice(0, quotePosIndex + 1)
+        const posPass = quotePositions.slice(0, quotePosIndex + 1)
         const startPosList = posPass.filter((p) => p.type === 'start')
         const endPosList = posPass.filter((p) => p.type === 'end')
         if (startPosList.length > endPosList.length) {
