@@ -50,6 +50,7 @@ import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
+import { filterOptionLabel } from '../../../core/util/antd.js'
 
 const DragType = 'book'
 
@@ -952,6 +953,8 @@ export function BookList() {
           </Form.Item>
           <Form.Item label={t('sortOrder.label')}>
             <Select
+              showSearch
+              filterOption={filterOptionLabel}
               value={order}
               onChange={(v) => setOrder(v)}
               popupMatchSelectWidth={false}

@@ -1,6 +1,7 @@
 import { Select } from 'antd'
 import { t } from 'i18next'
 import { useOrderedLangOptions } from '../../core/lang.js'
+import { filterOptionLabel } from '../../core/util/antd.js'
 
 export type LanguageSelectProps = {
   value?: string
@@ -14,9 +15,7 @@ export function LanguageSelect({ value, onChange }: LanguageSelectProps) {
       value={value}
       onChange={onChange}
       placeholder={t('prompt.selectLanguage')}
-      filterOption={(input, option) =>
-        option?.label.toLowerCase().includes(input.toLowerCase()) ?? false
-      }
+      filterOption={filterOptionLabel}
       showSearch
       options={langOptions}
     ></Select>

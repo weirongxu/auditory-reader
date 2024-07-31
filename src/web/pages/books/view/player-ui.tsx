@@ -42,6 +42,7 @@ import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
 import type { BookContextProps } from './types'
+import { filterOptionLabel } from '../../../../core/util/antd.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -339,6 +340,8 @@ export function usePlayerUI({
     return (
       <SettingLine key="select-voices">
         <Select
+          showSearch
+          filterOption={filterOptionLabel}
           style={{ width: '100%' }}
           value={voiceURI}
           onChange={(value) => setVoiceURI(value)}
