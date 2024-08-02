@@ -12,11 +12,12 @@ export function LanguageSelect({ value, onChange }: LanguageSelectProps) {
   const langOptions = useOrderedLangOptions()
   return (
     <Select
+      showSearch
+      filterOption={filterOptionLabel}
+      popupMatchSelectWidth={false}
       value={value}
       onChange={onChange}
       placeholder={t('prompt.selectLanguage')}
-      filterOption={filterOptionLabel}
-      showSearch
       options={langOptions}
     ></Select>
   )

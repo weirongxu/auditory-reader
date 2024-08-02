@@ -342,6 +342,7 @@ export function usePlayerUI({
         <Select
           showSearch
           filterOption={filterOptionLabel}
+          popupMatchSelectWidth={false}
           style={{ width: '100%' }}
           value={voiceURI}
           onChange={(value) => setVoiceURI(value)}

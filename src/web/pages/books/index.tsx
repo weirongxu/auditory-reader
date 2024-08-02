@@ -955,9 +955,9 @@ export function BookList() {
             <Select
               showSearch
               filterOption={filterOptionLabel}
+              popupMatchSelectWidth={false}
               value={order}
               onChange={(v) => setOrder(v)}
-              popupMatchSelectWidth={false}
               options={[
                 {
                   label: t('sortOrder.item.default'),
