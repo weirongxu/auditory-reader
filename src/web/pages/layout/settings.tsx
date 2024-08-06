@@ -2,20 +2,12 @@ import {
   faArrowRight,
   faQuestionCircle,
 } from '@fortawesome/free-solid-svg-icons'
-import {
-  Checkbox,
-  InputNumber,
-  List,
-  Popover,
-  Radio,
-  Slider,
-  Space,
-  Typography,
-} from 'antd'
+import { Checkbox, List, Popover, Radio, Slider, Space, Typography } from 'antd'
 import { t } from 'i18next'
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
 import { FlexBox } from '../../components/flex-box.js'
 import { Icon } from '../../components/icon.js'
+import { RInputNumber } from '../../components/input-number.js'
 import {
   SPLIT_PAGE_TYPES,
   USER_COLOR_SCHEMES,
@@ -87,7 +79,7 @@ const TimerInput = () => {
       >
         {t('setting.timer')}
       </Checkbox>
-      <InputNumber
+      <RInputNumber
         style={{ width: '80px' }}
         disabled={!stopTimerEnabled}
         value={Math.floor(stopTimerSeconds / 60)}
@@ -95,7 +87,7 @@ const TimerInput = () => {
           if (v === null) return
           setStopTimerSeconds(Math.floor(v * 60))
         }}
-      ></InputNumber>
+      ></RInputNumber>
     </SettingLine>
   )
 }
@@ -189,7 +181,7 @@ const PlaySpeed = () => {
           min={0.1}
           max={5.0}
         ></Slider>
-        <InputNumber
+        <RInputNumber
           type="number"
           value={speechSpeed}
           step={0.1}
@@ -197,7 +189,7 @@ const PlaySpeed = () => {
             if (v === null) return
             setSpeechSpeed(v)
           }}
-        ></InputNumber>
+        ></RInputNumber>
       </FlexBox>
     </SettingLine>
   )
@@ -237,14 +229,14 @@ const ParagraphRepeatInput = () => {
   return (
     <SettingLine>
       <span>{t('setting.paragraphRepeat')}:</span>
-      <InputNumber
+      <RInputNumber
         style={{ width: 80 }}
         value={paragraphRepeat}
         onChange={(v) => {
           if (!v) return
           setParagraphRepeat(v < 1 ? 1 : Math.floor(v))
         }}
-      ></InputNumber>
+      ></RInputNumber>
     </SettingLine>
   )
 }
@@ -281,14 +273,14 @@ function FontSizeInput() {
   return (
     <SettingLine>
       <span>{t('setting.fontSize')}</span>
-      <InputNumber
+      <RInputNumber
         style={{ width: 80 }}
         value={fontSize}
         onChange={(v) => {
           if (v === null) return
           setFontSize(v < 1 ? 1 : Math.floor(v))
         }}
-      ></InputNumber>
+      ></RInputNumber>
     </SettingLine>
   )
 }

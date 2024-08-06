@@ -28,6 +28,11 @@ export const AntdConfigProvider = ({
     <ConfigProvider
       theme={{
         algorithm: colorScheme === 'dark' ? darkAlgorithm : defaultAlgorithm,
+        components: {
+          InputNumber: {
+            handleVisible: true,
+          },
+        },
       }}
     >
       <App className="app">{children}</App>
