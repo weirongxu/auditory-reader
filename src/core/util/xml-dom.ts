@@ -1,9 +1,9 @@
 import buffer from 'buffer'
 import * as htmlparser2 from 'htmlparser2'
-import { JSDOM } from 'jsdom'
 import JSZip from 'jszip'
 import { isBrowser } from './browser.js'
 import { compact } from './collection.js'
+import { jsDOMParser } from './dom.js'
 
 globalThis.Blob = isBrowser ? Blob : (buffer.Blob as unknown as typeof Blob)
 JSZip.support.blob = true
@@ -17,17 +17,10 @@ export type XMLElement = {
 }
 
 export class XMLDOMLoader {
-  private jsdom: JSDOM
-
-  constructor(protected zip: JSZip) {
-    this.jsdom = new JSDOM('')
-  }
+  constructor(protected zip: JSZip) {}
 
   protected htmlToDOM(xml: string) {
-    const DOMParser = this.jsdom.window.DOMParser
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(xml, 'text/html')
-    return doc
+    return jsDOMParser(xml).doc
   }
 
   protected async xmlToDOM(xml: string) {

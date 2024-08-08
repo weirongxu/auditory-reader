@@ -1,18 +1,38 @@
-import type { BookNav } from '../../../../../core/book/book-base.js'
-import {
-  PARA_BOX_CLASS,
-  PARA_IGNORE_CLASS,
-} from '../../../../../core/consts.js'
-import { compact, orderBy } from '../../../../../core/util/collection.js'
+import type { BookNav } from '../book/book-base.js'
+import { PARA_BOX_CLASS, PARA_IGNORE_CLASS } from '../consts.js'
+import { compact, orderBy } from './collection.js'
 import {
   isElement,
   isImageElement,
   isTextNode,
-} from '../../../../../core/util/dom.js'
-import type { ReadablePart, TextAlias } from '../types.js'
+  requiredDomView,
+} from './dom.js'
+
+interface ReadablePartBase {
+  elem: HTMLElement
+  anchorIds: string[] | undefined
+  navAnchorIds: string[] | undefined
+}
+
+export interface ReadablePartText extends ReadablePartBase {
+  type: 'text'
+  text: string
+}
+
+export interface ReadablePartImage extends ReadablePartBase {
+  type: 'image'
+}
+
+export type ReadablePart = ReadablePartText | ReadablePartImage
+
+export interface TextAlias {
+  source: string
+  target: string
+}
 
 export function* walkerNode(doc: Document, root: HTMLElement) {
-  const walker = doc.createTreeWalker(root, NodeFilter.SHOW_ALL)
+  const view = requiredDomView(root)
+  const walker = doc.createTreeWalker(root, view.NodeFilter.SHOW_ALL)
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
@@ -22,15 +42,61 @@ export function* walkerNode(doc: Document, root: HTMLElement) {
   }
 }
 
+/**
+ * JSDOM getComputedStyle is not fully compatible with the DOM API.
+ * - Property default could be empty
+ * - Property inheritance is not supported
+ */
+function getComputedStyle(elem: HTMLElement) {
+  return requiredDomView(elem).getComputedStyle(elem)
+}
+
+const inlineElementNames = [
+  'a',
+  'abbr',
+  'acronym',
+  'b',
+  'bdo',
+  'big',
+  'br',
+  'button',
+  'cite',
+  'code',
+  'dfn',
+  'em',
+  'i',
+  'img',
+  'input',
+  'kbd',
+  'label',
+  'map',
+  'object',
+  'output',
+  'q',
+  'samp',
+  'script',
+  'select',
+  'small',
+  'span',
+  'strong',
+  'sub',
+  'sup',
+  'textarea',
+  'time',
+  'tt',
+  'var',
+]
+
 const isBlockElem = (elem: HTMLElement) => {
   const display = getComputedStyle(elem).getPropertyValue('display')
+  if (!display) return !inlineElementNames.includes(elem.tagName.toLowerCase())
   return !['inline', 'inline-block'].includes(display)
 }
 
 const isIgnoreVerticalAlign = (elem: HTMLElement) => {
   const verticalAlign =
     getComputedStyle(elem).getPropertyValue('vertical-align')
-  return ['super'].includes(verticalAlign)
+  return verticalAlign && verticalAlign !== 'baseline'
 }
 
 const getParentBlockElem = (
@@ -46,11 +112,11 @@ const getParentBlockElem = (
 
 const fixPageBreak = (elem: HTMLElement) => {
   const style = getComputedStyle(elem)
-  const breakBefores = [
+  const breakBeforeList = [
     style.getPropertyValue('page-break-before'),
     style.getPropertyValue('break-before'),
   ]
-  if (breakBefores.some((b) => b === 'always')) {
+  if (breakBeforeList.some((b) => b === 'always')) {
     elem.style.breakBefore = 'column'
   }
   const breakAfters = [
@@ -124,15 +190,13 @@ export class ReadableExtractor {
         }
 
         fixPageBreak(node)
-      }
 
-      // image
-      if (isImageElement(node)) {
-        this.addImage(node)
-        continue
-      }
+        // image
+        if (isImageElement(node)) {
+          this.addImage(node)
+          continue
+        }
 
-      if (isElement(node)) {
         // skip tag like: ruby > rt
         const tagName = node.tagName.toLowerCase()
         if (tagName === 'rt') {

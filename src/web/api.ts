@@ -6,6 +6,11 @@ import type { BookFetchUrlInfoQuery } from '../core/api/books/fetch-url-info.js'
 import { booksFetchUrlInfoRouter } from '../core/api/books/fetch-url-info.js'
 import type { BookMoveTopItQuery } from '../core/api/books/move-top.js'
 import { booksMoveTopRouter } from '../core/api/books/move-top.js'
+import {
+  booksSearchRouter,
+  type BookSearchMatch,
+  type BookSearchQuery,
+} from '../core/api/books/search.js'
 import type { BookUpdateQuery } from '../core/api/books/update.js'
 import { booksUpdateRouter } from '../core/api/books/update.js'
 import type { BookTypes } from '../core/book/types.js'
@@ -26,6 +31,11 @@ export const API = {
     },
     async top(params: BookMoveTopItQuery): Promise<void> {
       await booksMoveTopRouter.action(params)
+    },
+    async search(
+      params: BookSearchQuery,
+    ): Promise<{ matches: BookSearchMatch[] }> {
+      return await booksSearchRouter.action(params)
     },
   },
 }

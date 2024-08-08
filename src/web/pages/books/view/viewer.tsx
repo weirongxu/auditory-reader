@@ -11,19 +11,14 @@ import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
 import { useColorScheme } from '../../../theme.js'
+import { useBookContext } from '../view.context.js'
 import { usePlayerSync } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
-import { usePlayer } from './player.js'
+import { useCreatePlayer } from './player.js'
 import { ViewProgressBar } from './progress-bar.js'
-import type { BookContextProps } from './types'
 
-export function useViewer({
-  uuid,
-  book,
-  pos,
-  setPos,
-  reload,
-}: BookContextProps) {
+export function useViewer() {
+  const { book, pos, setPos } = useBookContext()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookNav[]>()
@@ -36,7 +31,7 @@ export function useViewer({
   const [, setViewPanelType] = useViewPanelType()
   const nav = useNavigate()
 
-  const player = usePlayer(book, pos, iframeRef)
+  const player = useCreatePlayer(book, pos, iframeRef)
   usePlayerSync(player, {
     setPos,
     setStarted,
@@ -53,15 +48,10 @@ export function useViewer({
   }, [player.iframeCtrler, theme])
 
   const { BookPanelView } = usePlayerUI({
-    uuid,
-    book,
-    pos,
-    setPos,
     player,
     started,
     activeNavs,
     selection,
-    reload,
   })
 
   const MainContent = useMemo(

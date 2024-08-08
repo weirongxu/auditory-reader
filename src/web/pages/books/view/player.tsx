@@ -83,7 +83,7 @@ export class Player {
     return this.states.pos.section === this.book.spines.length - 1
   }
 
-  private async checkAndGotoPos({
+  async gotoPos({
     section,
     paragraph,
     scrollToParagraph = true,
@@ -129,11 +129,11 @@ export class Player {
   }
 
   async gotoSection(section: number, paragraph: number) {
-    await this.checkAndGotoPos({ section, paragraph })
+    await this.gotoPos({ section, paragraph })
   }
 
   async prevSection(paragraph = 0) {
-    await this.checkAndGotoPos({
+    await this.gotoPos({
       section: this.states.pos.section - 1,
       paragraph,
       animated: false,
@@ -141,7 +141,7 @@ export class Player {
   }
 
   async nextSection(paragraph = 0) {
-    await this.checkAndGotoPos({
+    await this.gotoPos({
       section: this.states.pos.section + 1,
       paragraph,
       animated: false,
@@ -184,7 +184,7 @@ export class Player {
   }
 
   async gotoParagraph(paragraph: number, scrollToParagraph = true) {
-    await this.checkAndGotoPos({ paragraph, scrollToParagraph })
+    await this.gotoPos({ paragraph, scrollToParagraph })
   }
 
   async prevParagraph(scrollToParagraph = true) {
@@ -201,7 +201,7 @@ export class Player {
   }
 }
 
-export function usePlayer(
+export function useCreatePlayer(
   book: BookView,
   pos: BookTypes.PropertyPosition,
   iframeRef: RefObject<HTMLIFrameElement>,

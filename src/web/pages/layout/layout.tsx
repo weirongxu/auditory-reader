@@ -115,6 +115,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
             open={showSettings}
             onClose={() => setShowSettings(false)}
             title={t('setting.title')}
+            forceRender
           >
             <FlexBox style={{ flex: 1, minWidth: 300, gap: 6 }}>
               <FlexBox style={{ flex: 1, gap: 6 }}>

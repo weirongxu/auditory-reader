@@ -1,9 +1,9 @@
 import { sum } from '../../../../core/util/collection.js'
 import { isElement, isTextNode } from '../../../../core/util/dom.js'
+import type { ReadablePart } from '../../../../core/util/readable.js'
 import { throttleFn } from '../../../../core/util/timer.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
-import type { ReadablePart } from './types.js'
 
 const enum FindRangePosType {
   found,

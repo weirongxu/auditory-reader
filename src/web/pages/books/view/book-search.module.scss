@@ -1,0 +1,37 @@
+.bookSearchResult {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+  gap: 8px;
+  :global {
+    .stats {
+      text-align: right;
+    }
+    ul {
+      flex: 1;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      li {
+        padding: 4px;
+        line-height: 1.4;
+        &:hover {
+          background-color: var(--main-bg-hover);
+          color: var(--main-fg-hover);
+        }
+        &.clickable {
+          cursor: pointer;
+        }
+        &.selected {
+          border: 2px solid var(--main-bg-blue);
+        }
+        span.highlight {
+          background-color: var(--main-bg-blue);
+          color: var(--main-fg-blue);
+        }
+      }
+    }
+  }
+}

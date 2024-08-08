@@ -1,4 +1,10 @@
+import type { DOMWindow } from 'jsdom'
+import { JSDOM } from 'jsdom'
 import { isUrl } from './url.js'
+
+export type DOMView = DOMWindow
+
+const viewSym = Symbol('DOMView')
 
 export function isInputElement(element: any): element is Element {
   if (element instanceof Element) {
@@ -8,8 +14,28 @@ export function isInputElement(element: any): element is Element {
   return false
 }
 
-function getDomView(node: any): (Window & typeof globalThis) | undefined {
-  return node?.ownerDocument?.defaultView
+export function jsDOMParser(xml: string) {
+  const jsdom = new JSDOM('')
+  const DOMParser = jsdom.window.DOMParser
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(xml, 'text/html')
+  // @ts-ignore
+  doc[viewSym] = jsdom.window
+  return { view: jsdom.window, doc }
+}
+
+export function getDomView(node: any): DOMView | undefined {
+  return (
+    node?.defaultView ||
+    node?.ownerDocument?.defaultView ||
+    node?.ownerDocument?.[viewSym]
+  )
+}
+
+export function requiredDomView(node: any): DOMView {
+  const view = getDomView(node)
+  if (!view) throw new Error('no dom view')
+  return view
 }
 
 export function isTextNode(node: any): node is Text {

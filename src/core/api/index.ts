@@ -1,3 +1,4 @@
+import type { URouter } from '../route/router.js'
 import { booksAnnotationsRouter } from './books/annotations.js'
 import { booksLocationInPageRouter } from './books/book-location.js'
 import { booksCoverRouter } from './books/cover.js'
@@ -12,6 +13,7 @@ import { booksPageRouter } from './books/page.js'
 import { booksPositionRouter } from './books/position.js'
 import { booksRemoveRouter } from './books/remove.js'
 import { booksRenderRouter } from './books/render.js'
+import { booksSearchRouter } from './books/search.js'
 import { booksShowRouter } from './books/show.js'
 import { booksSyncPositionRouter } from './books/sync-position.js'
 import { booksTmpStoreRouter } from './books/tmp-store.js'
@@ -46,4 +48,5 @@ export const ROUTERS = [
   booksViewRouter,
   booksCoverRouter,
   booksRenderRouter,
-]
+  booksSearchRouter,
+] satisfies URouter[]

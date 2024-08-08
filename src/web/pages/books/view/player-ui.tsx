@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom'
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { filterOptionLabel } from '../../../../core/util/antd.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import { Icon } from '../../../components/icon.js'
@@ -38,11 +39,11 @@ import {
 import { SettingLine } from '../../layout/settings.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookEditDialog } from '../edit.js'
+import { useBookContext } from '../view.context.js'
+import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
-import type { BookContextProps } from './types'
-import { filterOptionLabel } from '../../../../core/util/antd.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -147,20 +148,17 @@ function TimerRemainBadge({
 }
 
 export function usePlayerUI({
-  book,
   player,
-  pos,
   started,
   activeNavs,
   selection,
-  reload,
-}: BookContextProps & {
+}: {
   started: boolean
   player: Player
   activeNavs?: BookNav[]
   selection?: BookTypes.PropertyAnnotationRange
-  reload: () => void
 }) {
+  const { book, pos, reload } = useBookContext()
   const nav = useNavigate()
   const { annotations, activeAnnotation, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
@@ -393,11 +391,12 @@ export function usePlayerUI({
   const appSettings = useMemo(() => {
     return (
       <Space direction="vertical">
+        <BookSearchButton player={player} />
         {BookEditModal}
         {SelectVoices}
       </Space>
     )
-  }, [BookEditModal, SelectVoices])
+  }, [BookEditModal, SelectVoices, player])
 
   useAppBarSync({
     topRight,

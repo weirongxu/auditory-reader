@@ -13,9 +13,10 @@ import { FlexBox } from '../../components/flex-box.js'
 import { SpinCenter } from '../../components/spin.js'
 import { usePushTitle } from '../../hooks/use-title.js'
 import { NotFound } from '../not-found.js'
+import { bookContextAtom, useBookContext } from './view.context.js'
 import * as styles from './view.module.scss'
-import type { BookContextProps } from './view/types'
 import { useViewer } from './view/viewer.js'
+import { useAtom } from 'jotai'
 
 const useBook = (bookRes: BookViewRes | undefined): BookView | undefined => {
   const [book, setBook] = useState<BookView | undefined>()
@@ -84,20 +85,9 @@ export const useBookView = (uuid: string) => {
   }
 }
 
-function BookViewContent({
-  uuid,
-  book,
-  pos,
-  setPos,
-  reload,
-}: BookContextProps) {
-  const { BookPanelView, MainContent, activeNavs } = useViewer({
-    uuid,
-    book,
-    pos,
-    setPos,
-    reload,
-  })
+function BookViewContent() {
+  const { book } = useBookContext()
+  const { BookPanelView, MainContent, activeNavs } = useViewer()
   const pushTitle = usePushTitle()
 
   const lastNav = useMemo(() => activeNavs?.at(-1), [activeNavs])
@@ -118,20 +108,26 @@ function BookViewContent({
 
 function BookViewReq({ uuid }: { uuid: string }) {
   const { error, pos, setPos, book, reload } = useBookView(uuid)
+  const [bookContext, setBookContext] = useAtom(bookContextAtom)
+
+  useEffect(() => {
+    if (book && pos)
+      setBookContext({
+        uuid,
+        book,
+        pos,
+        setPos,
+        reload,
+      })
+  }, [book, pos, reload, setBookContext, setPos, uuid])
 
   if (error) return <NotFound title="book"></NotFound>
 
   if (!book || !pos) return <SpinCenter></SpinCenter>
 
-  return (
-    <BookViewContent
-      uuid={uuid}
-      book={book}
-      pos={pos}
-      setPos={setPos}
-      reload={reload}
-    ></BookViewContent>
-  )
+  if (!bookContext) return <SpinCenter></SpinCenter>
+
+  return <BookViewContent></BookViewContent>
 }
 
 export function BookView() {

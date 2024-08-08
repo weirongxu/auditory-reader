@@ -37,6 +37,11 @@ import {
 import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import {
+  ReadableExtractor,
+  type ReadablePart,
+  type TextAlias,
+} from '../../../../core/util/readable.js'
+import {
   debounceFn,
   iterateAnimate,
   type IterateAnimateOptions,
@@ -44,15 +49,13 @@ import {
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { iframeWinAtom } from '../../../atoms.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
+import type { ColorScheme } from '../../../store.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
 import { AnnotationHighlight } from './annotation-highlight.js'
 import type { HighlightBlock } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
-import type { ReadablePart, TextAlias } from './types.js'
-import { ReadableExtractor } from './utils/readable.js'
-import type { ColorScheme } from '../../../store.js'
 
 type PageListNode = {
   topmost?: {

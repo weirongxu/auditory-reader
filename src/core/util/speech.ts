@@ -1,7 +1,7 @@
 import { rainStart, rainStop } from '../../web/pages/books/view/sound.js'
-import type { TextAlias } from '../../web/pages/books/view/types.js'
 import { ZH_PERSON_RULES } from '../consts.js'
 import { findLast, findLastIndex, orderBy, range } from './collection.js'
+import type { TextAlias } from './readable.js'
 
 type AliasResult = {
   text: string

@@ -1,3 +1,4 @@
+import type { ReadablePartText } from '../../../../core/util/readable.js'
 import { Speech, type SpeakResult } from '../../../../core/util/speech.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
@@ -8,7 +9,6 @@ import {
   rewindPlay,
   shutterPlay,
 } from './sound.js'
-import type { ReadablePartText } from './types.js'
 import { UttererHighlight } from './utterer-highlight.js'
 
 const speakRetriedMax = 3
