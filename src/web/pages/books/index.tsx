@@ -763,13 +763,18 @@ export function BookList() {
 
   const orderSelectPrev = useCallback(() => {
     const i = sortOrders.indexOf(order)
-    if (i > 0) setOrder(sortOrders[i - 1])
-    else setOrder(sortOrders[sortOrders.length - 1])
+    const prevOrder = sortOrders[i - 1]
+    if (prevOrder) setOrder(prevOrder)
+    else {
+      const lastOrder = sortOrders[sortOrders.length - 1]
+      if (lastOrder) setOrder(lastOrder)
+    }
   }, [order])
 
   const orderSelectNext = useCallback(() => {
     const i = sortOrders.indexOf(order)
-    if (i < sortOrders.length - 1) setOrder(sortOrders[i + 1])
+    const nextOrder = sortOrders[i + 1]
+    if (nextOrder) setOrder(nextOrder)
     else setOrder(sortOrders[0])
   }, [order])
 
@@ -812,7 +817,7 @@ export function BookList() {
       if (!books) return
       const newBooks = [...books]
       const [entityJson] = newBooks.splice(dragIndex, 1)
-      newBooks.splice(hoverIndex, 0, entityJson)
+      if (entityJson) newBooks.splice(hoverIndex, 0, entityJson)
       setBooks(newBooks)
     },
     [books],

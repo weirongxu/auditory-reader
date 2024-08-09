@@ -29,6 +29,7 @@ export function findPair<T>(
   let index = startIndex
   while (index < list.length) {
     const value = list[index]
+    if (!value) continue
     const testResult = predicate(value, index, list)
     if (testResult) {
       return [value, index]
@@ -62,6 +63,7 @@ export function findLastPair<T>(
   let index = startIndex
   while (index >= 0) {
     const value = list[index]
+    if (!value) continue
     const testResult = predicate(value, index, list)
     if (testResult) {
       return [value, index]
@@ -109,7 +111,7 @@ export function maxBy<T>(
   getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = maxIndexBy(list, getValue)
-  return list[index]
+  return list[index]!
 }
 
 export function minIndexBy<T>(
@@ -134,7 +136,7 @@ export function minBy<T>(
   getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = minIndexBy(list, getValue)
-  return list[index]
+  return list[index]!
 }
 
 export function uniqBy<T, V>(

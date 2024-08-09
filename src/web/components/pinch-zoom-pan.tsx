@@ -8,16 +8,14 @@ interface PinchZoomPanProps {
   children: React.ReactNode
 }
 
-function getTouchesPageCenter(event: TouchEvent) {
-  const [a, b] = Array.from(event.touches)
+function getTouchesPageCenter(a: Touch, b: Touch) {
   return {
     pageX: (a.pageX + b.pageX) / 2,
     pageY: (a.pageY + b.pageY) / 2,
   }
 }
 
-const getTouchesDistance = (event: TouchEvent) => {
-  const [a, b] = Array.from(event.touches)
+const getTouchesDistance = (a: Touch, b: Touch) => {
   return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY)
 }
 
@@ -78,36 +76,42 @@ const mountPinchZoomPan = (
   // touch
   overlay.addEventListener('touchstart', (event) => {
     eventBan(event)
-    if (event.touches.length >= 2)
+    const touch1 = event.touches[0]
+    if (!touch1) return
+    const touch2 = event.touches[1]
+    if (touch2)
       action = {
         type: 'pinch',
-        range: getTouchesDistance(event),
+        range: getTouchesDistance(touch1, touch2),
       }
     else
       action = {
         type: 'move',
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY,
+        x: touch1.clientX,
+        y: touch1.clientY,
       }
     moved = false
   })
   overlay.addEventListener('touchmove', (event) => {
     eventBan(event)
     if (!action) return
+    const touch1 = event.touches[0]
+    if (!touch1) return
+    const touch2 = event.touches[1]
     switch (action.type) {
       case 'move': {
-        const touch = event.touches[0]
         move({
-          x: touch.clientX - action.x,
-          y: touch.clientY - action.y,
+          x: touch1.clientX - action.x,
+          y: touch1.clientY - action.y,
         })
         break
       }
       case 'pinch': {
-        scale({
-          ...getTouchesPageCenter(event),
-          rate: getTouchesDistance(event) / action.range,
-        })
+        if (touch2)
+          scale({
+            ...getTouchesPageCenter(touch1, touch2),
+            rate: getTouchesDistance(touch1, touch2) / action.range,
+          })
         break
       }
     }

@@ -1,9 +1,8 @@
 export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   let binary = ''
   const bytes = new Uint8Array(buffer)
-  const len = bytes.byteLength
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i])
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte)
   }
   return window.btoa(binary)
 }
@@ -16,7 +15,7 @@ export function arrayBufferToBuffer(ab: ArrayBuffer): Buffer {
   const buf = Buffer.alloc(ab.byteLength)
   const view = new Uint8Array(ab)
   for (let i = 0; i < buf.length; ++i) {
-    buf[i] = view[i]
+    buf[i] = view[i]!
   }
   return buf
 }

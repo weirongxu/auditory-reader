@@ -43,6 +43,7 @@ type ActionOptions = {
    * @default true
    */
   clearWhenReload?: boolean
+  request?: boolean
 }
 
 export function useAction<Req, Res>(
@@ -91,14 +92,16 @@ export function useAction<Req, Res>(
     [load],
   )
 
+  // load
   useEffect(() => {
     if (!argJson) return
+    if (options?.request === false) return
     const abort = new AbortController()
     reload({ signal: abort.signal })
     return () => {
       abort.abort()
     }
-  }, [argJson, reload])
+  }, [argJson, options?.request, reload])
 
   return { data, reload, error }
 }

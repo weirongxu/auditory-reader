@@ -25,19 +25,22 @@ function mountSwipe(
   let start: { x: number; y: number } | null = null
   let curX: number | null = null
 
-  const getXY = (event: TouchEvent) => {
-    const { clientX, clientY } = event.touches[0]
-    return [clientX, clientY]
+  const getXY = (touch: Touch) => {
+    const { clientX, clientY } = touch
+    return [clientX, clientY] as const
   }
 
   const onStart = (event: TouchEvent) => {
+    if (!event.touches[0]) return
     start = { x: event.touches[0].clientX, y: event.touches[0].clientY }
     curX = 0
   }
 
   const onMove = (event: TouchEvent) => {
     if (!start) return
-    const [x, y] = getXY(event)
+    const touch = event.touches[0]
+    if (!touch) return
+    const [x, y] = getXY(touch)
     const oX = x - start.x
     const dX = Math.abs(oX)
     const oY = y - start.y

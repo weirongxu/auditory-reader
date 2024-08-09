@@ -1,11 +1,9 @@
+import { useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
-import {
-  booksViewRouter,
-  type BookViewRes,
-} from '../../../core/api/books/view.js'
+import { booksViewRouter } from '../../../core/api/books/view.js'
 import type { BookView } from '../../../core/book/book-base.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
@@ -16,28 +14,7 @@ import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
 import * as styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
-import { useAtom } from 'jotai'
-
-const useBook = (bookRes: BookViewRes | undefined): BookView | undefined => {
-  const [book, setBook] = useState<BookView | undefined>()
-
-  useEffect(() => {
-    if (!bookRes) return
-    const flattenedNavs = []
-    const stack = [...bookRes.navs]
-    while (stack.length) {
-      const cur = stack.shift()!
-      flattenedNavs.push(cur)
-      stack.unshift(...cur.children)
-    }
-    return setBook({
-      ...bookRes,
-      flattenedNavs,
-    })
-  }, [bookRes])
-
-  return book
-}
+import { useFetch } from '../../../core/route/use-fetch.js'
 
 export const useBookView = (uuid: string) => {
   const {
@@ -49,14 +26,32 @@ export const useBookView = (uuid: string) => {
     data: posData,
     error: posError,
     reload: reloadPos,
-  } = useAction(booksPositionRouter, {
-    uuid,
-  })
+  } = useFetch(
+    [bookData],
+    async (bookData): Promise<BookTypes.PropertyPosition | undefined> => {
+      if (!bookData) return
+      return booksPositionRouter.action({ uuid: bookData.item.uuid })
+    },
+  )
   const [pos, setPos] = useState<BookTypes.PropertyPosition>()
   const section = pos?.section
   const paragraph = pos?.paragraph
 
-  const book = useBook(bookData)
+  // flatten navs
+  const book: BookView | undefined = useMemo(() => {
+    if (!bookData) return undefined
+    const flattenedNavs = []
+    const stack = [...bookData.navs]
+    while (stack.length) {
+      const cur = stack.shift()!
+      flattenedNavs.push(cur)
+      stack.unshift(...cur.children)
+    }
+    return {
+      ...bookData,
+      flattenedNavs,
+    }
+  }, [bookData])
 
   // get pos
   useEffect(() => {
@@ -65,15 +60,16 @@ export const useBookView = (uuid: string) => {
 
   // sync pos
   useEffect(() => {
-    if (section === undefined || paragraph === undefined) return
+    if (book === undefined || section === undefined || paragraph === undefined)
+      return
     booksSyncPositionRouter
-      .action({ uuid, pos: { section, paragraph } })
+      .action({ uuid: book.item.uuid, pos: { section, paragraph } })
       .catch(console.error)
-  }, [paragraph, section, uuid])
+  }, [book, paragraph, section, uuid])
 
   const reload = useCallback(() => {
     reloadBook()
-    reloadPos
+    reloadPos()
   }, [reloadBook, reloadPos])
 
   return {
@@ -113,13 +109,14 @@ function BookViewReq({ uuid }: { uuid: string }) {
   useEffect(() => {
     if (book && pos)
       setBookContext({
-        uuid,
+        uuid: book.item.uuid,
         book,
         pos,
         setPos,
         reload,
       })
-  }, [book, pos, reload, setBookContext, setPos, uuid])
+    else setBookContext(null)
+  }, [book, pos, reload, setBookContext, setPos])
 
   if (error) return <NotFound title="book"></NotFound>
 

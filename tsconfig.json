@@ -12,6 +12,7 @@
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
+    "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "incremental": true,
     "module": "ES2020"

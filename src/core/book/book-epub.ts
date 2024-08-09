@@ -34,7 +34,8 @@ function* scopeQuerySelectorAll(
   childTags: string[],
   selector?: string,
 ): Generator<Element, undefined, void> {
-  if (!childTags.length) {
+  const [tag, ...remainTags] = childTags
+  if (!tag) {
     if (selector) {
       for (const el of scope.querySelectorAll(selector)) {
         yield el
@@ -44,7 +45,6 @@ function* scopeQuerySelectorAll(
     }
     return
   }
-  const [tag, ...remainTags] = childTags
   for (const el of scope.children) {
     if (tag === '*' || el.tagName.toLowerCase() === tag.toLowerCase()) {
       yield* scopeQuerySelectorAll(el, remainTags, selector)
@@ -242,7 +242,8 @@ export class BookEpub extends BookBase {
   }
 
   dirBySpineIndex(spineIndex: number) {
-    return path.dirname(this.spineItems[spineIndex].manifest.href)
+    const spine = this.spineItems[spineIndex]
+    if (spine) return path.dirname(spine.manifest.href)
   }
 
   protected getSpineIndexByHref(href: string): number | undefined {
@@ -282,7 +283,7 @@ export class BookEpub extends BookBase {
             if (src) {
               href = path.join(dir, src)
               ;[hrefBase, hrefAnchor] = href.split('#', 2)
-              spineIndex = this.getSpineIndexByHref(hrefBase)
+              if (hrefBase) spineIndex = this.getSpineIndexByHref(hrefBase)
             }
           }
           const childOl = scopeQuerySelector(el, ['ol'])
@@ -327,7 +328,7 @@ export class BookEpub extends BookBase {
         if (src) {
           href = path.join(dir, src)
           ;[hrefBase, hrefAnchor] = href.split('#', 2)
-          spineIndex = this.getSpineIndexByHref(hrefBase)
+          if (hrefBase) spineIndex = this.getSpineIndexByHref(hrefBase)
         }
         return {
           level,

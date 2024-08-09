@@ -99,7 +99,7 @@ export abstract class BookListBase {
     const targetIndex = entityIndex + offset
     if (targetIndex < 0 || targetIndex >= list.length) return
     const [entityJson] = list.splice(entityIndex, 1)
-    list.splice(targetIndex, 0, entityJson)
+    if (entityJson) list.splice(targetIndex, 0, entityJson)
     await this.write()
   }
 
@@ -118,7 +118,7 @@ export abstract class BookListBase {
     )
       return
     const [entityJson] = list.splice(entityIndex, 1)
-    list.splice(targetIndex, 0, entityJson)
+    if (entityJson) list.splice(targetIndex, 0, entityJson)
     await this.write()
   }
 
@@ -127,7 +127,7 @@ export abstract class BookListBase {
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
     const [entityJson] = list.splice(entityIndex, 1)
-    list.unshift(entityJson)
+    if (entityJson) list.unshift(entityJson)
     await this.write()
   }
 
@@ -248,7 +248,7 @@ export abstract class BookListBase {
       return
     }
     const entityJson = list[bookIndex]
-    await this.bookDelete(entityJson)
+    if (entityJson) await this.bookDelete(entityJson)
     list.splice(bookIndex, 1)
 
     await this.write()

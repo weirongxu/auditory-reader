@@ -24,7 +24,7 @@ const CHAR_CODES = [
 
 export function randomChar() {
   const charCodeIndex = randomRangeInt(0, CHAR_CODES.length - 1)
-  return String.fromCharCode(CHAR_CODES[charCodeIndex])
+  return String.fromCharCode(CHAR_CODES[charCodeIndex]!)
 }
 
 export function randomString(len: number) {

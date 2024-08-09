@@ -123,7 +123,7 @@ export const useVoice = (book: BookTypes.Entity) => {
   }, [book, getAllSortedVoices])
 
   const voiceURI = useMemo((): string | null => {
-    return langVoiceURI ?? allSortedVoices[0]?.voiceURI
+    return langVoiceURI ?? allSortedVoices[0]?.voiceURI ?? null
   }, [allSortedVoices, langVoiceURI])
 
   const setVoiceURI = useCallback(
