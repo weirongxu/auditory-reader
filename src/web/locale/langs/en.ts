@@ -80,6 +80,7 @@ export const langEn = {
     selectShift: 'Mark from last select to current as selected',
     selectAll: 'Toggle select all',
     open: 'Open current selection',
+    editBook: 'Edit book',
     remove: 'Remove current selection',
   },
   confirm: {

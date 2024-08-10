@@ -44,6 +44,7 @@ import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
+import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -147,6 +148,50 @@ function TimerRemainBadge({
   )
 }
 
+function BookEditButton() {
+  const { book, reload } = useBookContext()
+  const { openBookEdit } = useBookEditDialog(reload)
+  const { addHotkey } = useHotkeys()
+
+  useEffect(() => {
+    return addHotkey('e', t('hotkey.editBook'), () => {
+      openBookEdit(book.item.uuid)
+    })
+  })
+
+  return (
+    <Button block type="primary" onClick={() => openBookEdit(book.item.uuid)}>
+      {t('editBook')}
+    </Button>
+  )
+}
+
+function VoicesSelect() {
+  const { book } = useBookContext()
+  const { voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
+  const voiceOptions = useMemo(
+    () =>
+      allSortedVoices.map((v) => ({
+        label: v.name,
+        value: v.voiceURI,
+      })),
+    [allSortedVoices],
+  )
+  return (
+    <SettingLine>
+      <Select
+        showSearch
+        filterOption={filterOptionLabel}
+        popupMatchSelectWidth={false}
+        style={{ width: '100%' }}
+        value={voiceURI}
+        onChange={(value) => setVoiceURI(value)}
+        options={voiceOptions}
+      ></Select>
+    </SettingLine>
+  )
+}
+
 export function usePlayerUI({
   player,
   started,
@@ -158,11 +203,11 @@ export function usePlayerUI({
   activeNavs?: BookNav[]
   selection?: BookTypes.PropertyAnnotationRange
 }) {
-  const { book, pos, reload } = useBookContext()
+  const { book, pos } = useBookContext()
   const nav = useNavigate()
   const { annotations, activeAnnotation, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
-  const { voice, voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
+  const { voice } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
   const [stopTimerEnabled] = useStopTimer()
@@ -326,39 +371,6 @@ export function usePlayerUI({
     )
   }, [player, started, stopTimerEnabled, stopTimerSeconds])
 
-  const voiceOptions = useMemo(
-    () =>
-      allSortedVoices.map((v) => ({
-        label: v.name,
-        value: v.voiceURI,
-      })),
-    [allSortedVoices],
-  )
-  const SelectVoices = useMemo(() => {
-    return (
-      <SettingLine key="select-voices">
-        <Select
-          showSearch
-          filterOption={filterOptionLabel}
-          popupMatchSelectWidth={false}
-          style={{ width: '100%' }}
-          value={voiceURI}
-          onChange={(value) => setVoiceURI(value)}
-          options={voiceOptions}
-        ></Select>
-      </SettingLine>
-    )
-  }, [setVoiceURI, voiceOptions, voiceURI])
-
-  const { openBookEdit } = useBookEditDialog(reload)
-  const BookEditModal = useMemo(() => {
-    return (
-      <Button block type="primary" onClick={() => openBookEdit(book.item.uuid)}>
-        {t('editBook')}
-      </Button>
-    )
-  }, [book.item.uuid, openBookEdit])
-
   const TmpStoreBtn = useMemo(() => {
     return (
       <Button
@@ -392,11 +404,11 @@ export function usePlayerUI({
     return (
       <Space direction="vertical">
         <BookSearchButton player={player} />
-        {BookEditModal}
-        {SelectVoices}
+        <BookEditButton />
+        <VoicesSelect />
       </Space>
     )
-  }, [BookEditModal, SelectVoices, player])
+  }, [player])
 
   useAppBarSync({
     topRight,

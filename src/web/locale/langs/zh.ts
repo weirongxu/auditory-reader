@@ -82,6 +82,7 @@ export const langZh: LangEn = {
     selectShift: '把最后一次选择至当位置的标记为选择',
     selectAll: '开关选择全部',
     open: '打开当前选择',
+    editBook: '编辑本书',
     remove: '删除当前选择',
   },
   confirm: {
