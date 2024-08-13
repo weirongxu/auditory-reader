@@ -567,7 +567,8 @@ export class PlayerIframeController {
     const [urlMain, anchorId] = urlSplitAnchor(path)
     const section = this.book.spines.findIndex((s) => s.href === urlMain)
     if (section === -1) return
-    await this.load({ section, anchorId })
+    if (anchorId) await this.load({ section, anchorId })
+    else await this.load({ section, paragraph: 0 })
   }
 
   public updateColorTheme(colorScheme: ColorScheme) {
