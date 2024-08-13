@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 // @ts-check
 
 import url from 'url'

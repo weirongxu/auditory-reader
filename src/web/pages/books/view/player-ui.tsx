@@ -154,10 +154,15 @@ function BookEditButton() {
   const { addHotkey } = useHotkeys()
 
   useEffect(() => {
-    return addHotkey('e', t('hotkey.editBook'), () => {
-      openBookEdit(book.item.uuid)
-    })
-  })
+    return addHotkey(
+      'e',
+      t('hotkey.editBook'),
+      () => {
+        openBookEdit(book.item.uuid)
+      },
+      { level: 100 },
+    )
+  }, [addHotkey, book.item.uuid, openBookEdit])
 
   return (
     <Button block type="primary" onClick={() => openBookEdit(book.item.uuid)}>
