@@ -18,9 +18,11 @@ import * as styles from './book-search.module.scss'
 import type { Player } from './player.js'
 
 function BookSearchResult({
+  open,
   player,
   searchResponse,
 }: {
+  open: boolean
   player: Player
   searchResponse: BookSearchResponse | null
 }) {
@@ -51,7 +53,7 @@ function BookSearchResult({
   const { addHotkeys } = useHotkeys()
 
   useEffect(() => {
-    if (!searchResponse) return
+    if (!open || !searchResponse) return
     const matches = searchResponse.matches
 
     const prevSearch = () => {
@@ -77,7 +79,7 @@ function BookSearchResult({
       ],
       { level: 2 },
     )
-  }, [addHotkeys, gotoMatch, searchResponse, selectedIndex])
+  }, [addHotkeys, gotoMatch, open, searchResponse, selectedIndex])
 
   if (!searchResponse) return null
   if (searchResponse.matches.length === 0)
@@ -119,9 +121,11 @@ function BookSearchResult({
 }
 
 function BookSearchView({
+  open,
   refSearchInput,
   player,
 }: {
+  open: boolean
   refSearchInput: React.MutableRefObject<InputRef | null>
   player: Player
 }) {
@@ -175,7 +179,11 @@ function BookSearchView({
           <FontAwesomeIcon icon={faSearch} />
         </Button>
       </FlexBox>
-      <BookSearchResult player={player} searchResponse={searchResponse} />
+      <BookSearchResult
+        open={open}
+        player={player}
+        searchResponse={searchResponse}
+      />
     </FlexBox>
   )
 }
@@ -222,7 +230,11 @@ export function BookSearchButton({ player }: { player: Player }) {
         open={open}
         onClose={() => setOpen(false)}
       >
-        <BookSearchView refSearchInput={refSearchInput} player={player} />
+        <BookSearchView
+          open={open}
+          refSearchInput={refSearchInput}
+          player={player}
+        />
       </Drawer>
     </>
   )
