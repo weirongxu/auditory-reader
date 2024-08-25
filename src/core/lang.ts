@@ -237,7 +237,8 @@ export const useOrderedLangOptions = () => {
   const langs = useOrderedLangs()
 
   const options = useMemo(() => {
-    return langs.map((l: { name: string; code: LangCode }) => ({
+    return langs.map((l: { name: string; code: LangCode }, i) => ({
+      key: i,
       value: l.code,
       label: `${l.name} (${l.code})`,
     }))
