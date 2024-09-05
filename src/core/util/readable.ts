@@ -99,6 +99,12 @@ const isIgnoreVerticalAlign = (elem: HTMLElement) => {
   return verticalAlign && verticalAlign !== 'baseline'
 }
 
+const ignoreTagNames = [
+  // ruby > rt
+  'rt',
+  'noscript',
+]
+
 const getParentBlockElem = (
   elem: HTMLElement | null,
 ): HTMLElement | undefined => {
@@ -200,7 +206,7 @@ export class ReadableExtractor {
 
         // skip tag like: ruby > rt
         const tagName = node.tagName.toLowerCase()
-        if (tagName === 'rt') {
+        if (ignoreTagNames.includes(tagName)) {
           node.classList.add(PARA_IGNORE_CLASS)
           continue
         }
@@ -212,11 +218,16 @@ export class ReadableExtractor {
         }
 
         // skip invisible
-        const isVisible = node.checkVisibility({
-          contentVisibilityAuto: true,
-          checkOpacity: true,
-          visibilityProperty: true,
-        })
+        const isVisible =
+          // JSDom not support checkVisibility
+          // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unnecessary-condition
+          node.checkVisibility
+            ? node.checkVisibility({
+                contentVisibilityAuto: true,
+                checkOpacity: true,
+                visibilityProperty: true,
+              })
+            : true
         if (!isVisible) {
           node.classList.add(PARA_IGNORE_CLASS)
           continue

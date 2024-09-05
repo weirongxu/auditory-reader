@@ -15,7 +15,7 @@ export function isInputElement(element: any): element is Element {
 }
 
 export function jsDOMParser(xml: string) {
-  const jsdom = new JSDOM('')
+  const jsdom = new JSDOM('', { pretendToBeVisual: true })
   const DOMParser = jsdom.window.DOMParser
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/html')
