@@ -179,12 +179,13 @@ export class ReadableExtractor {
   walk() {
     // walk
     for (const node of walkerNode(this.doc, this.doc.body)) {
-      // anchors
       if (isElement(node)) {
+        // anchors
         if (node.id) {
           this.addAnchor(node.id, this.#navAnchorSet.has(node.id))
         }
 
+        // ruby
         if (node.tagName.toLowerCase() === 'ruby') {
           this.addRuby(node)
         }
@@ -206,6 +207,17 @@ export class ReadableExtractor {
 
         // skip ignored vertical-align
         if (isIgnoreVerticalAlign(node)) {
+          node.classList.add(PARA_IGNORE_CLASS)
+          continue
+        }
+
+        // skip invisible
+        const isVisible = node.checkVisibility({
+          contentVisibilityAuto: true,
+          checkOpacity: true,
+          visibilityProperty: true,
+        })
+        if (!isVisible) {
           node.classList.add(PARA_IGNORE_CLASS)
           continue
         }
