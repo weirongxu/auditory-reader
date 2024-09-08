@@ -2,8 +2,8 @@
 import './app.scss'
 
 // modules
+import { Alert } from 'antd'
 import 'antd/dist/reset.css'
-import { Alert, message, notification } from 'antd'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
@@ -11,6 +11,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { ConfirmProvider } from './common/confirm.js'
 import { HintTextProvider } from './common/hint-text.js'
+import { MessageProvider, NotificationProvider } from './common/notification.js'
 import { PreviewImageProvider } from './common/preview-image.js'
 import { SpinFullscreen } from './components/spin.js'
 import { useStyle } from './hooks/use-style.js'
@@ -21,15 +22,6 @@ import { registerAPI } from './service-worker/register.js'
 import { globalStore } from './store/global.js'
 import { globalStyle } from './style.js'
 import { AntdConfigProvider, useColorScheme } from './theme.js'
-
-message.config({
-  duration: 3,
-})
-
-notification.config({
-  placement: 'top',
-  duration: 3,
-})
 
 function AppEntry() {
   const theme = useColorScheme()
@@ -73,6 +65,8 @@ function AppProvider() {
     <AntdConfigProvider>
       <DndProvider backend={HTML5Backend}>
         <AppEntry></AppEntry>
+        <NotificationProvider></NotificationProvider>
+        <MessageProvider></MessageProvider>
         <HintTextProvider></HintTextProvider>
         <PreviewImageProvider></PreviewImageProvider>
         <ConfirmProvider></ConfirmProvider>

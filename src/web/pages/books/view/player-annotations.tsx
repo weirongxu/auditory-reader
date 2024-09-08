@@ -1,10 +1,10 @@
-import { message } from 'antd'
 import { t } from 'i18next'
 import invert from 'invert-color'
 import { booksDeleteAnnotationsRouter } from '../../../../core/api/books/delete-annotations.js'
 import { booksUpsertAnnotationsRouter } from '../../../../core/api/books/upsert-annotations.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { uiConfirm } from '../../../common/confirm.js'
+import { messageApi } from '../../../common/notification.js'
 import type { Player } from './player.js'
 
 export class PlayerAnnotations {
@@ -39,7 +39,7 @@ export class PlayerAnnotations {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      void message.error(t('desc.noSupportedAnnotation'))
+      void messageApi().error(t('desc.noSupportedAnnotation'))
       return
     }
     const brief = node.text.slice(0, 30)
@@ -60,7 +60,7 @@ export class PlayerAnnotations {
       uuid: this.uuid,
     })
     this.reload?.()
-    void message.info(`${t('desc.updatedAnnotation')} ${brief}`)
+    void messageApi().info(`${t('desc.updatedAnnotation')} ${brief}`)
     return res.annotations.at(0)
   }
 
@@ -105,7 +105,7 @@ export class PlayerAnnotations {
       annotationUuids: [annotation.uuid],
     })
     this.reload?.()
-    void message.info(`${t('desc.deletedAnnotation')} ${annotation.brief}`)
+    void messageApi().info(`${t('desc.deletedAnnotation')} ${annotation.brief}`)
   }
 
   indexByPos(

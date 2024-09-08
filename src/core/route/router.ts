@@ -1,4 +1,4 @@
-import { notification } from 'antd'
+import { notificationApi } from '../../web/common/notification.js'
 import {
   ActionError,
   ActionRequestError,
@@ -77,7 +77,7 @@ export class URouter<Req = any, Res = any> {
     if (res.status === 401) throw new ActionUnauthorized()
     if (res.status.toString().startsWith('4')) {
       const json = await res.json()
-      notification.error({
+      notificationApi().error({
         message: 'Error',
         description: json.message,
       })
