@@ -70,6 +70,7 @@ export function useViewer() {
             <SpinCenter />
           </div>
         )}
+        {/* NOTE: sandbox will caused safari onclick not work in iframe */}
         <iframe
           style={{ padding: '0 4px' }}
           title="viewer"

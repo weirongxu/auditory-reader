@@ -654,20 +654,6 @@ export class PlayerIframeController {
 
   protected injectCSS(doc: Document) {
     const styleElem = doc.createElement('style')
-    const contentSelectors = [
-      'a',
-      'article',
-      'cite',
-      'code',
-      'div',
-      'li',
-      'p',
-      'pre',
-      'span',
-      'table',
-      'body',
-    ]
-
     let pageStyle = ''
     if (this.enabledPageList) {
       pageStyle += `
@@ -775,13 +761,9 @@ export class PlayerIframeController {
       }
 
       /* scheme */
-      .${COLOR_SCHEME_DARK_CLASS} body {
+      .${COLOR_SCHEME_DARK_CLASS} body,
+      .${COLOR_SCHEME_DARK_CLASS} body * {
         background-color: var(--main-bg);
-      }
-
-      ${contentSelectors
-        .map((s) => `.${COLOR_SCHEME_DARK_CLASS} ${s}`)
-        .join(', ')} {
         color: var(--main-fg) !important;
       }
 
