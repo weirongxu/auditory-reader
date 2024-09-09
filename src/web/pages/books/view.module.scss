@@ -51,7 +51,7 @@
       }
 
       li {
-        border-bottom: 1px dashed var(--main-fg);
+        border-bottom: 1px dashed var(--main-border);
         &:last-child {
           border-bottom: none;
         }

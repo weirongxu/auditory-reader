@@ -748,11 +748,11 @@ export class PlayerIframeController {
 
       /* image */
       svg {
-        max-width: 90%!important;
+        max-width: 90% !important;
         max-height: 90vh;
       }
       img.${IMG_MAX_WIDTH_CLASS} {
-        max-width: 90%!important;
+        max-width: 90% !important;
         height: auto;
       }
       img.${IMG_MAX_HEIGHT_CLASS} {
@@ -772,9 +772,10 @@ export class PlayerIframeController {
         cursor: pointer;
       }
 
-      .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS} {
-        background: var(--main-bg-active);
-        ${!isSafari ? `outline: 5px solid var(--main-bg-active);` : ''}
+      .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS},
+      .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS} * {
+        background: var(--main-bg-active) !important;
+        ${!isSafari ? `outline: 5px solid var(--main-bg-active) !important;` : ''}
       }
 
       ${hoverStyle}
