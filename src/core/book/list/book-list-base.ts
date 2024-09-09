@@ -153,26 +153,6 @@ export abstract class BookListBase {
     }
   }
 
-  public async locationInPage(
-    uuid: string,
-    isArchived: boolean,
-    perPage = this.defaultPerPage,
-  ) {
-    const list = await this.listFilter({
-      archive: isArchived ? 'archived' : 'active',
-      favorite: 'all',
-    })
-    const fullIndex = list.findIndex((it) => it.uuid === uuid)
-    if (fullIndex === -1) return
-    const page = Math.floor(fullIndex / perPage) + 1
-    const index = fullIndex % perPage
-    return {
-      page,
-      index,
-      isArchived,
-    }
-  }
-
   protected async entityJson(uuid: string) {
     const list = await this.list()
     return list.find((it) => it.uuid === uuid)

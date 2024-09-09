@@ -2,10 +2,8 @@ import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { booksLocationInPageRouter } from '../../../../core/api/books/book-location.js'
 import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import { async } from '../../../../core/util/promise.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
@@ -118,19 +116,7 @@ export function useViewer() {
         t('hotkey.annotationToggle'),
         () => player.annotations.toggle(pos, selection ?? null),
       ],
-      [
-        'u',
-        t('hotkey.goBack'),
-        () => {
-          async(async () => {
-            const locationInPage = await booksLocationInPageRouter.action({
-              uuid: book.item.uuid,
-              isArchived: book.item.isArchived,
-            })
-            nav('../', { state: { locationInPage } })
-          })
-        },
-      ],
+      ['u', t('hotkey.goBack'), () => nav('../')],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
       [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
       [{ shift: true, key: 'ArrowLeft' }, t('hotkey.prevSection'), prevSection],

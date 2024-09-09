@@ -1,6 +1,5 @@
 import type { URouter } from '../route/router.js'
 import { booksAnnotationsRouter } from './books/annotations.js'
-import { booksLocationInPageRouter } from './books/book-location.js'
 import { booksCoverRouter } from './books/cover.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
@@ -35,7 +34,6 @@ export const ROUTERS = [
   booksMoveAfterRouter,
   booksMoveTopRouter,
   booksPageRouter,
-  booksLocationInPageRouter,
   booksRemoveRouter,
   booksShowRouter,
   booksDownloadRouter,

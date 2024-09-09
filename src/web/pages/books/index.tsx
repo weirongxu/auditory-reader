@@ -21,10 +21,10 @@ import {
   type InputRef,
 } from 'antd'
 import { t } from 'i18next'
-import type { Dispatch, SetStateAction } from 'react'
+import { useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getBooksCoverPath } from '../../../core/api/books/cover.js'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
 import { booksMoveAfterRouter } from '../../../core/api/books/move-after.js'
@@ -33,9 +33,10 @@ import type { BookPage } from '../../../core/api/books/page.js'
 import { booksPageRouter } from '../../../core/api/books/page.js'
 import { booksRemoveRouter } from '../../../core/api/books/remove.js'
 import { booksUpdateRouter } from '../../../core/api/books/update.js'
-import { sortOrders, type SortOrder } from '../../../core/book/enums.js'
+import { sortOrders } from '../../../core/book/enums.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
+import { filterOptionLabel } from '../../../core/util/antd.js'
 import { async } from '../../../core/util/promise.js'
 import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
@@ -48,9 +49,17 @@ import { useHotkeys, type HotkeyItem } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
+import {
+  activatedIndexAtom,
+  archivedAtom,
+  favoritedAtom,
+  orderAtom,
+  perPageAtom,
+  searchAtom,
+  usePage,
+} from './index-atoms.js'
 import { useBookEditDialog } from './edit.js'
 import * as styles from './index.module.scss'
-import { filterOptionLabel } from '../../../core/util/antd.js'
 
 const DragType = 'book'
 
@@ -190,14 +199,9 @@ function useSelector(books: BookTypes.Entity[] | null) {
 }
 
 function useHomeHotKeys({
-  activatedIndex,
-  setActivatedIndex,
-  setArchived,
-  setFavorited,
   focusSearchInput,
   orderSelectPrev,
   orderSelectNext,
-  setPage,
   dataBooks,
   selectTo,
   selectAll,
@@ -207,14 +211,9 @@ function useHomeHotKeys({
   removeBooks,
   hasOrder,
 }: {
-  activatedIndex: number
-  setActivatedIndex: Dispatch<SetStateAction<number>>
-  setArchived: Dispatch<SetStateAction<boolean>>
-  setFavorited: Dispatch<SetStateAction<boolean>>
   focusSearchInput: () => void
   orderSelectPrev: () => void
   orderSelectNext: () => void
-  setPage: Dispatch<SetStateAction<number>>
   dataBooks: BookPage | null | undefined
   selectTo: (index: number, shift: boolean) => void
   selectAll: () => void
@@ -224,6 +223,10 @@ function useHomeHotKeys({
   removeBooks: (books: BookTypes.Entity[]) => void
   hasOrder: boolean
 }) {
+  const [activatedIndex, setActivatedIndex] = useAtom(activatedIndexAtom)
+  const [, setPage] = usePage()
+  const [, setArchived] = useAtom(archivedAtom)
+  const [, setFavorited] = useAtom(favoritedAtom)
   const [isPersonReplace] = usePersonReplace()
   const [speechSpeed] = useSpeechSpeed()
   const { getVoice } = useGetVoice()
@@ -268,7 +271,6 @@ function useHomeHotKeys({
     const pagePrev = () => {
       if (dataBooks) {
         setPage((page) => (page > 1 ? page - 1 : dataBooks.pageCount))
-        goTop()
       }
     }
 
@@ -279,7 +281,6 @@ function useHomeHotKeys({
     const pageNext = () => {
       if (dataBooks) {
         setPage((page) => (page < dataBooks.pageCount ? page + 1 : 1))
-        goTop()
       }
     }
 
@@ -534,6 +535,7 @@ function BookRow({
   hasOrder: boolean
 }) {
   const nav = useNavigate()
+  const [, setActivatedIndex] = useAtom(activatedIndexAtom)
   const refEl = useRef<HTMLTableRowElement>(null)
 
   const [, drop] = useDrop<DragItem, void>({
@@ -670,6 +672,7 @@ function BookRow({
         className={styles.hover}
         title={book.createdAt.toLocaleString()}
         onClick={() => {
+          setActivatedIndex(index)
           nav(viewPath(book.uuid))
         }}
       >
@@ -708,23 +711,17 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
 }
 
 export function BookList() {
-  const { state } = useLocation()
-  const locationInPage = state?.locationInPage as
-    | BookTypes.LocationInPageState
-    | undefined
-  const [page, setPage] = useState<number>(locationInPage?.page ?? 1)
-  const [perPage, setPerPage] = useState<number>(15)
-  const [activatedIndex, setActivatedIndex] = useState(
-    locationInPage?.index ?? 0,
-  )
-  const [archived, setArchived] = useState(false)
-  const [favorited, setFavorited] = useState(false)
+  const [page, setPage] = usePage()
+  const [perPage, setPerPage] = useAtom(perPageAtom)
+  const [activatedIndex, setActivatedIndex] = useAtom(activatedIndexAtom)
+  const [archived, setArchived] = useAtom(archivedAtom)
+  const [favorited, setFavorited] = useAtom(favoritedAtom)
 
-  const [search, setSearch] = useState<string>('')
+  const [search, setSearch] = useAtom(searchAtom)
   const searchDeferred = useSyncedDebounced(search, 500)
   const refSearchInput = useRef<InputRef | null>(null)
 
-  const [order, setOrder] = useState<SortOrder>('default')
+  const [order, setOrder] = useAtom(orderAtom)
   const hasOrder = order !== 'default'
 
   const { data: dataBooks, reload } = useAction(
@@ -769,14 +766,14 @@ export function BookList() {
       const lastOrder = sortOrders[sortOrders.length - 1]
       if (lastOrder) setOrder(lastOrder)
     }
-  }, [order])
+  }, [order, setOrder])
 
   const orderSelectNext = useCallback(() => {
     const i = sortOrders.indexOf(order)
     const nextOrder = sortOrders[i + 1]
     if (nextOrder) setOrder(nextOrder)
     else setOrder(sortOrders[0])
-  }, [order])
+  }, [order, setOrder])
 
   const removeBooks = useRemoveBooks(reload)
 
@@ -790,18 +787,13 @@ export function BookList() {
       setPage(1)
       reload()
     },
-    [reload],
+    [reload, setPage],
   )
 
   useHomeHotKeys({
-    activatedIndex,
-    setActivatedIndex,
-    setArchived,
-    setFavorited,
     focusSearchInput,
     orderSelectPrev,
     orderSelectNext,
-    setPage,
     dataBooks,
     reload,
     selectTo,
@@ -920,7 +912,7 @@ export function BookList() {
     } else if (activatedIndex > books.length - 1) {
       setActivatedIndex(books.length - 1)
     }
-  }, [activatedIndex, books, page])
+  }, [activatedIndex, books, page, setActivatedIndex, setPage])
 
   if (loading || !dataBooks || !books) return <SpinCenter />
 

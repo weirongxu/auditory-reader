@@ -86,12 +86,6 @@ export namespace BookTypes {
     search: string
   }
 
-  export interface LocationInPageState {
-    isArchived: boolean
-    page: number
-    index: number
-  }
-
   export interface PageParams {
     page: number
     perPage: number
