@@ -10,6 +10,7 @@ import { booksMoveAfterRouter } from './books/move-after.js'
 import { booksMoveTopRouter } from './books/move-top.js'
 import { booksPageRouter } from './books/page.js'
 import { booksPositionRouter } from './books/position.js'
+import { booksPropertyRouter } from './books/property.js'
 import { booksRemoveRouter } from './books/remove.js'
 import { booksRenderRouter } from './books/render.js'
 import { booksSearchRouter } from './books/search.js'
@@ -39,6 +40,7 @@ export const ROUTERS = [
   booksDownloadRouter,
   booksPositionRouter,
   booksSyncPositionRouter,
+  booksPropertyRouter,
   booksAnnotationsRouter,
   booksUpsertAnnotationsRouter,
   booksDeleteAnnotationsRouter,

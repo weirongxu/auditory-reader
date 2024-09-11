@@ -82,7 +82,7 @@ export class BookEntityFS extends BookEntityBase {
     }
   }
 
-  protected async readProp(): Promise<BookTypes.PropertyJson> {
+  async readProp(): Promise<BookTypes.PropertyJson> {
     if (!this.propJson) {
       if (!fs.existsSync(this.propJsonPath)) {
         this.propJson = {}

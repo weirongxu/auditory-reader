@@ -44,7 +44,7 @@ export abstract class BookEntityBase {
 
   abstract delete(): Promise<void>
 
-  protected abstract readProp(): Promise<BookTypes.PropertyJson>
+  abstract readProp(): Promise<BookTypes.PropertyJson>
 
   protected abstract writeProp(prop: BookTypes.PropertyJson): Promise<void>
 
