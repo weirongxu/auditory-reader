@@ -775,7 +775,6 @@ export class PlayerIframeController {
       .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS},
       .${PARA_BOX_CLASS}.${PARA_ACTIVE_CLASS} * {
         background: var(--main-bg-active) !important;
-        ${!isSafari ? `outline: 5px solid var(--main-bg-active) !important;` : ''}
       }
 
       ${hoverStyle}
