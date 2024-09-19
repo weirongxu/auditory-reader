@@ -189,7 +189,8 @@ const langSet = [
   { code: 'wo', name: 'Wolof' },
   { code: 'fy', name: 'Western Frisian' },
   { code: 'xh', name: 'Xhosa' },
-  { code: 'yi, ji', name: 'Yiddish' },
+  { code: 'yi', name: 'Yiddish' },
+  { code: 'ji', name: 'Yiddish' },
   { code: 'yo', name: 'Yoruba' },
   { code: 'za', name: 'Zhuang, Chuang' },
   { code: 'zu', name: 'Zulu' },
@@ -207,6 +208,10 @@ export const parseLangCode = (
 ): LangCode | undefined => {
   if (!lang) return
   if (lang.includes('-')) lang = lang.split('-')[0]
+  if (!lang) return
+  if (lang.includes('_')) lang = lang.split('_')[0]
+  if (!lang) return
+  lang = lang.toLowerCase()
   if (!langCodes.includes(lang as LangCode)) {
     return
   }
