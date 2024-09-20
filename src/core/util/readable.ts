@@ -96,7 +96,7 @@ const isBlockElem = (elem: HTMLElement) => {
 const isIgnoreVerticalAlign = (elem: HTMLElement) => {
   const verticalAlign =
     getComputedStyle(elem).getPropertyValue('vertical-align')
-  return verticalAlign && verticalAlign !== 'baseline'
+  return verticalAlign && ['top', 'bottom'].includes(verticalAlign)
 }
 
 const ignoreTagNames = [
