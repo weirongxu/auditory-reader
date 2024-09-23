@@ -56,6 +56,8 @@ import { AnnotationHighlight } from './annotation-highlight.js'
 import type { HighlightBlock } from './highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
+import { uiConfirm } from '../../../common/confirm.js'
+import { t } from 'i18next'
 
 type PageListNode = {
   topmost?: {
@@ -823,26 +825,36 @@ export class PlayerIframeController {
   }
 
   protected hookLinkClick() {
-    const openLink = (href: string) => {
-      window.open(href, '_blank', 'noopener,noreferrer')
+    const confirmLink = async (href: string) => {
+      return await uiConfirm({
+        title: t('confirm.openLink'),
+        description: href,
+      })
+    }
+    const openLink = async (href: string) => {
+      if (await confirmLink(href))
+        window.open(href, '_blank', 'noopener,noreferrer')
     }
 
     const onClickLink = (link: HTMLAnchorElement) => {
       async(async () => {
         const isToc = link.closest(NAV_TOC_SELECTOR)
-        let rootPath: string
+        let uri: string
         if (isToc) {
           const href = link.getAttribute('href')
           if (!href) return
-          rootPath = path.join('/', href)
+          uri = path.join('/', href)
         } else {
-          const url = link.href
-          if (!url) return
-          if (!url.startsWith(this.mainContentRootUrl)) return openLink(url)
-          rootPath = url.substring(this.mainContentRootUrl.length)
+          const href = link.href
+          if (!href) return
+          if (!href.startsWith(this.mainContentRootUrl))
+            return await openLink(href)
+          uri = href.substring(this.mainContentRootUrl.length)
         }
-        await this.gotoUrlPath(rootPath)
-        this.player.utterer.cancel()
+        if (await confirmLink(uri)) {
+          await this.gotoUrlPath(uri)
+          this.player.utterer.cancel()
+        }
       })
     }
     const disposeClick = this.events.on('click', onClickLink)

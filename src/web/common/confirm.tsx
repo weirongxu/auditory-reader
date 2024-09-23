@@ -11,14 +11,14 @@ import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
-  description: React.ReactNode
+  description?: React.ReactNode
   okCallback: () => void
   cancelCallback: () => void
 }>(null)
 
 export function uiConfirm(options: {
   title: React.ReactNode
-  description: React.ReactNode
+  description?: React.ReactNode
 }): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     globalStore.set(confirmAtom, {
@@ -33,7 +33,7 @@ export function useConfirm() {
   const [, setConfirm] = useAtom(confirmAtom)
 
   const confirm = useCallback(
-    (options: { title: React.ReactNode; description: React.ReactNode }) => {
+    (options: { title: React.ReactNode; description?: React.ReactNode }) => {
       return new Promise<boolean>((resolve) => {
         setConfirm({
           ...options,
@@ -121,14 +121,16 @@ function ConfirmDialog() {
         }
         footer={false}
       >
-        {confirm?.description}
-        <Space>
-          <Button type="primary" onClick={onClose}>
-            {t('confirm.cancel')}
-          </Button>
-          <Button type="primary" onClick={onOk}>
-            {t('confirm.ok')}
-          </Button>
+        <Space direction="vertical">
+          {confirm?.description}
+          <Space>
+            <Button type="primary" onClick={onClose}>
+              {t('confirm.cancel')}
+            </Button>
+            <Button type="primary" onClick={onOk}>
+              {t('confirm.ok')}
+            </Button>
+          </Space>
         </Space>
       </Modal>
     </>

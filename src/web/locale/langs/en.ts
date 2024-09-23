@@ -86,6 +86,7 @@ export const langEn = {
   confirm: {
     ok: 'Ok',
     cancel: 'Cancel',
+    openLink: '$t(open) $t(link)?',
   },
   desc: {
     addedBookSuccessful: 'Successfully added a new book',
@@ -146,6 +147,7 @@ export const langEn = {
   cover: 'Cover',
   nav: 'Table contents',
   annotation: 'Annotation',
+  open: 'open',
   url: 'URL',
   extractUrlInfo: 'Extract URL info',
   bookContent: 'Book content',

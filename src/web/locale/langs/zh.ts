@@ -88,6 +88,7 @@ export const langZh: LangEn = {
   confirm: {
     ok: '确定',
     cancel: '取消',
+    openLink: '$t(open)$t(link)?',
   },
   desc: {
     addedBookSuccessful: '成功添加了一本新书',
@@ -148,6 +149,7 @@ export const langZh: LangEn = {
   cover: '封面',
   nav: '导航',
   annotation: '注解',
+  open: '打开',
   url: 'URL',
   extractUrlInfo: '提取URL信息',
   bookContent: '文本内容',
