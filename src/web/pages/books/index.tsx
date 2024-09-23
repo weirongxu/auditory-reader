@@ -363,6 +363,7 @@ function useHomeHotKeys({
     }
 
     const hotkeys: HotkeyItem[] = [
+      // move
       ['k', t('hotkey.goPrev'), goPrev],
       ['j', t('hotkey.goNext'), goNext],
       ['ArrowUp', t('hotkey.goPrev'), goPrev],
@@ -371,6 +372,16 @@ function useHomeHotKeys({
       ['l', t('hotkey.goPageNext'), pageNext],
       ['ArrowLeft', t('hotkey.goPagePrev'), pagePrev],
       ['ArrowRight', t('hotkey.goPageNext'), pageNext],
+      [['g', 'g'], t('hotkey.goTop'), goTop],
+      [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
+      [{ shift: true, key: 'h' }, t('hotkey.goPageFirst'), pageFirst],
+      [{ shift: true, key: 'l' }, t('hotkey.goPageLast'), pageLast],
+      [{ shift: true, key: 'ArrowUp' }, t('hotkey.goTop'), goTop],
+      [{ shift: true, key: 'ArrowDown' }, t('hotkey.goBottom'), goBottom],
+      [{ shift: true, key: 'ArrowLeft' }, t('hotkey.goPageFirst'), pageFirst],
+      [{ shift: true, key: 'ArrowRight' }, t('hotkey.goPageLast'), pageLast],
+
+      // filter
       [
         ['s', { shift: true, key: 'E' }],
         t('hotkey.listArchive'),
@@ -382,17 +393,21 @@ function useHomeHotKeys({
       ['/', t('hotkey.search'), focusSearchInput],
       [['s', 's', 'n'], t('hotkey.sortOrder'), orderSelectNext],
       [['s', 's', 'p'], t('hotkey.sortOrder'), orderSelectPrev],
+
+      // selection
+      ['x', t('hotkey.select'), () => select(false)],
+      ['v', t('hotkey.select'), () => select(false)],
+      [{ shift: true, key: 'x' }, t('hotkey.selectShift'), () => select(true)],
+      [{ shift: true, key: 'v' }, t('hotkey.selectShift'), () => select(true)],
+      [{ shift: true, key: 'a' }, t('hotkey.selectAll'), () => selectAll()],
+
+      // action
       ['t', t('hotkey.goMoveTop'), moveBookTop],
       [
         'e',
         t('hotkey.edit'),
         () => currentBook && openBookEdit(currentBook.uuid),
       ],
-      ['x', t('hotkey.select'), () => select(false)],
-      ['v', t('hotkey.select'), () => select(false)],
-      [{ shift: true, key: 'x' }, t('hotkey.selectShift'), () => select(true)],
-      [{ shift: true, key: 'v' }, t('hotkey.selectShift'), () => select(true)],
-      [{ shift: true, key: 'a' }, t('hotkey.selectAll'), () => selectAll()],
       [
         'Enter',
         t('hotkey.open'),
@@ -403,10 +418,6 @@ function useHomeHotKeys({
       ],
       [{ shift: true, key: '#' }, t('hotkey.remove'), removeBook],
       [['d', 'd'], t('hotkey.remove'), removeBook],
-      [['g', 'g'], t('hotkey.goTop'), goTop],
-      [{ shift: true, key: 'g' }, t('hotkey.goBottom'), goBottom],
-      [{ shift: true, key: 'h' }, t('hotkey.goPageFirst'), pageFirst],
-      [{ shift: true, key: 'l' }, t('hotkey.goPageLast'), pageLast],
       [{ shift: true, key: 'K' }, t('hotkey.speakBookName'), speakBookName],
     ]
 
