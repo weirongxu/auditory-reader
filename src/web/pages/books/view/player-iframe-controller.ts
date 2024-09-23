@@ -33,7 +33,7 @@ import {
   isInputElement,
   svgToDataUri,
 } from '../../../../core/util/dom.js'
-import { SingleEmitter } from '../../../../core/util/emitter.js'
+import { Emitter, SingleEmitter } from '../../../../core/util/emitter.js'
 import { async, sleep } from '../../../../core/util/promise.js'
 import {
   ReadableExtractor,
@@ -80,12 +80,19 @@ interface ScrollOptions extends IterateAnimateOptions {
   userOperator?: boolean
 }
 
+type PlayerIFrameEvent = {
+  scroll: null
+  swepLeft: null
+  swepRight: null
+  click: HTMLAnchorElement
+}
+
 export class PlayerIframeController {
   public readableParts: ReadablePart[] = []
   public alias: TextAlias[] = []
 
   public doc?: Document
-  public onScroll = new SingleEmitter<void>()
+  public events = new Emitter<PlayerIFrameEvent>()
   public unmount = new SingleEmitter<void>({ once: true })
   public isVertical = false
   public annotationHl: AnnotationHighlight
@@ -332,7 +339,7 @@ export class PlayerIframeController {
     if (!this.doc) return
     this.pageListScrollLeft = scrollLeft
     this.doc.documentElement.style.transform = `translateX(${-scrollLeft}px)`
-    this.onScroll.fire()
+    this.events.fire('scroll', null)
   }
 
   /**
@@ -610,10 +617,11 @@ export class PlayerIframeController {
         this.onResized(doc)
       })
       this.resizeImgs(doc)
+      this.hookTouch()
       if (this.enabledPageList) {
         await this.pageListCalculate(doc)
-        this.hookPageTouch()
         this.hookPageWheel()
+        this.hookSwep()
       }
       if (this.isVertical) {
         this.hookVerticalWheel()
@@ -621,6 +629,7 @@ export class PlayerIframeController {
       this.hookSelection()
       this.hookScroll()
       this.hookALinks(doc)
+      this.hookLinkClick()
       this.hookImgs(doc)
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
@@ -806,44 +815,40 @@ export class PlayerIframeController {
     for (const link of doc.querySelectorAll('a')) {
       if (!link.href) continue
 
-      if (link.getAttribute('target') === '_blank') {
-        const onOpenLink = (event: Event) => {
-          eventBan(event)
-          window.open(link.href, '_blank', 'noopener,noreferrer')
-        }
-
-        if (supportedTouch) {
-          link.addEventListener('touchend', onOpenLink)
-          link.addEventListener('click', (e) => eventBan(e))
-        } else link.addEventListener('click', onOpenLink)
-        continue
-      }
-
-      const onClickLink = (event: Event) => {
-        eventBan(event)
-        async(async () => {
-          const isToc = link.closest(NAV_TOC_SELECTOR)
-          let rootPath: string
-          if (isToc) {
-            const href = link.getAttribute('href')
-            if (!href) return
-            rootPath = path.join('/', href)
-          } else {
-            const url = link.href
-            if (!url) {
-              return
-            }
-            rootPath = url.substring(this.mainContentRootUrl.length)
-          }
-          await this.gotoUrlPath(rootPath)
-          this.player.utterer.cancel()
-        })
-      }
-      if (supportedTouch) {
-        link.addEventListener('touchend', onClickLink)
-        link.addEventListener('click', (e) => eventBan(e))
-      } else link.addEventListener('click', onClickLink)
+      link.addEventListener('click', (e) => {
+        eventBan(e)
+        this.events.fire('click', link)
+      })
     }
+  }
+
+  protected hookLinkClick() {
+    const openLink = (href: string) => {
+      window.open(href, '_blank', 'noopener,noreferrer')
+    }
+
+    const onClickLink = (link: HTMLAnchorElement) => {
+      async(async () => {
+        const isToc = link.closest(NAV_TOC_SELECTOR)
+        let rootPath: string
+        if (isToc) {
+          const href = link.getAttribute('href')
+          if (!href) return
+          rootPath = path.join('/', href)
+        } else {
+          const url = link.href
+          if (!url) return
+          if (!url.startsWith(this.mainContentRootUrl)) return openLink(url)
+          rootPath = url.substring(this.mainContentRootUrl.length)
+        }
+        await this.gotoUrlPath(rootPath)
+        this.player.utterer.cancel()
+      })
+    }
+    const disposeClick = this.events.on('click', onClickLink)
+    this.unmount.on(() => {
+      disposeClick()
+    })
   }
 
   protected hookImgs(doc: Document) {
@@ -894,8 +899,8 @@ export class PlayerIframeController {
     })
   }
 
-  protected hookPageTouch() {
-    if (!this.enabledPageList) return
+  protected hookTouch() {
+    if (!supportedTouch) return
     const doc = this.doc
     const win = this.win
     const viewWidth = this.viewWidth
@@ -904,6 +909,7 @@ export class PlayerIframeController {
     let startPoint:
       | {
           x: number
+          y: number
           offsetLeft: number
           timestamp: number
         }
@@ -916,6 +922,7 @@ export class PlayerIframeController {
       if (!touch) return
       startPoint = {
         x: touch.clientX,
+        y: touch.clientY,
         offsetLeft: this.pageListScrollLeft,
         timestamp: Date.now(),
       }
@@ -944,14 +951,12 @@ export class PlayerIframeController {
       const minX = viewWidth * viewRateLimit
       if (speed < -speedLimit || deltaX < -minX) {
         if (!this.isLastPageList || !this.player.isLastSection) {
-          // next
-          void this.player.nextPage(1, true)
+          this.events.fire('swepRight', null)
           return
         }
       } else if (speed > speedLimit || deltaX > minX) {
         if (!this.isFirstPageList || !this.player.isFirstSection) {
-          // prev
-          void this.player.prevPage(1, true)
+          this.events.fire('swepLeft', null)
           return
         }
       }
@@ -969,6 +974,19 @@ export class PlayerIframeController {
     })
   }
 
+  protected hookSwep() {
+    const disposeSwepLeft = this.events.on('swepLeft', async () => {
+      await this.player.prevPage(1, true)
+    })
+    const disposeSwepRight = this.events.on('swepRight', async () => {
+      await this.player.nextPage(1, true)
+    })
+    this.unmount.on(() => {
+      disposeSwepLeft()
+      disposeSwepRight()
+    })
+  }
+
   protected hookPageWheel() {
     const doc = this.doc
     if (!doc) return
@@ -978,9 +996,9 @@ export class PlayerIframeController {
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
       if (e.deltaY > 0) {
-        void this.player.nextPage(1, true)
+        this.events.fire('swepRight', null)
       } else {
-        void this.player.prevPage(1, true)
+        this.events.fire('swepLeft', null)
       }
     }
 
@@ -1089,11 +1107,15 @@ export class PlayerIframeController {
       this.states.scrollPercent = percent * 100
     }
     onScroll()
-    const disposeScrollEvent = this.onScroll.on(() => onScroll())
+    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
 
-    this.doc.addEventListener('scroll', () => this.onScroll.fire(), {
-      passive: true,
-    })
+    this.doc.addEventListener(
+      'scroll',
+      () => this.events.fire('scroll', null),
+      {
+        passive: true,
+      },
+    )
 
     this.unmount.on(() => {
       disposeScrollEvent()

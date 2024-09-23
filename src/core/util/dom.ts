@@ -53,6 +53,11 @@ export function isImageElement(node: any): node is HTMLImageElement {
   return !!view && node instanceof view.HTMLImageElement
 }
 
+export function isAnchorElement(node: any): node is HTMLAnchorElement {
+  const view = getDomView(node)
+  return !!view && node instanceof view.HTMLAnchorElement
+}
+
 export async function HTMLImgs2DataURL(
   urlStr: string,
   element: HTMLElement,
