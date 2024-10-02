@@ -40,9 +40,9 @@ import { async, sleep } from '../../../../core/util/promise.js'
 import {
   ReadableExtractor,
   type ReadablePart,
-  type ReadablePartText,
   type TextAlias,
 } from '../../../../core/util/readable.js'
+import { keywordMatches } from '../../../../core/util/text.js'
 import {
   debounceFn,
   iterateAnimate,
@@ -61,7 +61,6 @@ import type { HighlightBlock } from './highlight/highlight.js'
 import { KeywordHighlight } from './highlight/keyword-highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
-import { keywordMatches } from '../../../../core/util/text.js'
 
 type PageListNode = {
   topmost?: {
@@ -88,8 +87,8 @@ interface ScrollOptions extends IterateAnimateOptions {
 
 type PlayerIFrameEvent = {
   scroll: null
-  swepLeft: null
-  swepRight: null
+  swipeLeft: null
+  swipeRight: null
   click: HTMLAnchorElement
 }
 
@@ -620,7 +619,7 @@ export class PlayerIframeController {
       if (this.enabledPageList) {
         await this.pageListCalculate(doc)
         this.hookPageWheel()
-        this.hookSwep()
+        this.hookSwipe()
       }
       if (this.isVertical) {
         this.hookVerticalWheel()
@@ -908,12 +907,12 @@ export class PlayerIframeController {
       const minX = viewWidth * viewRateLimit
       if (speed < -speedLimit || deltaX < -minX) {
         if (!this.isLastPageList || !this.player.isLastSection) {
-          this.events.fire('swepRight', null)
+          this.events.fire('swipeRight', null)
           return
         }
       } else if (speed > speedLimit || deltaX > minX) {
         if (!this.isFirstPageList || !this.player.isFirstSection) {
-          this.events.fire('swepLeft', null)
+          this.events.fire('swipeLeft', null)
           return
         }
       }
@@ -940,9 +939,9 @@ export class PlayerIframeController {
       if (isInputElement(e.target)) return
       if (e.deltaY === 0) return
       if (e.deltaY > 0) {
-        this.events.fire('swepRight', null)
+        this.events.fire('swipeRight', null)
       } else {
-        this.events.fire('swepLeft', null)
+        this.events.fire('swipeLeft', null)
       }
     }
 
@@ -952,16 +951,16 @@ export class PlayerIframeController {
     })
   }
 
-  protected hookSwep() {
-    const disposeSwepLeft = this.events.on('swepLeft', async () => {
+  protected hookSwipe() {
+    const disposeSwipeLeft = this.events.on('swipeLeft', async () => {
       await this.player.prevPage(1, true)
     })
-    const disposeSwepRight = this.events.on('swepRight', async () => {
+    const disposeSwipeRight = this.events.on('swipeRight', async () => {
       await this.player.nextPage(1, true)
     })
     this.unmount.on(() => {
-      disposeSwepLeft()
-      disposeSwepRight()
+      disposeSwipeLeft()
+      disposeSwipeRight()
     })
   }
 
