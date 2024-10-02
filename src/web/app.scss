@@ -13,3 +13,12 @@ html,
   height: 100%;
   width: 100%;
 }
+
+.keyboard {
+  padding: 0px 4px;
+  font-size: 12px;
+  border: 1px solid var(--main-fg);
+  border-radius: 4px;
+  background-color: var(--main-fg-active);
+  color: var(--main-bg);
+}

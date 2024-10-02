@@ -14,7 +14,7 @@ export function BookAddSuccessful() {
 
   return (
     <FlexBox gap={4}>
-      <Alert type="success" message={t('desc.addedBookSuccessful')}></Alert>
+      <Alert type="success" message={t('desc.bookAddedSuccessful')}></Alert>
       <LinkWrap to={`/books/view/${uuid}`}>
         {(href) => (
           <Button type="primary" href={href} icon={<Icon icon={faEye} />}>

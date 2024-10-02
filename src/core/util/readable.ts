@@ -87,7 +87,7 @@ const inlineElementNames = [
   'var',
 ]
 
-const isBlockElem = (elem: HTMLElement) => {
+function isBlockElem(elem: HTMLElement) {
   const display = getComputedStyle(elem).getPropertyValue('display')
   if (!display) return !inlineElementNames.includes(elem.tagName.toLowerCase())
   return !['inline', 'inline-block'].includes(display)
@@ -105,9 +105,7 @@ const ignoreTagNames = [
   'noscript',
 ]
 
-const getParentBlockElem = (
-  elem: HTMLElement | null,
-): HTMLElement | undefined => {
+function getParentBlockElem(elem: HTMLElement | null): HTMLElement | undefined {
   if (!elem) return
   if (isBlockElem(elem)) {
     return elem
@@ -116,7 +114,7 @@ const getParentBlockElem = (
   }
 }
 
-const fixPageBreak = (elem: HTMLElement) => {
+function fixPageBreak(elem: HTMLElement) {
   const style = getComputedStyle(elem)
   const breakBeforeList = [
     style.getPropertyValue('page-break-before'),

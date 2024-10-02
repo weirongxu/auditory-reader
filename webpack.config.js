@@ -109,12 +109,17 @@ export default (env, argv) => {
         perf_hooks: false,
       },
     },
+    externals: {
+      'node:url': '{}',
+    },
     plugins: [
       new HtmlWebpackPlugin({
         title: 'Auditory Reader',
         template: './src/web/index.html',
       }),
-      new NodePolyfillPlugin(),
+      new NodePolyfillPlugin({
+        additionalAliases: ['process', 'punycode'],
+      }),
       new MiniCssExtractPlugin({
         filename: '[name].[contenthash].css',
         chunkFilename: '[id].[contenthash].css',

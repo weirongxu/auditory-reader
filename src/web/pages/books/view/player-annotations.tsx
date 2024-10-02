@@ -1,7 +1,7 @@
 import { t } from 'i18next'
 import invert from 'invert-color'
-import { booksDeleteAnnotationsRouter } from '../../../../core/api/books/delete-annotations.js'
-import { booksUpsertAnnotationsRouter } from '../../../../core/api/books/upsert-annotations.js'
+import { booksAnnotationsDeleteRouter } from '../../../../core/api/books/annotations-delete.js'
+import { booksAnnotationsUpsertRouter } from '../../../../core/api/books/annotations-upsert.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { uiConfirm } from '../../../common/confirm.js'
 import { messageApi } from '../../../common/notification.js'
@@ -24,7 +24,7 @@ export class PlayerAnnotations {
     }: {
       uuid: string | null
       pos: BookTypes.PropertyPosition
-      range?: BookTypes.PropertyAnnotationRange | null
+      range?: BookTypes.PropertyRange | null
     },
     {
       note,
@@ -39,11 +39,11 @@ export class PlayerAnnotations {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return
     if (node.type !== 'text') {
-      void messageApi().error(t('desc.noSupportedAnnotation'))
+      void messageApi().error(t('desc.annotationNoSupported'))
       return
     }
     const brief = node.text.slice(0, 30)
-    const res = await booksUpsertAnnotationsRouter.action({
+    const res = await booksAnnotationsUpsertRouter.action({
       annotations: [
         {
           uuid,
@@ -60,7 +60,7 @@ export class PlayerAnnotations {
       uuid: this.uuid,
     })
     this.reload?.()
-    void messageApi().info(`${t('desc.updatedAnnotation')} ${brief}`)
+    void messageApi().info(`${t('desc.annotationUpdated')} ${brief}`)
     return res.annotations.at(0)
   }
 
@@ -100,17 +100,17 @@ export class PlayerAnnotations {
         return
     }
 
-    await booksDeleteAnnotationsRouter.action({
+    await booksAnnotationsDeleteRouter.action({
       uuid: this.uuid,
       annotationUuids: [annotation.uuid],
     })
     this.reload?.()
-    void messageApi().info(`${t('desc.deletedAnnotation')} ${annotation.brief}`)
+    void messageApi().info(`${t('desc.annotationDeleted')} ${annotation.brief}`)
   }
 
   indexByPos(
     pos: BookTypes.PropertyPosition,
-    range: BookTypes.PropertyAnnotationRange | null,
+    range: BookTypes.PropertyRange | null,
   ): number | null {
     const annotations = this.player.states.annotations
     if (!annotations) return null
@@ -137,7 +137,7 @@ export class PlayerAnnotations {
 
   protected byPos(
     pos: BookTypes.PropertyPosition,
-    range: BookTypes.PropertyAnnotationRange | null,
+    range: BookTypes.PropertyRange | null,
   ) {
     const index = this.indexByPos(pos, range)
     if (index === null) return null
@@ -146,7 +146,7 @@ export class PlayerAnnotations {
 
   async toggle(
     pos: BookTypes.PropertyPosition,
-    range: BookTypes.PropertyAnnotationRange | null,
+    range: BookTypes.PropertyRange | null,
   ) {
     const annotation = this.byPos(pos, range)
     if (annotation) {

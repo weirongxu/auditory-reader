@@ -1,4 +1,5 @@
 import { useMountEffect } from '@react-hookz/web'
+import { t } from 'i18next'
 import path from 'path'
 import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
@@ -14,6 +15,7 @@ import {
   PARA_ANNOTATION_CLASS,
   PARA_BOX_CLASS,
   ROOT_ANNOTATION_HIGHLIGHT_CLASS,
+  ROOT_KEYWORD_HIGHLIGHT_CLASS,
   ROOT_UTTERER_HIGHLIGHT_CLASS,
 } from '../../../../core/consts.js'
 import {
@@ -38,6 +40,7 @@ import { async, sleep } from '../../../../core/util/promise.js'
 import {
   ReadableExtractor,
   type ReadablePart,
+  type ReadablePartText,
   type TextAlias,
 } from '../../../../core/util/readable.js'
 import {
@@ -47,17 +50,18 @@ import {
 } from '../../../../core/util/timer.js'
 import { urlSplitAnchor } from '../../../../core/util/url.js'
 import { iframeWinAtom } from '../../../atoms.js'
+import { uiConfirm } from '../../../common/confirm.js'
 import { messageApi } from '../../../common/notification.js'
 import { previewImgSrcAtom } from '../../../common/preview-image.js'
 import type { ColorScheme } from '../../../store.js'
 import { globalStore } from '../../../store/global.js'
 import { globalStyle } from '../../../style.js'
-import { AnnotationHighlight } from './annotation-highlight.js'
-import type { HighlightBlock } from './highlight.js'
+import { AnnotationHighlight } from './highlight/annotation-highlight.js'
+import type { HighlightBlock } from './highlight/highlight.js'
+import { KeywordHighlight } from './highlight/keyword-highlight.js'
 import type { Player } from './player'
 import type { PlayerStatesManager } from './player-states.js'
-import { uiConfirm } from '../../../common/confirm.js'
-import { t } from 'i18next'
+import { keywordMatches } from '../../../../core/util/text.js'
 
 type PageListNode = {
   topmost?: {
@@ -98,6 +102,7 @@ export class PlayerIframeController {
   public unmount = new SingleEmitter<void>({ once: true })
   public isVertical = false
   public annotationHl: AnnotationHighlight
+  public keywordHl: KeywordHighlight
 
   protected mainContentRootPath: string
   protected mainContentRootUrl: string
@@ -153,6 +158,7 @@ export class PlayerIframeController {
     ).toString()
 
     this.annotationHl = new AnnotationHighlight(this, states)
+    this.keywordHl = new KeywordHighlight(this, states)
 
     this.states.events.on('pos', () => {
       this.updateParagraphActive()
@@ -167,6 +173,10 @@ export class PlayerIframeController {
 
     this.states.uiEvents.on('annotations', () => {
       this.updateAnnotations()
+    })
+
+    this.states.uiEvents.on('keywords', () => {
+      this.updateKeywords()
     })
 
     let firstPageListChanged = true
@@ -580,16 +590,6 @@ export class PlayerIframeController {
     else await this.load({ section, paragraph: 0 })
   }
 
-  public updateColorTheme(colorScheme: ColorScheme) {
-    this.colorScheme = colorScheme
-    if (!this.doc) return
-    if (colorScheme === 'dark') {
-      this.doc.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
-    } else {
-      this.doc.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
-    }
-  }
-
   /**
    * When loaded a new page
    */
@@ -614,10 +614,7 @@ export class PlayerIframeController {
       this.updateFontSize(doc)
 
       this.viewCalculate(doc)
-      win.addEventListener('resize', () => {
-        if (this.states.loading) return
-        this.onResized(doc)
-      })
+      this.hookResize(win, doc)
       this.resizeImgs(doc)
       this.hookTouch()
       if (this.enabledPageList) {
@@ -636,32 +633,21 @@ export class PlayerIframeController {
       this.hookParagraphClick()
       this.player.utterer.hl.reCreateRoot(doc)
       this.annotationHl.reCreateRoot(doc)
+      this.keywordHl.reCreateRoot(doc)
       this.updateAnnotations()
+      this.updateKeywords()
     }
   }
 
-  protected onResized = debounceFn(300, (doc: Document) => {
-    async(async () => {
-      this.viewCalculate(doc)
-      this.resizeImgs(doc)
-      if (this.enabledPageList) {
-        await this.pageListCalculate(doc)
-        const resizeFocusPart = this.pageListResizeCurFocusPart
-        if (resizeFocusPart)
-          await this.scrollToElem(resizeFocusPart.elem, {
-            animated: false,
-            userOperator: false,
-          })
-        else
-          await this.pageListScrollToLeft(this.pageListScrollLeft, {
-            animated: false,
-            userOperator: false,
-          })
-        this.player.utterer.hl.highlightHide()
-        this.updateAnnotations()
-      }
-    })
-  })
+  public updateColorTheme(colorScheme: ColorScheme) {
+    this.colorScheme = colorScheme
+    if (!this.doc) return
+    if (colorScheme === 'dark') {
+      this.doc.documentElement.classList.add(COLOR_SCHEME_DARK_CLASS)
+    } else {
+      this.doc.documentElement.classList.remove(COLOR_SCHEME_DARK_CLASS)
+    }
+  }
 
   protected injectCSS(doc: Document) {
     const styleElem = doc.createElement('style')
@@ -790,7 +776,7 @@ export class PlayerIframeController {
 
       ${hoverStyle}
 
-      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div, .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div {
+      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div, .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div, .${ROOT_KEYWORD_HIGHLIGHT_CLASS} > div {
         background-color: var(--main-bg-highlight) !important;
         color: var(--main-fg-highlight) !important;
         position: absolute;
@@ -810,6 +796,286 @@ export class PlayerIframeController {
 
     doc.querySelectorAll('svg').forEach((svg) => {
       svg.setAttribute('preserveAspectRatio', 'xMinYMin meet')
+    })
+  }
+
+  protected updateFontSize(doc: Document) {
+    this.tryManipulateDOM(() => {
+      doc.documentElement.style.fontSize = `${this.states.fontSize}px`
+    }).catch(console.error)
+  }
+
+  protected hookResize(win: Window, doc: Document) {
+    const onResized = () => this.onResized(doc)
+
+    win.addEventListener('resize', onResized)
+    this.unmount.on(() => {
+      win.removeEventListener('resize', onResized)
+    })
+  }
+
+  protected onResized = debounceFn(300, (doc: Document) => {
+    async(async () => {
+      this.viewCalculate(doc)
+      this.resizeImgs(doc)
+      if (this.enabledPageList) {
+        await this.pageListCalculate(doc)
+        const resizeFocusPart = this.pageListResizeCurFocusPart
+        if (resizeFocusPart)
+          await this.scrollToElem(resizeFocusPart.elem, {
+            animated: false,
+            userOperator: false,
+          })
+        else
+          await this.pageListScrollToLeft(this.pageListScrollLeft, {
+            animated: false,
+            userOperator: false,
+          })
+        this.player.utterer.hl.highlightHide()
+        this.updateAnnotations()
+        this.updateKeywords()
+      }
+    })
+  })
+
+  protected resizeImgs(doc: Document) {
+    const imgClasses = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
+    const imgs = doc.querySelectorAll('img')
+
+    // remove classes
+    for (const img of imgs) {
+      img.classList.remove(...imgClasses)
+    }
+
+    if (!this.viewWidth) return
+
+    if (this.pageListType() === 'none') {
+      for (const img of imgs) {
+        if (img.width > this.viewWidth) img.classList.add(IMG_MAX_WIDTH_CLASS)
+      }
+    }
+  }
+
+  protected hookTouch() {
+    if (!supportedTouch) return
+    const doc = this.doc
+    const win = this.win
+    const viewWidth = this.viewWidth
+    if (!doc || !win || !viewWidth) return
+
+    let startPoint:
+      | {
+          x: number
+          y: number
+          offsetLeft: number
+          timestamp: number
+        }
+      | undefined = undefined
+    const speedLimit = 0.3
+    const viewRateLimit = 0.2
+
+    const onStart = (event: TouchEvent) => {
+      const touch = event.touches[0] as Touch | undefined
+      if (!touch) return
+      startPoint = {
+        x: touch.clientX,
+        y: touch.clientY,
+        offsetLeft: this.pageListScrollLeft,
+        timestamp: Date.now(),
+      }
+    }
+
+    const onMove = (event: TouchEvent) => {
+      eventBan(event)
+      if (startPoint === undefined) return
+      const selection = doc.getSelection()
+      if (selection?.type === 'Range') {
+        startPoint = undefined
+        return
+      }
+      const touch = event.touches[0] as Touch | undefined
+      if (!touch) return
+      const deltaX = touch.clientX - startPoint.x
+      this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
+    }
+
+    const onEnd = (event: TouchEvent) => {
+      if (startPoint === undefined) return
+      const touch = event.changedTouches[0] as Touch | undefined
+      if (!touch) return
+      const deltaX = touch.clientX - startPoint.x
+      const speed = deltaX / (Date.now() - startPoint.timestamp)
+      const minX = viewWidth * viewRateLimit
+      if (speed < -speedLimit || deltaX < -minX) {
+        if (!this.isLastPageList || !this.player.isLastSection) {
+          this.events.fire('swepRight', null)
+          return
+        }
+      } else if (speed > speedLimit || deltaX > minX) {
+        if (!this.isFirstPageList || !this.player.isFirstSection) {
+          this.events.fire('swepLeft', null)
+          return
+        }
+      }
+      // restore
+      void this.pageListPushAdjust(0, false)
+    }
+
+    doc.addEventListener('touchstart', onStart)
+    doc.addEventListener('touchmove', onMove)
+    doc.addEventListener('touchend', onEnd)
+    this.unmount.on(() => {
+      doc.removeEventListener('touchstart', onStart)
+      doc.removeEventListener('touchmove', onMove)
+      doc.removeEventListener('touchend', onEnd)
+    })
+  }
+
+  protected hookPageWheel() {
+    const doc = this.doc
+    if (!doc) return
+
+    const onWheel = (e: WheelEvent) => {
+      eventBan(e)
+      if (isInputElement(e.target)) return
+      if (e.deltaY === 0) return
+      if (e.deltaY > 0) {
+        this.events.fire('swepRight', null)
+      } else {
+        this.events.fire('swepLeft', null)
+      }
+    }
+
+    doc.documentElement.addEventListener('wheel', onWheel)
+    this.unmount.on(() => {
+      doc.documentElement.removeEventListener('wheel', onWheel)
+    })
+  }
+
+  protected hookSwep() {
+    const disposeSwepLeft = this.events.on('swepLeft', async () => {
+      await this.player.prevPage(1, true)
+    })
+    const disposeSwepRight = this.events.on('swepRight', async () => {
+      await this.player.nextPage(1, true)
+    })
+    this.unmount.on(() => {
+      disposeSwepLeft()
+      disposeSwepRight()
+    })
+  }
+
+  protected hookVerticalWheel() {
+    const doc = this.doc
+    const scrollElement = this.doc?.scrollingElement
+    if (!doc || !scrollElement) return
+
+    const onWheel = (e: WheelEvent) => {
+      eventBan(e)
+      if (isInputElement(e.target)) return
+      if (e.deltaY === 0) return
+      scrollElement.scrollLeft -= e.deltaY
+    }
+
+    doc.documentElement.addEventListener('wheel', onWheel)
+    this.unmount.on(() => {
+      doc.documentElement.removeEventListener('wheel', onWheel)
+    })
+  }
+
+  protected hookSelection() {
+    const win = this.win
+    const doc = this.doc
+    if (!win || !doc) return
+
+    doc.addEventListener('selectionchange', () => {
+      const boxSelector = `.${PARA_BOX_CLASS}`
+      const getSelectionPosRange = ():
+        | (BookTypes.PropertyRange & { paragraph: number })
+        | undefined => {
+        const sel = doc.getSelection()
+        if (!sel || sel.rangeCount <= 0) return
+        const range = sel.getRangeAt(0)
+        const selectedText = range.toString()
+        const length = selectedText.length
+        if (!length) return
+        const parent = range.commonAncestorContainer.parentElement
+        if (!parent) return
+        const elem = parent.matches(boxSelector)
+          ? parent
+          : parent.closest(boxSelector)
+        if (!elem) return
+        const paragraph = this.readableParts.findIndex(
+          (part) => part.elem === elem,
+        )
+        if (paragraph === -1) return
+        const preCaretRange = range.cloneRange()
+        preCaretRange.selectNodeContents(elem)
+        preCaretRange.setEnd(range.endContainer, range.endOffset)
+        const start = preCaretRange.toString().length - length
+        return { paragraph, start, end: start + length, selectedText }
+      }
+      const posRange = getSelectionPosRange()
+      if (posRange) {
+        this.states.pos = {
+          ...this.states.pos,
+          paragraph: posRange.paragraph,
+        }
+        this.states.selection = {
+          start: posRange.start,
+          end: posRange.end,
+          selectedText: posRange.selectedText,
+        }
+      } else {
+        this.states.selection = undefined
+      }
+    })
+
+    if (isMobile) {
+      const onBlur = () => {
+        doc.getSelection()?.removeAllRanges()
+      }
+      win.addEventListener('blur', onBlur)
+      this.unmount.on(() => {
+        win.removeEventListener('blur', onBlur)
+      })
+    }
+  }
+
+  protected hookScroll() {
+    const scrollElement = this.doc?.scrollingElement
+    if (!this.doc || !scrollElement) return
+
+    const onScroll = () => {
+      let percent: number
+      if (this.enabledPageList)
+        percent =
+          this.pageListScrollLeft /
+          (this.pageListScrollWidth - scrollElement.clientWidth)
+      else if (this.isVertical)
+        percent =
+          -scrollElement.scrollLeft /
+          (scrollElement.scrollWidth - scrollElement.clientWidth)
+      else
+        percent =
+          scrollElement.scrollTop /
+          (scrollElement.scrollHeight - scrollElement.clientHeight)
+
+      this.states.scrollPercent = percent * 100
+    }
+    onScroll()
+    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
+
+    this.doc.addEventListener(
+      'scroll',
+      () => this.events.fire('scroll', null),
+      {
+        passive: true,
+      },
+    )
+
+    this.unmount.on(() => {
+      disposeScrollEvent()
     })
   }
 
@@ -911,229 +1177,6 @@ export class PlayerIframeController {
     })
   }
 
-  protected hookTouch() {
-    if (!supportedTouch) return
-    const doc = this.doc
-    const win = this.win
-    const viewWidth = this.viewWidth
-    if (!doc || !win || !viewWidth) return
-
-    let startPoint:
-      | {
-          x: number
-          y: number
-          offsetLeft: number
-          timestamp: number
-        }
-      | undefined = undefined
-    const speedLimit = 0.3
-    const viewRateLimit = 0.2
-
-    const onStart = (event: TouchEvent) => {
-      const touch = event.touches[0] as Touch | undefined
-      if (!touch) return
-      startPoint = {
-        x: touch.clientX,
-        y: touch.clientY,
-        offsetLeft: this.pageListScrollLeft,
-        timestamp: Date.now(),
-      }
-    }
-
-    const onMove = (event: TouchEvent) => {
-      eventBan(event)
-      if (startPoint === undefined) return
-      const selection = doc.getSelection()
-      if (selection?.type === 'Range') {
-        startPoint = undefined
-        return
-      }
-      const touch = event.touches[0] as Touch | undefined
-      if (!touch) return
-      const deltaX = touch.clientX - startPoint.x
-      this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
-    }
-
-    const onEnd = (event: TouchEvent) => {
-      if (startPoint === undefined) return
-      const touch = event.changedTouches[0] as Touch | undefined
-      if (!touch) return
-      const deltaX = touch.clientX - startPoint.x
-      const speed = deltaX / (Date.now() - startPoint.timestamp)
-      const minX = viewWidth * viewRateLimit
-      if (speed < -speedLimit || deltaX < -minX) {
-        if (!this.isLastPageList || !this.player.isLastSection) {
-          this.events.fire('swepRight', null)
-          return
-        }
-      } else if (speed > speedLimit || deltaX > minX) {
-        if (!this.isFirstPageList || !this.player.isFirstSection) {
-          this.events.fire('swepLeft', null)
-          return
-        }
-      }
-      // restore
-      void this.pageListPushAdjust(0, false)
-    }
-
-    doc.addEventListener('touchstart', onStart)
-    doc.addEventListener('touchmove', onMove)
-    doc.addEventListener('touchend', onEnd)
-    this.unmount.on(() => {
-      doc.documentElement.removeEventListener('touchstart', onStart)
-      doc.documentElement.removeEventListener('touchmove', onMove)
-      doc.documentElement.removeEventListener('touchend', onEnd)
-    })
-  }
-
-  protected hookSwep() {
-    const disposeSwepLeft = this.events.on('swepLeft', async () => {
-      await this.player.prevPage(1, true)
-    })
-    const disposeSwepRight = this.events.on('swepRight', async () => {
-      await this.player.nextPage(1, true)
-    })
-    this.unmount.on(() => {
-      disposeSwepLeft()
-      disposeSwepRight()
-    })
-  }
-
-  protected hookPageWheel() {
-    const doc = this.doc
-    if (!doc) return
-
-    const onWheel = (e: WheelEvent) => {
-      eventBan(e)
-      if (isInputElement(e.target)) return
-      if (e.deltaY === 0) return
-      if (e.deltaY > 0) {
-        this.events.fire('swepRight', null)
-      } else {
-        this.events.fire('swepLeft', null)
-      }
-    }
-
-    doc.documentElement.addEventListener('wheel', onWheel)
-    this.unmount.on(() => {
-      doc.documentElement.removeEventListener('wheel', onWheel)
-    })
-  }
-
-  protected hookVerticalWheel() {
-    const doc = this.doc
-    const scrollElement = this.doc?.scrollingElement
-    if (!doc || !scrollElement) return
-
-    const onWheel = (e: WheelEvent) => {
-      eventBan(e)
-      if (isInputElement(e.target)) return
-      if (e.deltaY === 0) return
-      scrollElement.scrollLeft -= e.deltaY
-    }
-
-    doc.documentElement.addEventListener('wheel', onWheel)
-    this.unmount.on(() => {
-      doc.documentElement.removeEventListener('wheel', onWheel)
-    })
-  }
-
-  protected hookSelection() {
-    const win = this.win
-    const doc = this.doc
-    if (!win || !doc) return
-
-    doc.addEventListener('selectionchange', () => {
-      const boxSelector = `.${PARA_BOX_CLASS}`
-      const getSelectionPosRange = ():
-        | (BookTypes.PropertyAnnotationRange & { paragraph: number })
-        | undefined => {
-        const sel = doc.getSelection()
-        if (!sel || sel.rangeCount <= 0) return
-        const range = sel.getRangeAt(0)
-        const selectedText = range.toString()
-        const length = selectedText.length
-        if (!length) return
-        const parent = range.commonAncestorContainer.parentElement
-        if (!parent) return
-        const elem = parent.matches(boxSelector)
-          ? parent
-          : parent.closest(boxSelector)
-        if (!elem) return
-        const paragraph = this.readableParts.findIndex(
-          (part) => part.elem === elem,
-        )
-        if (paragraph === -1) return
-        const preCaretRange = range.cloneRange()
-        preCaretRange.selectNodeContents(elem)
-        preCaretRange.setEnd(range.endContainer, range.endOffset)
-        const start = preCaretRange.toString().length - length
-        return { paragraph, start, end: start + length, selectedText }
-      }
-      const posRange = getSelectionPosRange()
-      if (posRange) {
-        this.states.pos = {
-          ...this.states.pos,
-          paragraph: posRange.paragraph,
-        }
-        this.states.selection = {
-          start: posRange.start,
-          end: posRange.end,
-          selectedText: posRange.selectedText,
-        }
-      } else {
-        this.states.selection = undefined
-      }
-    })
-
-    if (isMobile) {
-      const onBlur = () => {
-        doc.getSelection()?.removeAllRanges()
-      }
-      win.addEventListener('blur', onBlur)
-      this.unmount.on(() => {
-        win.removeEventListener('blur', onBlur)
-      })
-    }
-  }
-
-  protected hookScroll() {
-    const scrollElement = this.doc?.scrollingElement
-    if (!this.doc || !scrollElement) return
-
-    const onScroll = () => {
-      let percent: number
-      if (this.enabledPageList)
-        percent =
-          this.pageListScrollLeft /
-          (this.pageListScrollWidth - scrollElement.clientWidth)
-      else if (this.isVertical)
-        percent =
-          -scrollElement.scrollLeft /
-          (scrollElement.scrollWidth - scrollElement.clientWidth)
-      else
-        percent =
-          scrollElement.scrollTop /
-          (scrollElement.scrollHeight - scrollElement.clientHeight)
-
-      this.states.scrollPercent = percent * 100
-    }
-    onScroll()
-    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
-
-    this.doc.addEventListener(
-      'scroll',
-      () => this.events.fire('scroll', null),
-      {
-        passive: true,
-      },
-    )
-
-    this.unmount.on(() => {
-      disposeScrollEvent()
-    })
-  }
-
   protected viewCalculate(doc: Document) {
     const viewRect = doc.documentElement.getBoundingClientRect()
     this.viewWidth = viewRect.width
@@ -1214,24 +1257,6 @@ export class PlayerIframeController {
     console.debug(`pageListCount: ${this.pageListCount}`)
 
     this.parsePageList(html)
-  }
-
-  protected resizeImgs(doc: Document) {
-    const imgClasses = [IMG_MAX_WIDTH_CLASS, IMG_MAX_HEIGHT_CLASS]
-    const imgs = doc.querySelectorAll('img')
-
-    // remove classes
-    for (const img of imgs) {
-      img.classList.remove(...imgClasses)
-    }
-
-    if (!this.viewWidth) return
-
-    if (this.pageListType() === 'none') {
-      for (const img of imgs) {
-        if (img.width > this.viewWidth) img.classList.add(IMG_MAX_WIDTH_CLASS)
-      }
-    }
   }
 
   protected pageListResizeImgs(doc: Document, columnWidth: number) {
@@ -1338,9 +1363,27 @@ export class PlayerIframeController {
     }).catch(console.error)
   }
 
-  protected updateFontSize(doc: Document) {
+  protected updateKeywords() {
     this.tryManipulateDOM(() => {
-      doc.documentElement.style.fontSize = `${this.states.fontSize}px`
+      if (!this.states.keywords || !this.doc) return
+      const hlBlocks: HighlightBlock[] = []
+      for (const keyword of this.states.keywords) {
+        const nodes = this.readableParts.filter((p) => p.type === 'text')
+        if (!nodes.length) continue
+        for (const node of nodes) {
+          const matches = keywordMatches(node.text, keyword)
+          if (!matches.length) continue
+          for (const [startIdx, length] of matches) {
+            hlBlocks.push({
+              node,
+              charIndex: startIdx,
+              charLength: length,
+              color: 'var(--main-bg-blue)',
+            })
+          }
+        }
+      }
+      this.keywordHl.highlight(hlBlocks, false)
     }).catch(console.error)
   }
 

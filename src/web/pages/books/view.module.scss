@@ -82,6 +82,13 @@
               font-weight: normal;
               font-style: italic;
             }
+            .alias .selected-text {
+              font-size: 12px;
+              background-color: var(--main-bg-blue);
+              color: var(--main-fg-blue);
+              margin-left: 6px;
+              padding: 0 2px;
+            }
             .range .selected-text {
               font-size: 12px;
               background-color: var(--main-bg-blue);

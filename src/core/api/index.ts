@@ -1,9 +1,10 @@
 import type { URouter } from '../route/router.js'
+import { booksAnnotationsDeleteRouter } from './books/annotations-delete.js'
+import { booksAnnotationsUpsertRouter } from './books/annotations-upsert.js'
 import { booksAnnotationsRouter } from './books/annotations.js'
 import { booksCoverRouter } from './books/cover.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
-import { booksDeleteAnnotationsRouter } from './books/delete-annotations.js'
 import { booksDownloadRouter } from './books/download.js'
 import { booksFetchUrlInfoRouter } from './books/fetch-url-info.js'
 import { booksMoveAfterRouter } from './books/move-after.js'
@@ -15,14 +16,16 @@ import { booksRemoveRouter } from './books/remove.js'
 import { booksRenderRouter } from './books/render.js'
 import { booksSearchRouter } from './books/search.js'
 import { booksShowRouter } from './books/show.js'
-import { booksSyncPositionRouter } from './books/sync-position.js'
+import { booksPositionSyncRouter } from './books/position-sync.js'
 import { booksTmpStoreRouter } from './books/tmp-store.js'
 import { booksUpdateRouter } from './books/update.js'
-import { booksUpsertAnnotationsRouter } from './books/upsert-annotations.js'
 import { booksViewRouter } from './books/view.js'
 import { loginRouter } from './login.js'
 import { logoutRouter } from './logout.js'
 import { userRouter } from './user.js'
+import { booksKeywordsRouter } from './books/keywords.js'
+import { booksKeywordsUpsertRouter } from './books/keywords-upsert.js'
+import { booksKeywordsDeleteRouter } from './books/keywords-delete.js'
 
 export const ROUTERS = [
   loginRouter,
@@ -39,11 +42,14 @@ export const ROUTERS = [
   booksShowRouter,
   booksDownloadRouter,
   booksPositionRouter,
-  booksSyncPositionRouter,
+  booksPositionSyncRouter,
   booksPropertyRouter,
   booksAnnotationsRouter,
-  booksUpsertAnnotationsRouter,
-  booksDeleteAnnotationsRouter,
+  booksAnnotationsUpsertRouter,
+  booksAnnotationsDeleteRouter,
+  booksKeywordsRouter,
+  booksKeywordsUpsertRouter,
+  booksKeywordsDeleteRouter,
   booksUpdateRouter,
   booksViewRouter,
   booksCoverRouter,

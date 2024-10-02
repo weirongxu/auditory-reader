@@ -9,7 +9,7 @@ import {
   rewindPlay,
   shutterPlay,
 } from './sound.js'
-import { UttererHighlight } from './utterer-highlight.js'
+import { UttererHighlight } from './highlight/utterer-highlight.js'
 
 const speakRetriedMax = 3
 

@@ -1,8 +1,8 @@
 import { useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { booksPositionSyncRouter } from '../../../core/api/books/position-sync.js'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
-import { booksSyncPositionRouter } from '../../../core/api/books/sync-position.js'
 import { booksViewRouter } from '../../../core/api/books/view.js'
 import type { BookView } from '../../../core/book/book-base.js'
 import type { BookTypes } from '../../../core/book/types.js'
@@ -62,7 +62,7 @@ export const useBookView = (uuid: string) => {
   useEffect(() => {
     if (book === undefined || section === undefined || paragraph === undefined)
       return
-    booksSyncPositionRouter
+    booksPositionSyncRouter
       .action({ uuid: book.item.uuid, pos: { section, paragraph } })
       .catch(console.error)
   }, [book, paragraph, section])

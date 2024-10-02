@@ -106,4 +106,39 @@ export abstract class BookEntityBase {
     if (prop.annotations) prop.annotations = []
     await this.writeProp(prop)
   }
+
+  private sortKeywords(keywords: BookTypes.PropertyKeyword[]) {
+    return orderBy(keywords, 'asc', (n) => [
+      n.pos.section,
+      n.pos.paragraph,
+      n.keyword,
+    ])
+  }
+
+  async keywordsGet() {
+    const prop = await this.readProp()
+    return prop.keywords ?? []
+  }
+
+  async keywordsUpsert(keywords: BookTypes.PropertyKeyword[]) {
+    const prop = await this.readProp()
+    prop.keywords ??= []
+    for (const keyword of keywords) {
+      const index = prop.keywords.findIndex((b) => b.uuid === keyword.uuid)
+      if (index !== -1) prop.keywords[index] = keyword
+      else prop.keywords.push(keyword)
+    }
+    prop.keywords = this.sortKeywords(prop.keywords)
+    await this.writeProp(prop)
+    return prop.keywords
+  }
+
+  async keywordsDelete(keywordUuids: string[]) {
+    const prop = await this.readProp()
+    if (prop.keywords)
+      prop.keywords = prop.keywords.filter(
+        (b) => !keywordUuids.includes(b.uuid),
+      )
+    await this.writeProp(prop)
+  }
 }

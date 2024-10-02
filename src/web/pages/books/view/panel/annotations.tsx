@@ -255,7 +255,7 @@ export function useBookViewAnnotations(
   book: BookView,
   player: Player,
   pos: BookTypes.PropertyPosition,
-  selection: BookTypes.PropertyAnnotationRange | undefined,
+  selection: BookTypes.PropertyRange | undefined,
 ) {
   const uuid = book.item.uuid
 
@@ -310,7 +310,6 @@ export function useBookViewAnnotations(
         player={player}
       ></Annotations>
     ),
-    activeAnnotation,
     closestAnnotation,
   }
 }

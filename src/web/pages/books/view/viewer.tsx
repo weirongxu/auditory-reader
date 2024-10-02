@@ -23,7 +23,7 @@ export function useViewer() {
   const [loading, setLoading] = useState<boolean>(false)
   const [scrollPercent, setScrollPercent] = useState<number | undefined>()
   const [selection, setSelection] = useState<
-    BookTypes.PropertyAnnotationRange | undefined
+    BookTypes.PropertyRange | undefined
   >()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
@@ -99,7 +99,7 @@ export function useViewer() {
     const nextParagraph = () => player.nextParagraph()
 
     return addHotkeys([
-      [' ', t('hotkey.playToggle'), () => player.toggle()],
+      // panel
       [
         't',
         t('hotkey.navToggle'),
@@ -116,7 +116,24 @@ export function useViewer() {
         t('hotkey.annotationToggle'),
         () => player.annotations.toggle(pos, selection ?? null),
       ],
+      [
+        { shift: true, key: 'm' },
+        t('hotkey.keywordPanelToggle'),
+        () => setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword')),
+      ],
+      [
+        { shift: true, key: 'b' },
+        t('hotkey.keywordAdd'),
+        () =>
+          selection?.selectedText &&
+          player.keywords.add({ pos, keyword: selection.selectedText }),
+      ],
+
+      // navigation
       ['u', t('hotkey.goBack'), () => nav('../')],
+
+      // play
+      [' ', t('hotkey.playToggle'), () => player.toggle()],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
       [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
       [{ shift: true, key: 'ArrowLeft' }, t('hotkey.prevSection'), prevSection],
@@ -127,18 +144,18 @@ export function useViewer() {
       ],
       ['h', t('hotkey.jumpPrevPage'), jumpPrevPage],
       ['l', t('hotkey.jumpNextPage'), jumpNextPage],
+      ['k', t('hotkey.prevParagraph'), prevParagraph],
+      ['j', t('hotkey.nextParagraph'), nextParagraph],
       ['ArrowLeft', t('hotkey.jumpPrevPage'), jumpPrevPage],
       ['ArrowRight', t('hotkey.jumpNextPage'), jumpNextPage],
+      ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
+      ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
       ['Home', t('hotkey.firstPage'), firstPage],
       ['End', t('hotkey.lastPage'), lastPage],
       ['PageUp', t('hotkey.prevPage'), prevPage],
       ['PageDown', t('hotkey.nextPage'), nextPage],
       [['g', 'g'], t('hotkey.firstParagraph'), firstParagraph],
       [{ shift: true, key: 'G' }, t('hotkey.lastParagraph'), lastParagraph],
-      ['k', t('hotkey.prevParagraph'), prevParagraph],
-      ['j', t('hotkey.nextParagraph'), nextParagraph],
-      ['ArrowUp', t('hotkey.prevParagraph'), prevParagraph],
-      ['ArrowDown', t('hotkey.nextParagraph'), nextParagraph],
     ])
   }, [addHotkeys, book, nav, player, pos, selection, setViewPanelType])
 

@@ -1,16 +1,17 @@
-import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons'
 import {
   faBackward,
   faBackwardFast,
   faBookBookmark,
   faBookmark,
   faDownLeftAndUpRightToCenter,
+  faFileLines,
   faFloppyDisk,
   faFolderTree,
   faForward,
   faForwardFast,
   faPause,
   faPlay,
+  faQuoteRight,
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons'
 import { Button, Popover, Select, Space, Tag } from 'antd'
@@ -62,14 +63,25 @@ function ControlButton(props: {
 }
 
 function TooltipButton({
-  tooltip,
+  hotkey,
+  description,
   ...btnProps
 }: {
-  tooltip: React.ReactNode
+  hotkey?: string
+  description?: string
   disabled?: boolean
   onClick: React.MouseEventHandler | undefined
   children: React.ReactNode
 }) {
+  const tooltip = useMemo(
+    () => (
+      <Space>
+        {description}
+        {hotkey ? <span className="keyboard">{hotkey}</span> : null}
+      </Space>
+    ),
+    [description, hotkey],
+  )
   return (
     <Popover
       style={{ pointerEvents: 'none' }}
@@ -206,11 +218,11 @@ export function usePlayerUI({
   started: boolean
   player: Player
   activeNavs?: BookNav[]
-  selection?: BookTypes.PropertyAnnotationRange
+  selection?: BookTypes.PropertyRange
 }) {
   const { book, pos } = useBookContext()
   const nav = useNavigate()
-  const { annotations, activeAnnotation, setViewPanelType, BookPanelView } =
+  const { annotations, keywords, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
   const { voice } = useVoice(book.item)
   const [autoNextSection] = useAutoSection()
@@ -227,6 +239,7 @@ export function usePlayerUI({
   const { isFirstSection, isLastSection, isFirstParagraph, isLastParagraph } =
     usePlayerUISync(player, {
       annotations,
+      keywords,
       autoNextSection,
       isPersonReplace,
       speechSpeed,
@@ -238,45 +251,73 @@ export function usePlayerUI({
     })
 
   const PlayerCtrlGroup = useMemo(() => {
-    const buttons: JSX.Element[] = [
+    const buttons: (JSX.Element | null)[] = [
       <TooltipButton
         key="nav"
-        tooltip={<span>t</span>}
+        hotkey="t"
+        description={t('nav')}
         onClick={() => {
           setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
         }}
       >
         <Icon icon={faFolderTree} />
       </TooltipButton>,
-      <TooltipButton
-        key="annotations"
-        tooltip={<span>m</span>}
-        onClick={() => {
-          setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation'))
-        }}
-      >
-        <Icon icon={faBookBookmark} />
-      </TooltipButton>,
+      annotations && annotations.length > 0 ? (
+        <TooltipButton
+          key="annotations"
+          hotkey="m"
+          description={t('annotation')}
+          onClick={() => {
+            setViewPanelType((v) =>
+              v === 'annotation' ? 'none' : 'annotation',
+            )
+          }}
+        >
+          <Icon icon={faBookBookmark} />
+        </TooltipButton>
+      ) : null,
       <TooltipButton
         key="annotation"
-        tooltip={<span>b</span>}
+        description={t('hotkey.annotationToggle')}
+        hotkey="b"
         onClick={() => {
           void player.annotations.toggle(pos, selection ?? null)
         }}
       >
-        {activeAnnotation ? (
-          <Icon icon={faBookmark} />
-        ) : (
-          <Icon icon={faBookmarkRegular} />
-        )}
+        <Icon icon={faBookmark} />
       </TooltipButton>,
+      keywords && keywords.length > 0 ? (
+        <TooltipButton
+          key="keywords"
+          description={t('keyword')}
+          hotkey="M"
+          onClick={() => {
+            setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword'))
+          }}
+        >
+          <Icon icon={faFileLines} />
+        </TooltipButton>
+      ) : null,
+      selection?.selectedText ? (
+        <TooltipButton
+          key="keyword"
+          description={t('hotkey.keywordAdd')}
+          hotkey="B"
+          onClick={() => {
+            void player.keywords.add({ pos, keyword: selection.selectedText })
+          }}
+        >
+          <Icon icon={faQuoteRight} />
+        </TooltipButton>
+      ) : null,
     ]
 
     if (!collapsed)
       buttons.push(
         <TooltipButton
           key="prev-section"
-          tooltip={<span>shift + ←</span>}
+          hotkey="shift + ←"
+          description={t('hotkey.prevSection')}
           disabled={isFirstSection}
           onClick={() => {
             player.prevSection().catch(console.error)
@@ -286,7 +327,8 @@ export function usePlayerUI({
         </TooltipButton>,
         <TooltipButton
           key="prev-paragraph"
-          tooltip={<span>↑</span>}
+          hotkey="↑"
+          description={t('hotkey.prevParagraph')}
           disabled={isFirstSection && isFirstParagraph}
           onClick={() => {
             player.prevParagraph().catch(console.error)
@@ -299,7 +341,8 @@ export function usePlayerUI({
     buttons.push(
       <TooltipButton
         key="play"
-        tooltip={<span>Space</span>}
+        hotkey="Space"
+        description={t('hotkey.playToggle')}
         onClick={() => {
           if (started) player.pause()
           else player.start()
@@ -313,7 +356,8 @@ export function usePlayerUI({
       buttons.push(
         <TooltipButton
           key="next-paragraph"
-          tooltip={<span>↓</span>}
+          hotkey="↓"
+          description={t('hotkey.nextParagraph')}
           disabled={isLastSection && isLastParagraph}
           onClick={() => {
             player.nextParagraph().catch(console.error)
@@ -323,7 +367,8 @@ export function usePlayerUI({
         </TooltipButton>,
         <TooltipButton
           key="next-section"
-          tooltip={<span>shift + →</span>}
+          hotkey="shift + →"
+          description={t('hotkey.nextSection')}
           disabled={isLastSection}
           onClick={() => {
             player.nextSection().catch(console.error)
@@ -349,14 +394,15 @@ export function usePlayerUI({
         </ControlButton>,
       )
 
-    return <Button.Group>{buttons}</Button.Group>
+    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
   }, [
-    activeAnnotation,
+    annotations,
     collapsed,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
     isLastSection,
+    keywords,
     player,
     pos,
     selection,

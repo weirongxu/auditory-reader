@@ -50,6 +50,7 @@ export namespace BookTypes {
   export type PropertyJson = {
     position?: PropertyPosition
     annotations?: PropertyAnnotation[]
+    keywords?: PropertyKeyword[]
   }
 
   export type PropertyPosition = {
@@ -57,13 +58,12 @@ export namespace BookTypes {
     paragraph: number
   }
 
-  export type PropertyAnnotationRangePosition = {
+  export type PropertyRangePosition = {
     start: number
     end: number
   }
 
-  export interface PropertyAnnotationRange
-    extends PropertyAnnotationRangePosition {
+  export interface PropertyRange extends PropertyRangePosition {
     selectedText: string
   }
 
@@ -74,8 +74,19 @@ export namespace BookTypes {
     brief: string
     content: string
     note?: string
-    range?: PropertyAnnotationRange
+    range?: PropertyRange
     group?: string
+    color?: string
+  }
+
+  export interface PropertyKeyword {
+    uuid: string
+    keyword: string
+    pos: PropertyPosition
+    brief: string
+    content: string
+    alias?: string[]
+    note?: string
     color?: string
   }
 

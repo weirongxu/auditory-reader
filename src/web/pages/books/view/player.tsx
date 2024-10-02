@@ -12,12 +12,14 @@ import {
 } from './player-iframe-controller.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
+import { PlayerKeywords } from './player-keywords.js'
 
 export class Player {
   states: PlayerStatesManager
   utterer: Utterer
   iframeCtrler: PlayerIframeController
   annotations: PlayerAnnotations
+  keywords: PlayerKeywords
   unmount = new SingleEmitter<void>({ once: true })
 
   constructor(
@@ -30,6 +32,7 @@ export class Player {
     this.iframeCtrler = new PlayerIframeController(this, this.states, iframeRef)
     this.utterer = new Utterer(this, this.states, this.iframeCtrler)
     this.annotations = new PlayerAnnotations(this)
+    this.keywords = new PlayerKeywords(this)
 
     const onVisibilityChange = () => {
       // TODO

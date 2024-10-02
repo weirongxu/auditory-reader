@@ -47,9 +47,9 @@ function createStore<T>(options: {
   }
 }
 
-export type ViewPanelType = 'none' | 'nav' | 'annotation'
+export type ViewPanelType = 'none' | 'nav' | 'annotation' | 'keyword'
 const limitViewPanelType = (v: string | null): ViewPanelType =>
-  v === 'nav' || v === 'annotation' ? v : 'none'
+  v === 'nav' || v === 'annotation' || v === 'keyword' ? v : 'none'
 
 export const useViewPanelType = createStore<ViewPanelType>({
   storeKey: 'viewPanelType',

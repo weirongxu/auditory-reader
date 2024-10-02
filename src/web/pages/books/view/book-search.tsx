@@ -16,6 +16,20 @@ import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useBookContext } from '../view.context.js'
 import * as styles from './book-search.module.scss'
 import type { Player } from './player.js'
+import { atom, useAtom } from 'jotai'
+
+const openAtom = atom(false)
+
+const searchTriggerRef: {
+  callback?: (search: string) => Promise<void>
+} = {}
+
+export function useBookSearch() {
+  const bookSearch = useCallback(async (search: string) => {
+    void searchTriggerRef.callback?.(search)
+  }, [])
+  return bookSearch
+}
 
 function BookSearchResult({
   open,
@@ -121,29 +135,34 @@ function BookSearchResult({
 }
 
 function BookSearchView({
-  open,
   refSearchInput,
   player,
 }: {
-  open: boolean
   refSearchInput: React.MutableRefObject<InputRef | null>
   player: Player
 }) {
+  const [open, setOpen] = useAtom(openAtom)
   const { uuid } = useBookContext()
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(false)
   const [searchResponse, setSearchResponse] =
     useState<BookSearchResponse | null>(null)
+  const bookSearch = useBookSearch()
 
-  const triggerSearch = useCallback(async () => {
-    if (loading) return
-    setSearchResponse(null)
-    setLoading(true)
-    const res = await booksSearchRouter.action({ uuid, search })
-    setSearchResponse(res)
-    setLoading(false)
-    refSearchInput.current?.blur()
-  }, [loading, refSearchInput, search, uuid])
+  searchTriggerRef.callback = useCallback(
+    async (newSearch: string) => {
+      setOpen(true)
+      setSearch(newSearch)
+      if (loading) return
+      setSearchResponse(null)
+      setLoading(true)
+      const res = await booksSearchRouter.action({ uuid, search: newSearch })
+      setSearchResponse(res)
+      setLoading(false)
+      refSearchInput.current?.blur()
+    },
+    [loading, refSearchInput, setOpen, uuid],
+  )
 
   useMountEffect(() => {
     setTimeout(() => {
@@ -166,13 +185,13 @@ function BookSearchView({
               eventBan(e)
               refSearchInput.current?.blur()
             } else if (e.key === 'Enter') {
-              void triggerSearch()
+              void bookSearch(search)
             }
           }}
         ></Input>
         <Button
           onClick={() => {
-            void triggerSearch()
+            void bookSearch(search)
           }}
           loading={loading}
         >
@@ -189,14 +208,14 @@ function BookSearchView({
 }
 
 export function BookSearchButton({ player }: { player: Player }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useAtom(openAtom)
   const refSearchInput = useRef<InputRef | null>(null)
   const openSearch = useCallback(() => {
     setOpen(true)
     setTimeout(() => {
       refSearchInput.current?.focus()
     }, 100)
-  }, [])
+  }, [setOpen])
 
   const { addHotkeys } = useHotkeys()
   useEffect(() => {
@@ -230,11 +249,7 @@ export function BookSearchButton({ player }: { player: Player }) {
         open={open}
         onClose={() => setOpen(false)}
       >
-        <BookSearchView
-          open={open}
-          refSearchInput={refSearchInput}
-          player={player}
-        />
+        <BookSearchView refSearchInput={refSearchInput} player={player} />
       </Drawer>
     </>
   )

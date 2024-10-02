@@ -13,11 +13,12 @@ type PlayerStates = {
   activeNavs: BookNav[]
   loading: boolean
   scrollPercent: number | undefined
-  selection: BookTypes.PropertyAnnotationRange | undefined
+  selection: BookTypes.PropertyRange | undefined
 }
 
 type PlayerReadonlyStates = {
   annotations: BookTypes.PropertyAnnotation[] | undefined
+  keywords: BookTypes.PropertyKeyword[] | undefined
   isPersonReplace: boolean
   speechSpeed: number
   voice: null | SpeechSynthesisVoice
@@ -85,13 +86,14 @@ export class PlayerStatesManager {
     return this.#states.selection
   }
 
-  set selection(selection: BookTypes.PropertyAnnotationRange | undefined) {
+  set selection(selection: BookTypes.PropertyRange | undefined) {
     this.#states.selection = selection
     this.events.fire('selection', selection)
   }
 
   #readonlyStates: PlayerReadonlyStates = {
     annotations: [],
+    keywords: [],
     isPersonReplace: false,
     speechSpeed: 1,
     voice: null,
@@ -106,6 +108,10 @@ export class PlayerStatesManager {
 
   get annotations() {
     return this.#readonlyStates.annotations
+  }
+
+  get keywords() {
+    return this.#readonlyStates.keywords
   }
 
   get voice() {
@@ -172,7 +178,7 @@ export function usePlayerSync(
     setActiveNavs: Dispatch<BookNav[]>
     setLoading: Dispatch<boolean>
     setScrollPercent: Dispatch<number | undefined>
-    setSelection: Dispatch<BookTypes.PropertyAnnotationRange | undefined>
+    setSelection: Dispatch<BookTypes.PropertyRange | undefined>
   },
 ) {
   useEffect(() => {
@@ -215,6 +221,7 @@ export function usePlayerUISync(
   player: Player,
   {
     annotations,
+    keywords,
     isPersonReplace,
     speechSpeed,
     voice,
@@ -228,6 +235,10 @@ export function usePlayerUISync(
   useEffect(() => {
     player.states.syncUIState('annotations', annotations)
   }, [player, annotations])
+
+  useEffect(() => {
+    player.states.syncUIState('keywords', keywords)
+  }, [player, keywords])
 
   useEffect(() => {
     player.states.syncUIState('isPersonReplace', isPersonReplace)

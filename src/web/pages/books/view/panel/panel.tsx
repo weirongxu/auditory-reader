@@ -6,18 +6,24 @@ import { useViewPanelType } from '../../../../store.js'
 import type { Player } from '../player.js'
 import { useBookViewAnnotations } from './annotations.js'
 import { useBookViewNav } from './nav.js'
+import { useBookViewKeywords } from './keywords.js'
 
 export function useBookPanel(
   book: BookView,
   player: Player,
   activeNavs: BookNav[] | undefined,
   pos: BookTypes.PropertyPosition,
-  selection: BookTypes.PropertyAnnotationRange | undefined,
+  selection: BookTypes.PropertyRange | undefined,
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
-  const { annotations, AnnotationView, activeAnnotation } =
-    useBookViewAnnotations(book, player, pos, selection)
+  const { annotations, AnnotationView } = useBookViewAnnotations(
+    book,
+    player,
+    pos,
+    selection,
+  )
+  const { keywords, KeywordView } = useBookViewKeywords(book, player)
 
   const BookPanelView = useMemo(
     () => (
@@ -40,6 +46,12 @@ export function useBookPanel(
               {AnnotationView}
             </>
           )}
+          {viewPanelType === 'keyword' && (
+            <>
+              <h3>{t('keyword')}</h3>
+              {KeywordView}
+            </>
+          )}
         </div>
         <div
           className={[
@@ -50,16 +62,16 @@ export function useBookPanel(
         ></div>
       </>
     ),
-    [AnnotationView, NavTreeView, setViewPanelType, viewPanelType],
+    [AnnotationView, KeywordView, NavTreeView, setViewPanelType, viewPanelType],
   )
 
   return useMemo(
     () => ({
       annotations,
-      activeAnnotation,
+      keywords,
       setViewPanelType,
       BookPanelView,
     }),
-    [annotations, activeAnnotation, setViewPanelType, BookPanelView],
+    [annotations, keywords, setViewPanelType, BookPanelView],
   )
 }
