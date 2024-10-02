@@ -90,6 +90,13 @@ export const langEn = {
     open: 'Open current selection',
     editBook: 'Edit book',
     remove: 'Remove current selection',
+    pinchUp: 'Move up',
+    pinchDown: 'Move down',
+    pinchLeft: 'Move left',
+    pinchRight: 'Move right',
+    pinchZoomOut: 'Zoom out',
+    pinchZoomIn: 'Zoom in',
+    pinchReset: 'Reset zoom',
   },
   confirm: {
     ok: 'Ok',

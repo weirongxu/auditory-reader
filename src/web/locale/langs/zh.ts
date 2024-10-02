@@ -92,6 +92,13 @@ export const langZh: LangEn = {
     open: '打开当前选择',
     editBook: '编辑本书',
     remove: '删除当前选择',
+    pinchUp: '上移',
+    pinchDown: '下移',
+    pinchLeft: '左移',
+    pinchRight: '右移',
+    pinchZoomOut: '缩小',
+    pinchZoomIn: '放大',
+    pinchReset: '重置',
   },
   confirm: {
     ok: '确定',

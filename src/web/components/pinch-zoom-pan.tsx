@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { useKeyEscape } from '../hooks/use-escape.js'
 import * as styles from './pinch-zoom-pan.module.scss'
 import { eventBan } from '../../core/util/dom.js'
+import { useHotkeys } from '../hotkey/hotkey-state.js'
+import { t } from 'i18next'
 
 interface PinchZoomPanProps {
   onClose?: () => void
@@ -15,8 +17,15 @@ function getTouchesPageCenter(a: Touch, b: Touch) {
   }
 }
 
-const getTouchesDistance = (a: Touch, b: Touch) => {
+function getTouchesDistance(a: Touch, b: Touch) {
   return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY)
+}
+
+function getRectCenter(rect: DOMRect) {
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  }
 }
 
 const getWheelRate = (event: WheelEvent) => {
@@ -35,27 +44,41 @@ const mountPinchZoomPan = (
     | { type: 'move'; x: number; y: number }
     | null = null
   const overlayRect = overlay.getBoundingClientRect()
-  const current = {
-    x: overlayRect.left + overlayRect.width / 2,
-    y: overlayRect.top + overlayRect.height / 2,
+
+  let current = {
+    x: 0,
+    y: 0,
     scale: 1,
   }
-  const cumulative = { ...current }
+  let cumulative = {
+    x: 0,
+    y: 0,
+    scale: 1,
+  }
 
   const setTransform = () => {
     container.style.transform = `translate(${current.x}px, ${current.y}px) scale(${current.scale})`
   }
 
-  setTransform()
+  const resetState = () => {
+    current = {
+      ...getRectCenter(overlayRect),
+      scale: 1,
+    }
+    cumulative = { ...current }
+    setTransform()
+  }
 
-  const move = (offset: { x: number; y: number }) => {
+  resetState()
+
+  const moving = (offset: { x: number; y: number }) => {
     if (Math.hypot(offset.x, offset.y) >= 10) moved = true
     current.x = cumulative.x + offset.x
     current.y = cumulative.y + offset.y
     setTransform()
   }
 
-  const scale = (offset: { pageX: number; pageY: number; rate: number }) => {
+  const scaling = (offset: { pageX: number; pageY: number; rate: number }) => {
     const scale = cumulative.scale * offset.rate
     if (scale < 0.01) return
     current.scale = scale
@@ -67,14 +90,24 @@ const mountPinchZoomPan = (
     setTransform()
   }
 
-  const onEnd = () => {
+  const touchEnd = () => {
     cumulative.x = current.x
     cumulative.y = current.y
     cumulative.scale = current.scale
   }
 
+  const disposes: (() => void)[] = []
+
+  function addEventListener<K extends keyof HTMLElementEventMap>(
+    type: K,
+    listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+  ): void {
+    overlay.addEventListener(type, listener)
+    disposes.push(() => overlay.removeEventListener(type, listener))
+  }
+
   // touch
-  overlay.addEventListener('touchstart', (event) => {
+  addEventListener('touchstart', (event) => {
     eventBan(event)
     const touch1 = event.touches[0]
     if (!touch1) return
@@ -92,7 +125,7 @@ const mountPinchZoomPan = (
       }
     moved = false
   })
-  overlay.addEventListener('touchmove', (event) => {
+  addEventListener('touchmove', (event) => {
     eventBan(event)
     if (!action) return
     const touch1 = event.touches[0]
@@ -100,7 +133,7 @@ const mountPinchZoomPan = (
     const touch2 = event.touches[1]
     switch (action.type) {
       case 'move': {
-        move({
+        moving({
           x: touch1.clientX - action.x,
           y: touch1.clientY - action.y,
         })
@@ -108,7 +141,7 @@ const mountPinchZoomPan = (
       }
       case 'pinch': {
         if (touch2)
-          scale({
+          scaling({
             ...getTouchesPageCenter(touch1, touch2),
             rate: getTouchesDistance(touch1, touch2) / action.range,
           })
@@ -116,16 +149,16 @@ const mountPinchZoomPan = (
       }
     }
   })
-  overlay.addEventListener('touchend', (event) => {
+  addEventListener('touchend', (event) => {
     eventBan(event)
     if (!action) return
     if (action.type === 'move' && !moved) onClick()
     action = null
-    onEnd()
+    touchEnd()
   })
 
   // mouse
-  overlay.addEventListener('mousedown', (event) => {
+  addEventListener('mousedown', (event) => {
     eventBan(event)
     action = {
       type: 'move',
@@ -134,39 +167,64 @@ const mountPinchZoomPan = (
     }
     moved = false
   })
-  overlay.addEventListener('mousemove', (event) => {
+  addEventListener('mousemove', (event) => {
     eventBan(event)
     if (!action) return
     if (action.type === 'move') {
-      move({
+      moving({
         x: event.clientX - action.x,
         y: event.clientY - action.y,
       })
     }
   })
-  overlay.addEventListener('mouseup', (event) => {
+  addEventListener('mouseup', (event) => {
     eventBan(event)
     if (!action) return
     if (action.type === 'move' && !moved) onClick()
     action = null
-    onEnd()
+    touchEnd()
     if (!moved) onClick()
   })
-  overlay.addEventListener('wheel', (event) => {
+  addEventListener('wheel', (event) => {
     eventBan(event)
-    scale({
+    scaling({
       pageX: event.pageX,
       pageY: event.pageY,
       rate: getWheelRate(event),
     })
-    onEnd()
+    touchEnd()
   })
+
+  const dispose = () => {
+    disposes.forEach((dispose) => dispose())
+  }
+
+  return {
+    move: (offset: { x: number; y: number }) => {
+      moving(offset)
+      touchEnd()
+    },
+    scale: (offset: { rate: number }) => {
+      const center = getRectCenter(overlayRect)
+      scaling({
+        ...offset,
+        pageX: center.x,
+        pageY: center.y,
+      })
+      touchEnd()
+    },
+    reset: () => {
+      resetState()
+    },
+    dispose,
+  }
 }
 
 export function PinchZoomPan({ onClose, children }: PinchZoomPanProps) {
   const refOverlay = useRef<HTMLDivElement>(null)
   const refContainer = useRef<HTMLDivElement>(null)
   const refOnClose = useRef<() => void>()
+  const { addHotkeys } = useHotkeys()
   useKeyEscape(() => refOnClose.current?.())
 
   useEffect(() => {
@@ -177,8 +235,58 @@ export function PinchZoomPan({ onClose, children }: PinchZoomPanProps) {
     const overlay = refOverlay.current
     const container = refContainer.current
     if (!overlay || !container) return
-    return mountPinchZoomPan(overlay, container, () => refOnClose.current?.())
-  }, [])
+    const {
+      move,
+      scale,
+      reset,
+      dispose: disposePinch,
+    } = mountPinchZoomPan(overlay, container, () => refOnClose.current?.())
+
+    const up = () => {
+      move({ x: 0, y: -10 })
+    }
+    const down = () => {
+      move({ x: 0, y: 10 })
+    }
+    const left = () => {
+      move({ x: -10, y: 0 })
+    }
+    const right = () => {
+      move({ x: 10, y: 0 })
+    }
+    const zoomIn = () => {
+      scale({ rate: 1.1 })
+    }
+    const zoomOut = () => {
+      scale({ rate: 0.9 })
+    }
+
+    const disposeHotkeys = addHotkeys(
+      [
+        ['k', t('hotkey.pinchUp'), up],
+        ['j', t('hotkey.pinchDown'), down],
+        ['h', t('hotkey.pinchLeft'), left],
+        ['l', t('hotkey.pinchRight'), right],
+        ['ArrowUp', t('hotkey.pinchUp'), up],
+        ['ArrowDown', t('hotkey.pinchDown'), down],
+        ['ArrowLeft', t('hotkey.pinchLeft'), left],
+        ['ArrowRight', t('hotkey.pinchRight'), right],
+        ['=', t('hotkey.pinchZoomIn'), zoomIn],
+        ['-', t('hotkey.pinchZoomOut'), zoomOut],
+        ['Backspace', t('hotkey.pinchReset'), reset],
+      ],
+      {
+        level: 100,
+      },
+    )
+
+    return () => {
+      disposePinch()
+      disposeHotkeys()
+    }
+  }, [addHotkeys])
+
+  useEffect(() => {}, [addHotkeys])
 
   return (
     <div
