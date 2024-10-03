@@ -27,7 +27,8 @@ export class SingleEmitter<T> {
   }
 
   fire(value: T) {
-    for (const callback of this.#callbacks) {
+    const callbacks = [...this.#callbacks]
+    for (const callback of callbacks) {
       if (callback.options.once) this.off(callback)
       Promise.resolve(callback.cb(value)).catch(console.error)
     }
