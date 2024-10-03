@@ -23,6 +23,7 @@ export default defineConfig({
     distPath: {
       root: isServer ? 'server-public' : 'sw-public',
     },
+    assetPrefix: appPublicPath,
   },
   html: {
     meta: {
