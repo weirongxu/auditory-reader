@@ -11,7 +11,7 @@ import { Icon } from '../../components/icon.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { defaultTitle, useTitle } from '../../hooks/use-title.js'
 import { DragFile } from './drag-file.js'
-import * as styles from './layout.module.scss'
+import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
 

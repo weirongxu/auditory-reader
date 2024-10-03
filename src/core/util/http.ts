@@ -1,5 +1,5 @@
-import { JSDOM } from 'jsdom'
 import { ErrorRequestResponse } from '../route/session.js'
+import { jsDOMParser } from './dom.js'
 
 export async function fetchHtml(url: string) {
   try {
@@ -13,6 +13,5 @@ export async function fetchHtml(url: string) {
 
 export async function fetchDom(url: string) {
   const html = await fetchHtml(url)
-  const jsdom = new JSDOM(html)
-  return jsdom
+  return jsDOMParser(html)
 }

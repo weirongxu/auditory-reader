@@ -1,9 +1,9 @@
-import { Buffer } from 'buffer'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
+import { base64ToArrayBuffer } from '../../util/converter.js'
 
 export type BookCreate = {
   name: string
@@ -20,7 +20,7 @@ export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
   'books/create',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
-  const buf = Buffer.from(body.bufferBase64, 'base64')
+  const buf = base64ToArrayBuffer(body.bufferBase64)
   const uuid = uuidv1()
 
   const entity: BookTypes.Entity = {

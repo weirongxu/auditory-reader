@@ -1,7 +1,7 @@
 import { faClose } from '@fortawesome/free-solid-svg-icons'
 import { Button, Form, Typography } from 'antd'
 import { t } from 'i18next'
-import path from 'path'
+import path from '@file-services/path'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateByUrlRouter } from '../../../core/api/books/create-by-url.js'

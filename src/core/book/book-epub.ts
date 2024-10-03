@@ -1,5 +1,5 @@
 import JSZip from 'jszip'
-import path from 'path'
+import path from '@file-services/path'
 import { compact } from '../util/collection.js'
 import { arrayBufferToBuffer } from '../util/converter.js'
 import type { XMLElem } from '../util/xml-dom.js'

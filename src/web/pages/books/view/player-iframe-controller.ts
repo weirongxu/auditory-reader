@@ -1,6 +1,6 @@
 import { useMountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
-import path from 'path'
+import path from '@file-services/path'
 import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
 import type { BookNav } from '../../../../core/book/book-base.js'

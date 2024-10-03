@@ -59,7 +59,7 @@ import {
   usePage,
 } from './index-atoms.js'
 import { useBookEditDialog } from './edit.js'
-import * as styles from './index.module.scss'
+import styles from './index.module.scss'
 
 const DragType = 'book'
 

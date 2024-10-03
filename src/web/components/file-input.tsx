@@ -3,7 +3,7 @@ import { Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import { FlexBox } from './flex-box.js'
 import { Icon } from './icon.js'
-import * as styles from './file-input.module.scss'
+import styles from './file-input.module.scss'
 
 export const FileInput = ({
   accept,

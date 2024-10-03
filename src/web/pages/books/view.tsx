@@ -13,7 +13,7 @@ import { SpinCenter } from '../../components/spin.js'
 import { usePushTitle } from '../../hooks/use-title.js'
 import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
-import * as styles from './view.module.scss'
+import styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
 
 export const useBookView = (uuid: string) => {

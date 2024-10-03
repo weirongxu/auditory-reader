@@ -19,8 +19,9 @@ export type XMLElement = {
 export class XMLDOMLoader {
   constructor(protected zip: JSZip) {}
 
-  protected htmlToDOM(xml: string) {
-    return jsDOMParser(xml).doc
+  protected async htmlToDOM(xml: string) {
+    const dom = await jsDOMParser(xml)
+    return dom.doc
   }
 
   protected async xmlToDOM(xml: string) {
@@ -47,7 +48,7 @@ export class XMLDOMLoader {
   async htmlDom(filepath: string) {
     const xml = await this.content(filepath)
     if (!xml) return
-    const dom = this.htmlToDOM(xml)
+    const dom = await this.htmlToDOM(xml)
     return dom
   }
 

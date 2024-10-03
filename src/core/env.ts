@@ -1,5 +1,5 @@
 import fs from 'fs'
-import path from 'path'
+import path from '@file-services/path'
 import { isBrowser } from './util/browser.js'
 import { randomString } from './util/random.js'
 
@@ -22,8 +22,6 @@ export type Env = {
   dataPath: string
 }
 
-const dataPath = path.join(process.cwd(), 'server-data')
-
 type Config = {
   appPort?: number
   appPublicPath?: string
@@ -32,6 +30,7 @@ type Config = {
   sessionKey?: string
 }
 
+const dataPath = 'server-data'
 const config: Config = isBrowser
   ? {}
   : JSON.parse(fs.readFileSync('auditory-reader.config.json', 'utf8'))

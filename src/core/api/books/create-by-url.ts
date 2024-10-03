@@ -1,5 +1,4 @@
 import { Readability } from '@mozilla/readability'
-import { JSDOM } from 'jsdom'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
@@ -7,7 +6,7 @@ import { env } from '../../env.js'
 import { EpubGen } from '../../generate/epub-gen.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-import { HTMLImgs2DataURL } from '../../util/dom.js'
+import { HTMLImgs2DataURL, jsDOMParser } from '../../util/dom.js'
 import { fetchDom } from '../../util/http.js'
 
 export type BookCreateByUrl = {
@@ -41,19 +40,19 @@ export const booksCreateByUrlRouter = new URouter<
     isTmp: body.isTmp ?? false,
   }
 
-  const jsdom = await fetchDom(body.url)
-  const doc = jsdom.window.document
+  const dom = await fetchDom(body.url)
+  const doc = dom.doc
   const article = new Readability(doc).parse()
 
   if (!article) throw new Error('parse article error')
 
-  const articleJsdom = new JSDOM(article.content)
-  const articleDoc = articleJsdom.window.document
+  const articleDom = await jsDOMParser(article.content)
+  const articleDoc = articleDom.doc
 
   if (env.appMode === 'server')
     await HTMLImgs2DataURL(body.url, articleDoc.body)
 
-  const htmlContent = new articleJsdom.window.XMLSerializer().serializeToString(
+  const htmlContent = new articleDom.view.XMLSerializer().serializeToString(
     articleDoc.body,
   )
 

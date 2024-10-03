@@ -1,6 +1,6 @@
 import { atom, useAtom } from 'jotai'
 import { useCallback, useMemo } from 'react'
-import * as styles from './hint-text.module.scss'
+import styles from './hint-text.module.scss'
 
 const hintTextAtom = atom<null | string>(null)
 let timer: NodeJS.Timeout | undefined = undefined

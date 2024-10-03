@@ -1,6 +1,6 @@
 import { Button, Form, Input } from 'antd'
 import { t } from 'i18next'
-import path from 'path'
+import path from '@file-services/path'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateRouter } from '../../../../core/api/books/create.js'

@@ -1,4 +1,4 @@
-import path from 'path'
+import path from '@file-services/path'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'

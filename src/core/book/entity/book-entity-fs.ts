@@ -1,5 +1,5 @@
 import fs from 'fs'
-import path from 'path'
+import path from '@file-services/path'
 import type { BookTypes } from '../types.js'
 import { BookEntityBase } from './book-entity-base.js'
 

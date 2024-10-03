@@ -1,6 +1,6 @@
 import type { DOMWindow } from 'jsdom'
-import { JSDOM } from 'jsdom'
 import { isUrl } from './url.js'
+import { isBrowser } from './browser.js'
 
 export type DOMView = DOMWindow
 
@@ -14,14 +14,27 @@ export function isInputElement(element: any): element is Element {
   return false
 }
 
-export function jsDOMParser(xml: string) {
-  const jsdom = new JSDOM('', { pretendToBeVisual: true })
-  const DOMParser = jsdom.window.DOMParser
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(xml, 'text/html')
-  // @ts-ignore
-  doc[viewSym] = jsdom.window
-  return { view: jsdom.window, doc }
+export async function jsDOMParser(xml: string): Promise<{
+  view: DOMView
+  doc: Document
+}> {
+  if (isBrowser) {
+    const parser = new window.DOMParser()
+    const doc = parser.parseFromString(xml, 'text/html')
+    // @ts-ignore
+    doc[viewSym] = window
+    return { view: window as unknown as DOMView, doc }
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { JSDOM } = await import('jsdom')
+    const jsdom = new JSDOM('', { pretendToBeVisual: true })
+    const DOMParser = jsdom.window.DOMParser
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(xml, 'text/html')
+    // @ts-ignore
+    doc[viewSym] = jsdom.window
+    return { view: jsdom.window, doc }
+  }
 }
 
 export function getDomView(node: any): DOMView | undefined {

@@ -15,7 +15,7 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "incremental": true,
-    "module": "ES2020"
+    "module": "ESNext"
   },
   "exclude": ["node_modules", "lib", "server-public", "sw-public"],
   "include": ["**/*.ts", "**/*.tsx", "**/*.js"]

@@ -1,5 +1,5 @@
 import mime from 'mime-types'
-import path from 'path'
+import path from '@file-services/path'
 import { bookManager } from '../../book/book-manager.js'
 import { URouter } from '../../route/router.js'
 import { jsDOMParser } from '../../util/dom.js'
@@ -54,7 +54,7 @@ export const booksSearchRouter = new URouter<
       contType &&
       ['/xml', '/html', '/xhtml'].some((t) => contType.includes(t))
     ) {
-      const { doc } = jsDOMParser(content)
+      const { doc } = await jsDOMParser(content)
       const readableExtractor = new ReadableExtractor(doc, navs)
       const parts = readableExtractor.toReadableParts()
       const nav = navs.find((it) => it.spineIndex === section)

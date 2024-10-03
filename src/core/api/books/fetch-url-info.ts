@@ -19,8 +19,8 @@ export const booksFetchUrlInfoRouter = new URouter<
 >('books/fetch-url-info').routeLogined(async ({ req }) => {
   const body = await req.body
 
-  const jsdom = await fetchDom(body.url)
-  const doc = jsdom.window.document
+  const dom = await fetchDom(body.url)
+  const doc = dom.doc
   const article = new Readability(doc).parse()
   let title: string, lang: string | undefined
   if (article) {

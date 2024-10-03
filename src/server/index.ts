@@ -32,6 +32,8 @@ app.use(
     store: new FileStore({ path: path.join(env.dataPath, 'sessions') }),
     secret: env.sessionKey,
     name: 'app_session',
+    resave: false,
+    saveUninitialized: true,
     cookie: {
       secure: false,
       maxAge: 60 * 60 * 1000 * 24 * 7,
