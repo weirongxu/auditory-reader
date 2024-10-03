@@ -22,6 +22,8 @@ export default defineConfig({
   output: {
     distPath: {
       root: isServer ? 'server-public' : 'sw-public',
+      js: '',
+      jsAsync: '',
     },
     assetPrefix: appPublicPath,
   },

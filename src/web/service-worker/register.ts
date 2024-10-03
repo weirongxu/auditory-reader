@@ -19,10 +19,11 @@ export async function registerAPI() {
     return 'unsupported'
   }
   await unregister()
+  const appPublicRoot = env.appPublicRoot
   const service = await navigator.serviceWorker.register(
     new URL('./api', import.meta.url),
     {
-      scope: env.appPublicRoot,
+      scope: appPublicRoot,
     },
   )
   await navigator.serviceWorker.ready
