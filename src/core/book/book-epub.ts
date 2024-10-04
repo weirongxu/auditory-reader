@@ -204,10 +204,9 @@ export class BookEpub extends BookBase {
     const file = await this.xmlLoader.file(href)
     if (!file) return
     const arrBuf = await file.arrayBuffer()
-    const buffer = arrayBufferToBuffer(arrBuf)
     const absHref = href.startsWith('/') ? href : `/${href}`
     const manifest = this.manifestItems.find((item) => item.href == absHref)
-    return { buffer, mediaType: manifest?.mediaType }
+    return { buffer: arrBuf, mediaType: manifest?.mediaType }
   }
 
   async cover(): Promise<BookFile | undefined> {
@@ -222,7 +221,7 @@ export class BookEpub extends BookBase {
     if (!manifest?.href) return
     const file = await this.xmlLoader.file(manifest.href)
     if (!file) return
-    const buffer = arrayBufferToBuffer(await file.arrayBuffer())
+    const buffer = await file.arrayBuffer()
     return {
       buffer,
       mediaType: manifest.mediaType,

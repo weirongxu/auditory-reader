@@ -7,7 +7,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
     for (const byte of bytes) {
       binary += String.fromCharCode(byte)
     }
-    return window.btoa(binary)
+    return self.btoa(binary)
   } else {
     return Buffer.from(buffer).toString('base64')
   }
@@ -15,7 +15,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 
 export function base64ToArrayBuffer(base64Str: string): Uint8Array {
   if (isBrowser) {
-    return Uint8Array.from(window.atob(base64Str), (c) => c.charCodeAt(0))
+    return Uint8Array.from(self.atob(base64Str), (c) => c.charCodeAt(0))
   } else {
     return Uint8Array.from(Buffer.from(base64Str, 'base64'))
   }
@@ -28,4 +28,9 @@ export function arrayBufferToBuffer(ab: ArrayBuffer): Buffer {
     buf[i] = view[i]!
   }
   return buf
+}
+
+export function arrayBufferToString(ab: ArrayBuffer): string {
+  const decoder = new TextDecoder()
+  return decoder.decode(ab)
 }

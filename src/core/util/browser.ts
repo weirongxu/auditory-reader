@@ -1,11 +1,10 @@
 import isMobileJS from 'ismobilejs'
 
-export const isBrowser: boolean =
-  Boolean(global.window) || Boolean(global.navigator)
+export const isBrowser: boolean = typeof self !== 'undefined'
 
 export const supportedTouch: boolean =
   'ontouchstart' in
-  (isBrowser ? ((global.window as Window | undefined) ?? {}) : {})
+  (isBrowser ? ((globalThis.window as Window | undefined) ?? {}) : {})
 
 export const isMobile: boolean =
   isBrowser && isMobileJS(navigator.userAgent).any

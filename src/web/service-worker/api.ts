@@ -1,5 +1,7 @@
 /// <reference lib="webworker"/>
 
+import '../../bundle/jsdom.js'
+
 import isPlainObject from 'is-plain-obj'
 import { ROUTERS } from '../../core/api/index.js'
 import { getActionPath } from '../../core/route/action.js'

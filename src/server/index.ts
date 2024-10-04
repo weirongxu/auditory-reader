@@ -1,5 +1,10 @@
 /* eslint-disable no-console */
 
+// JSDOM
+import { JSDOM } from 'jsdom'
+// @ts-ignore
+globalThis.JSDOM = JSDOM
+
 // env
 process.env.APP_MODE = 'server'
 import { env } from '../core/env.js'
@@ -14,6 +19,7 @@ import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'
 import { ErrorRequestResponse } from '../core/route/session.js'
 import 'isomorphic-fetch'
+import { arrayBufferToBuffer } from '../core/util/converter.js'
 
 const app = express()
 
@@ -58,6 +64,7 @@ for (const router of ROUTERS) {
       Promise.resolve(router.handler(ctx))
         .then((data) => {
           if (data) {
+            if (data instanceof ArrayBuffer) data = arrayBufferToBuffer(data)
             res.send(data)
           }
         })

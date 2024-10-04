@@ -6,6 +6,7 @@ node_modules
 /lib
 /sw-public
 /server-public
+/src/bundle
 
 # data
 /server-data

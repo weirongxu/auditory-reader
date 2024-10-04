@@ -21,7 +21,7 @@ export type BookSpine = {
 }
 
 export type BookFile = {
-  buffer: Buffer
+  buffer: ArrayBuffer
   mediaType?: string
 }
 

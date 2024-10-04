@@ -4,6 +4,7 @@ import { bookManager } from '../../book/book-manager.js'
 import { URouter } from '../../route/router.js'
 import { jsDOMParser } from '../../util/dom.js'
 import { ReadableExtractor } from '../../util/readable.js'
+import { arrayBufferToString } from '../../util/converter.js'
 
 export type BookSearchQuery = {
   uuid: string
@@ -48,7 +49,7 @@ export const booksSearchRouter = new URouter<
     const filepath = spine.href
     const file = await book.file(filepath)
     if (!file) continue
-    const content = file.buffer.toString('utf-8')
+    const content = arrayBufferToString(file.buffer)
     const contType = file.mediaType ?? mime.contentType(path.basename(filepath))
     if (
       contType &&

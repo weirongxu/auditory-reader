@@ -1,4 +1,4 @@
-import { defineConfig, rspack } from '@rsbuild/core'
+import { defineConfig } from '@rsbuild/core'
 import { pluginReact } from '@rsbuild/plugin-react'
 import { pluginSass } from '@rsbuild/plugin-sass'
 
@@ -26,6 +26,9 @@ export default defineConfig({
       jsAsync: '',
     },
     assetPrefix: appPublicPath,
+    externals: {
+      jsdom: 'jsdom',
+    },
   },
   html: {
     meta: {
@@ -50,17 +53,17 @@ export default defineConfig({
           buffer: false,
         },
       },
-      plugins: [
-        new rspack.IgnorePlugin({
-          resourceRegExp: /jsdom/,
-        }),
+      ignoreWarnings: [
+        /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
       ],
     },
   },
   server: {
-    proxy: {
-      context: ['/api'],
-      target: 'http://localhost:4001',
-    },
+    proxy: isServer
+      ? {
+          context: ['/api'],
+          target: 'http://localhost:4001',
+        }
+      : undefined,
   },
 })
