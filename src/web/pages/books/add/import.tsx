@@ -57,7 +57,7 @@ export function AddImport() {
         </Form.Item>
         <Form.Item>
           <Button block type="primary" htmlType="submit" loading={submitted}>
-            {t('add')}
+            {t('import')}
           </Button>
         </Form.Item>
       </Form>

@@ -12,7 +12,7 @@ export type BookImportQuery = {
 }
 
 export const booksImportRouter = new URouter<BookImportQuery, { ok: boolean }>(
-  'books/download',
+  'books/import',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const entity = bookJsonToEntity(body.entity)

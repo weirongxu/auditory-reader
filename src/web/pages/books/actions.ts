@@ -10,6 +10,9 @@ import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 
 const toPercent = (f: number) => Math.floor(f * 100)
 
+const bookFilename = (entity: BookTypes.Entity | BookTypes.EntityJson) =>
+  `${entity.name}${getBookExtension(entity)}`
+
 export const exportBooks = async (
   books: BookTypes.Entity[],
   onProgress: (percent: number) => void,
@@ -24,9 +27,8 @@ export const exportBooks = async (
       uuid: book.uuid,
     })
     const bookJson = { ...book }
-    const bookExt = getBookExtension(book)
     const bookName = bookJson.name
-    const filename = `${bookName}${bookExt}`
+    const filename = bookFilename(book)
     const dir = `${bookName}-(${bookJson.uuid})`
     zip.file(`${dir}/property.json`, JSON.stringify(propertiesJson, null, 2))
     zip.file(`${dir}/book.json`, JSON.stringify(bookJson, null, 2))
@@ -62,8 +64,9 @@ export const importBooks = async (
     const bookJson = await zip.file(`${item.folder}/book.json`)?.async('text')
     if (!bookJson) continue
     const book = JSON.parse(bookJson) as BookTypes.EntityJson
+    const filename = bookFilename(book)
     const bookEpub = await zip
-      .file(`${item.folder}/${book.name}`)
+      .file(`${item.folder}/${filename}`)
       ?.async('arraybuffer')
     if (!bookEpub) continue
     const propertiesJson = await zip

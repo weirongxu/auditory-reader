@@ -1,7 +1,7 @@
 import type { BookTypes } from '../book/types.js'
 
-export function getBookExtension(book: BookTypes.Entity) {
-  switch (book.type) {
+export function getBookExtension(entity: { type: BookTypes.EntityType }) {
+  switch (entity.type) {
     case 'epub':
       return '.epub'
     case 'text':
