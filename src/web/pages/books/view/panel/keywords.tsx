@@ -261,7 +261,9 @@ export function useBookViewKeywords(book: BookView, player: Player) {
   }, [player.keywords, reload])
 
   return {
-    keywords,
-    KeywordView: <Keywords keywords={keywords} player={player}></Keywords>,
+    keywords: keywords?.items,
+    KeywordView: (
+      <Keywords keywords={keywords?.items} player={player}></Keywords>
+    ),
   }
 }

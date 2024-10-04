@@ -7,7 +7,7 @@ export type BookUpdateQuery = {
   update: BookTypes.EntityUpdate
 }
 
-export const booksUpdateRouter = new URouter<BookUpdateQuery, object>(
+export const booksUpdateRouter = new URouter<BookUpdateQuery, { ok: boolean }>(
   'books/update',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body

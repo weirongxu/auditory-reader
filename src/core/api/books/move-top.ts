@@ -5,9 +5,10 @@ export type BookMoveTopItQuery = {
   uuid: string
 }
 
-export const booksMoveTopRouter = new URouter<BookMoveTopItQuery>(
-  'books/move-top',
-).routeLogined(async ({ req, userInfo }) => {
+export const booksMoveTopRouter = new URouter<
+  BookMoveTopItQuery,
+  { ok: boolean }
+>('books/move-top').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const book = bookManager.list(userInfo.account)
   await book.moveTop(body.uuid)

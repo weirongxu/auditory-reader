@@ -6,9 +6,10 @@ export type BookMoveOffsetItQuery = {
   afterUuid: string
 }
 
-export const booksMoveAfterRouter = new URouter<BookMoveOffsetItQuery>(
-  'books/move-after',
-).routeLogined(async ({ req, userInfo }) => {
+export const booksMoveAfterRouter = new URouter<
+  BookMoveOffsetItQuery,
+  { ok: boolean }
+>('books/move-after').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const book = bookManager.list(userInfo.account)
   await book.moveAfter(body.uuid, body.afterUuid)

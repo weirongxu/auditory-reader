@@ -7,9 +7,10 @@ type PositionSyncPost = {
   pos: BookTypes.PropertyPosition
 }
 
-export const booksPositionSyncRouter = new URouter<PositionSyncPost, any>(
-  'books/position-sync',
-).routeLogined(async ({ req, userInfo }) => {
+export const booksPositionSyncRouter = new URouter<
+  PositionSyncPost,
+  { ok: boolean }
+>('books/position-sync').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
   await bookEntity.posSet(body.pos)

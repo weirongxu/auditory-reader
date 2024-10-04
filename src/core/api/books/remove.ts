@@ -5,7 +5,7 @@ export type BookRemoveQuery = {
   uuid: string
 }
 
-export const booksRemoveRouter = new URouter<BookRemoveQuery>(
+export const booksRemoveRouter = new URouter<BookRemoveQuery, { ok: boolean }>(
   'books/remove',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body

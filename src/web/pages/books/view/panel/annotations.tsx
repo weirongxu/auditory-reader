@@ -287,7 +287,7 @@ export function useBookViewAnnotations(
   const activeAnnotation = useMemo(
     () =>
       activeAnnotationIndex !== null
-        ? annotations?.at(activeAnnotationIndex)
+        ? annotations?.items.at(activeAnnotationIndex)
         : undefined,
     [annotations, activeAnnotationIndex],
   )
@@ -295,16 +295,16 @@ export function useBookViewAnnotations(
   const closestAnnotation = useMemo(
     () =>
       closestAnnotationIndex !== null
-        ? annotations?.at(closestAnnotationIndex)
+        ? annotations?.items.at(closestAnnotationIndex)
         : undefined,
     [annotations, closestAnnotationIndex],
   )
 
   return {
-    annotations,
+    annotations: annotations?.items,
     AnnotationView: (
       <Annotations
-        annotations={annotations}
+        annotations={annotations?.items}
         closestAnnotationIndex={closestAnnotationIndex}
         activeAnnotationIndex={activeAnnotationIndex}
         player={player}

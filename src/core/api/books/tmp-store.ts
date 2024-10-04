@@ -2,19 +2,7 @@ import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import { TMP_UUID } from '../../consts.js'
-import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-
-export type BookCreate = {
-  name: string
-  langCode: LangCode
-  type: BookTypes.EntityType
-  bufferBase64: string
-  /**
-   * @default false
-   */
-  isTmp?: boolean
-}
 
 export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
   'books/tmp-store',

@@ -48,6 +48,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
   async delete(): Promise<void> {
     const db = await getDB()
     await db.delete('book-data', this.uid)
+    await db.delete('book-properties', this.uid)
   }
 
   async readProp(): Promise<BookTypes.PropertyJson> {

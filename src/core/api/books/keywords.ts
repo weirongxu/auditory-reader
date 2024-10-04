@@ -5,9 +5,9 @@ import type { BookViewQuery } from './view.js'
 
 export const booksKeywordsRouter = new URouter<
   BookViewQuery,
-  BookTypes.PropertyKeyword[]
+  { items: BookTypes.PropertyKeyword[] }
 >('books/keywords').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
-  return bookEntity.keywordsGet()
+  return { items: await bookEntity.keywordsGet() }
 })
