@@ -58,7 +58,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
     return this.propJson
   }
 
-  protected async writeProp(prop: BookTypes.PropertyJson) {
+  async writeProp(prop: BookTypes.PropertyJson) {
     const db = await getDB()
     await db.put('book-properties', prop, this.uid)
   }

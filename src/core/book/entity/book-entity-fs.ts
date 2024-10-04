@@ -98,7 +98,7 @@ export class BookEntityFS extends BookEntityBase {
     return this.propJson
   }
 
-  protected async writeProp(prop: BookTypes.PropertyJson) {
+  async writeProp(prop: BookTypes.PropertyJson) {
     await fs.promises.writeFile(this.propJsonPath, JSON.stringify(prop), 'utf8')
   }
 }
