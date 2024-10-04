@@ -74,7 +74,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
       setLoading(true)
       switch (dragItem.type) {
         case 'file-epub':
-          await booksCreateRouter.action({
+          await booksCreateRouter.json({
             bufferBase64: dragItem.bufferBase64,
             langCode: dragItem.langCode,
             name: dragItem.title,
@@ -83,7 +83,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
           })
           break
         case 'file-text':
-          await booksCreateRouter.action({
+          await booksCreateRouter.json({
             bufferBase64: dragItem.bufferBase64,
             langCode: dragItem.langCode,
             name: dragItem.title,
@@ -92,7 +92,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
           })
           break
         case 'url':
-          await booksCreateByUrlRouter.action({
+          await booksCreateByUrlRouter.json({
             url: dragItem.url,
             langCode: dragItem.langCode,
             name: dragItem.title,
@@ -163,7 +163,7 @@ export function DragFile({ children }: { children: React.ReactNode }) {
                   item.getAsString(resolve)
                 })
                 if (!isUrl(url)) continue
-                const info = await booksFetchUrlInfoRouter.action({ url })
+                const info = await booksFetchUrlInfoRouter.json({ url })
                 return setDragItem({
                   type: 'url',
                   url,

@@ -1,9 +1,10 @@
+import { Tabs } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { AddFile } from './add/file.js'
+import { AddImport } from './add/import.js'
 import { AddText } from './add/text.js'
 import { AddUrl } from './add/url.js'
-import { Tabs } from 'antd'
 
 type TabType = 'text' | 'file' | 'url'
 
@@ -29,6 +30,11 @@ export function BookAdd() {
           key: 'url',
           label: t('url'),
           children: <AddUrl />,
+        },
+        {
+          key: 'import',
+          label: t('import'),
+          children: <AddImport />,
         },
       ]}
     ></Tabs>

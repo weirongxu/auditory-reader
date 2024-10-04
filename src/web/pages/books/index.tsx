@@ -14,12 +14,14 @@ import {
   Form,
   Input,
   Pagination,
+  Progress,
   Select,
   Space,
   Switch,
   Tag,
   type InputRef,
 } from 'antd'
+import { saveAs } from 'file-saver'
 import { t } from 'i18next'
 import { useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -37,6 +39,7 @@ import { sortOrders } from '../../../core/book/enums.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { filterOptionLabel } from '../../../core/util/antd.js'
+import { getBookExtension } from '../../../core/util/book.js'
 import { async } from '../../../core/util/promise.js'
 import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
@@ -49,6 +52,8 @@ import { useHotkeys, type HotkeyItem } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
+import { exportBooks } from './actions.js'
+import { useBookEditDialog } from './edit.js'
 import {
   activatedIndexAtom,
   archivedAtom,
@@ -58,8 +63,8 @@ import {
   searchAtom,
   usePage,
 } from './index-atoms.js'
-import { useBookEditDialog } from './edit.js'
 import styles from './index.module.scss'
+import { booksListRouter } from '../../../core/api/books/list.js'
 
 const DragType = 'book'
 
@@ -84,11 +89,11 @@ const moveOffset = async (
   if (!currentEntity) return
   const uuid = currentEntity.uuid
   const targetIndex = currentIndex + offset
-  if (targetIndex <= 0) return await booksMoveTopRouter.action({ uuid })
+  if (targetIndex <= 0) return await booksMoveTopRouter.json({ uuid })
   const afterIndex = targetIndex < currentIndex ? targetIndex - 1 : targetIndex
   const afterBook = books.at(afterIndex)
   if (!afterBook) return
-  await booksMoveAfterRouter.action({
+  await booksMoveAfterRouter.json({
     uuid,
     afterUuid: afterBook.uuid,
   })
@@ -111,7 +116,7 @@ function useRemoveBooks(reload: () => void) {
           })
         ) {
           for (const book of books) {
-            await booksRemoveRouter.action({
+            await booksRemoveRouter.json({
               uuid: book.uuid,
             })
           }
@@ -325,7 +330,7 @@ function useHomeHotKeys({
     const toggleArchive = () => {
       async(async () => {
         for (const book of actionBooks) {
-          await booksUpdateRouter.action({
+          await booksUpdateRouter.json({
             uuid: book.uuid,
             update: {
               isArchived: !book.isArchived,
@@ -339,7 +344,7 @@ function useHomeHotKeys({
     const toggleFavorite = () => {
       async(async () => {
         for (const book of actionBooks) {
-          await booksUpdateRouter.action({
+          await booksUpdateRouter.json({
             uuid: book.uuid,
             update: {
               isFavorited: !book.isFavorited,
@@ -466,12 +471,15 @@ function BookButtons({
 }) {
   const { openBookEdit } = useBookEditDialog(reload)
 
-  const exportBook = useCallback(() => {
-    window.open(
-      `${booksDownloadRouter.fullRoutePath}?uuid=${book.uuid}`,
-      '_blank',
-    )
-  }, [book.uuid])
+  const exportEpub = useCallback(async () => {
+    const bookEpub = await booksDownloadRouter.file({
+      uuid: book.uuid,
+    })
+    const bookExt = getBookExtension(book)
+    const bookName = book.name
+    const filename = `${bookName}${bookExt}`
+    saveAs(bookEpub, filename)
+  }, [book])
 
   const removeBooks = useRemoveBooks(reload)
 
@@ -490,7 +498,7 @@ function BookButtons({
             label: book.isArchived ? t('unarchive') : t('archive'),
             onClick: () => {
               async(async () => {
-                await booksUpdateRouter.action({
+                await booksUpdateRouter.json({
                   uuid: book.uuid,
                   update: {
                     isArchived: !book.isArchived,
@@ -501,9 +509,9 @@ function BookButtons({
             },
           },
           {
-            key: 'export',
-            label: `${t('export')} Epub`,
-            onClick: () => exportBook(),
+            key: 'export-epub',
+            label: `${t('export')} EPUB`,
+            onClick: () => async(() => exportEpub()),
           },
           {
             key: 'remove',
@@ -634,7 +642,7 @@ function BookRow({
             icon={faStar}
             onClick={() => {
               async(async () => {
-                await booksUpdateRouter.action({
+                await booksUpdateRouter.json({
                   uuid: book.uuid,
                   update: {
                     isFavorited: false,
@@ -649,7 +657,7 @@ function BookRow({
             icon={faStarRegular}
             onClick={() => {
               async(async () => {
-                await booksUpdateRouter.action({
+                await booksUpdateRouter.json({
                   uuid: book.uuid,
                   update: {
                     isFavorited: true,
@@ -724,6 +732,7 @@ function BookRemoveButton({ onRemove }: { onRemove: (uuid: string) => void }) {
 export function BookList() {
   const [page, setPage] = usePage()
   const [perPage, setPerPage] = useAtom(perPageAtom)
+  const [progressPercent, setProgressPercent] = useState<number | null>(null)
   const [activatedIndex, setActivatedIndex] = useAtom(activatedIndexAtom)
   const [archived, setArchived] = useAtom(archivedAtom)
   const [favorited, setFavorited] = useAtom(favoritedAtom)
@@ -791,7 +800,7 @@ export function BookList() {
   const moveBooksTop = useCallback(
     async (books: BookTypes.Entity[]) => {
       for (const book of [...books.reverse()]) {
-        await booksMoveTopRouter.action({
+        await booksMoveTopRouter.json({
           uuid: book.uuid,
         })
       }
@@ -859,34 +868,90 @@ export function BookList() {
 
   const OperationBtnGroup = useMemo(() => {
     return (
-      !!selectedUuids.length && (
-        <Button.Group>
+      <Button.Group>
+        {!selectedUuids.length && (
           <Button
             type="primary"
             size="small"
             onClick={() => {
               async(async () => {
-                await moveBooksTop(selectedBooks)
-                reload()
+                const list = await booksListRouter.json({
+                  filter: {
+                    archive: archived ? 'archived' : 'active',
+                    favorite: favorited ? 'favorited' : 'all',
+                    search: searchDeferred,
+                  },
+                })
+                try {
+                  setProgressPercent(null)
+                  await exportBooks(list.items, (percent) => {
+                    setProgressPercent(percent)
+                  })
+                } finally {
+                  setProgressPercent(null)
+                }
               })
             }}
           >
-            {t('top')}
+            {t('exportAll')}
           </Button>
-          <Button
-            type="primary"
-            size="small"
-            danger
-            onClick={() => {
-              removeBooks(selectedBooks)
-            }}
-          >
-            {t('remove')}
-          </Button>
-        </Button.Group>
-      )
+        )}
+        {!!selectedUuids.length && (
+          <>
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => {
+                async(async () => {
+                  await moveBooksTop(selectedBooks)
+                  reload()
+                })
+              }}
+            >
+              {t('top')}
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => {
+                async(async () => {
+                  try {
+                    setProgressPercent(null)
+                    await exportBooks(selectedBooks, (percent) => {
+                      setProgressPercent(percent)
+                    })
+                  } finally {
+                    setProgressPercent(null)
+                  }
+                })
+              }}
+            >
+              {t('export')}
+            </Button>
+            <Button
+              type="primary"
+              size="small"
+              danger
+              onClick={() => {
+                removeBooks(selectedBooks)
+              }}
+            >
+              {t('remove')}
+            </Button>
+          </>
+        )}
+      </Button.Group>
     )
-  }, [moveBooksTop, reload, removeBooks, selectedBooks, selectedUuids.length])
+  }, [
+    archived,
+    favorited,
+    moveBooksTop,
+    reload,
+    removeBooks,
+    searchDeferred,
+    selectedBooks,
+    selectedUuids.length,
+  ])
 
   const TopRightBar = useMemo(() => {
     return (
@@ -941,6 +1006,7 @@ export function BookList() {
   return (
     <>
       <Space direction="vertical" style={{ width: '100%' }}>
+        {!!progressPercent && <Progress percent={progressPercent} />}
         <Form layout="inline">
           <Form.Item label={t('archive')}>
             <Switch checked={archived} onChange={(v) => setArchived(v)} />

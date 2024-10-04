@@ -35,7 +35,7 @@ function UpdateForm({
       }}
       onFinish={(values) => {
         async(async () => {
-          await booksUpdateRouter.action({
+          await booksUpdateRouter.json({
             uuid: book.uuid,
             update: {
               name: values.name,

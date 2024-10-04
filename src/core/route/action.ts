@@ -63,7 +63,7 @@ export function useAction<Req, Res>(
   const load = useCallback(
     (signal: AbortSignal) => {
       router
-        .action(refArg.current)
+        .json(refArg.current)
         .then((res) => {
           if (signal.aborted) return
           setData(res)

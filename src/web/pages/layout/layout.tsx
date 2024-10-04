@@ -130,7 +130,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
                       block
                       onClick={() => {
                         logoutRouter
-                          .action()
+                          .json()
                           .then(() => {
                             nav('/')
                           })

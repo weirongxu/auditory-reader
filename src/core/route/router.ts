@@ -65,9 +65,9 @@ export class URouter<Req = any, Res = any> {
       .split('/')
   }
 
-  async action(body: Req, signal?: AbortSignal): Promise<Res> {
+  async json(body: Req, signal?: AbortSignal): Promise<Res> {
     const res = await fetch(this.fullRoutePath, {
-      method: 'POST',
+      method: this.method.toUpperCase(),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -86,6 +86,20 @@ export class URouter<Req = any, Res = any> {
     if (!res.status.toString().startsWith('2'))
       throw new ActionError(await res.json())
     return await res.json()
+  }
+
+  async file(body: Req, signal?: AbortSignal): Promise<Blob> {
+    const res = await fetch(this.fullRoutePath, {
+      method: this.method.toUpperCase(),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal,
+      body: body ? JSON.stringify(body) : null,
+    })
+    if (res.status === 401) throw new ActionUnauthorized()
+    if (!res.ok) throw new ActionError(await res.text())
+    return await res.blob()
   }
 
   route(handler: ApiHandler<Req, Res>) {

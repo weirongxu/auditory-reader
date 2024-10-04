@@ -1,4 +1,5 @@
 import { TMP_UUID } from '../../consts.js'
+import { bookJsonToEntity } from '../../util/book.js'
 import { orderBy } from '../../util/collection.js'
 import { bookManager } from '../book-manager.js'
 import type { BookEntityBase } from '../entity/book-entity-base.js'
@@ -35,18 +36,18 @@ export abstract class BookListBase {
 
   protected abstract readJson(): Promise<BookTypes.Json>
 
-  protected async list(): Promise<BookTypes.EntityJson[]> {
+  protected async rawList(): Promise<BookTypes.EntityJson[]> {
     const data = await this.getJson()
     return data.list
   }
 
-  protected async listFilter({
+  protected async rawListFilter({
     archive = 'active',
     favorite = 'all',
     search,
     order,
   }: Partial<BookTypes.FilterParams>): Promise<BookTypes.EntityJson[]> {
-    let list = await this.list()
+    let list = await this.rawList()
     if (archive !== 'all')
       list = list.filter((it) =>
         archive === 'archived' ? it.isArchived : !it.isArchived,
@@ -71,7 +72,6 @@ export abstract class BookListBase {
           list = orderBy(list, 'desc', (it) => it.name)
           break
       }
-
     return list
   }
 
@@ -93,7 +93,7 @@ export abstract class BookListBase {
 
   public async moveOffset(uuid: string, offset: number): Promise<void> {
     if (offset === 0) return
-    const list = await this.list()
+    const list = await this.rawList()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
     const targetIndex = entityIndex + offset
@@ -105,7 +105,7 @@ export abstract class BookListBase {
 
   public async moveAfter(uuid: string, afterUuid: string): Promise<void> {
     if (uuid === afterUuid) return
-    const list = await this.list()
+    const list = await this.rawList()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
     const afterIndex = list.findIndex((it) => it.uuid === afterUuid)
@@ -123,12 +123,18 @@ export abstract class BookListBase {
   }
 
   public async moveTop(uuid: string): Promise<void> {
-    const list = await this.list()
+    const list = await this.rawList()
     const entityIndex = list.findIndex((it) => it.uuid === uuid)
     if (entityIndex === -1) return
     const [entityJson] = list.splice(entityIndex, 1)
     if (entityJson) list.unshift(entityJson)
     await this.write()
+  }
+
+  public async list(filter: Partial<BookTypes.FilterParams>) {
+    const list = await this.rawListFilter(filter)
+    const items = list.map((it) => this.toEntity(it))
+    return items
   }
 
   public async page(
@@ -138,7 +144,7 @@ export abstract class BookListBase {
       perPage = this.defaultPerPage,
     }: Partial<BookTypes.PageParams> = {},
   ): Promise<BookTypes.PageResult> {
-    const list = await this.listFilter(filter)
+    const list = await this.rawListFilter(filter)
     const skipCount = perPage * (page - 1)
     const items = list
       .slice(skipCount, skipCount + perPage)
@@ -154,30 +160,19 @@ export abstract class BookListBase {
   }
 
   protected async entityJson(uuid: string) {
-    const list = await this.list()
+    const list = await this.rawList()
     return list.find((it) => it.uuid === uuid)
   }
 
   protected toEntity(entityJson: BookTypes.EntityJson): BookTypes.Entity {
-    const entity: BookTypes.Entity = {
-      name: entityJson.name,
-      type: entityJson.type,
-      langCode: entityJson.langCode,
-      isFavorited: entityJson.isFavorited,
-      isArchived: Boolean(entityJson.isArchived),
-      uuid: entityJson.uuid,
-      createdAt: new Date(entityJson.createdAt),
-      updatedAt: new Date(entityJson.updatedAt),
-      isTmp: entityJson.isTmp,
-    }
-    return entity
+    return bookJsonToEntity(entityJson)
   }
 
   public async update(
     uuid: string,
     update: BookTypes.EntityUpdate,
   ): Promise<void> {
-    const list = await this.list()
+    const list = await this.rawList()
     const entityJson = list.find((it) => it.uuid === uuid)
     if (!entityJson) return
     if (update.langCode) entityJson.langCode = update.langCode
@@ -212,7 +207,7 @@ export abstract class BookListBase {
       await bookEntity.reset()
       await this.setTmp(entityJson)
     } else {
-      const list = await this.list()
+      const list = await this.rawList()
       list.push(entityJson)
     }
 
@@ -222,7 +217,7 @@ export abstract class BookListBase {
   }
 
   public async delete(uuid: string): Promise<void> {
-    const list = await this.list()
+    const list = await this.rawList()
     const bookIndex = list.findIndex((b) => b.uuid === uuid)
     if (bookIndex === -1) {
       return

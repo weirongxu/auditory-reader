@@ -50,7 +50,7 @@ export function AddText() {
             setSubmitted(true)
             const buf = new TextEncoder().encode(values.content)
             const fileBase64 = arrayBufferToBase64(buf)
-            const entity = await booksCreateRouter.action({
+            const entity = await booksCreateRouter.json({
               name: values.name,
               langCode: values.langCode,
               bufferBase64: fileBase64,

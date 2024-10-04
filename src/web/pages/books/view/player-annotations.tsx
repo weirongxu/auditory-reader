@@ -43,7 +43,7 @@ export class PlayerAnnotations {
       return
     }
     const brief = node.text.slice(0, 30)
-    const res = await booksAnnotationsUpsertRouter.action({
+    const res = await booksAnnotationsUpsertRouter.json({
       annotations: [
         {
           uuid,
@@ -100,7 +100,7 @@ export class PlayerAnnotations {
         return
     }
 
-    await booksAnnotationsDeleteRouter.action({
+    await booksAnnotationsDeleteRouter.json({
       uuid: this.uuid,
       annotationUuids: [annotation.uuid],
     })

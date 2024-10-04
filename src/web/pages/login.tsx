@@ -36,7 +36,7 @@ export function Login() {
           initialValues={{ account: '', password: '' }}
           onFinish={(values) => {
             loginRouter
-              .action(values)
+              .json(values)
               .then(async (res) => {
                 if (res.ok) {
                   nav('/')

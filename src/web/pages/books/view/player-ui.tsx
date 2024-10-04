@@ -430,7 +430,7 @@ export function usePlayerUI({
         title={t('tmpStore')}
         onClick={() => {
           async(async () => {
-            const entity = await booksTmpStoreRouter.action({})
+            const entity = await booksTmpStoreRouter.json({})
             nav(`/books/added-successful/${entity.uuid}`)
           })
         }}

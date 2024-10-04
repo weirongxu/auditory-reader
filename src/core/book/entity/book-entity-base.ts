@@ -2,6 +2,7 @@ import mime from 'mime-types'
 import { ErrorRequestResponse } from '../../route/session.js'
 import type { BookTypes } from '../types.js'
 import { orderBy } from '../../util/collection.js'
+import { getBookExtension } from '../../util/book.js'
 
 export abstract class BookEntityBase {
   constructor(public readonly entity: BookTypes.Entity) {}
@@ -16,19 +17,10 @@ export abstract class BookEntityBase {
     filename: string
   }> {
     const buffer = await this.readFileBuffer()
-    let extname: string | undefined
-    let contentType: string | false = false
-    switch (this.entity.type) {
-      case 'epub':
-        extname = '.epub'
-        break
-      case 'text':
-        extname = '.txt'
-        break
-    }
     const unknownHint = 'Book type unknown'
+    const extname: string | undefined = getBookExtension(this.entity)
     if (!extname) throw new ErrorRequestResponse(unknownHint)
-    contentType = mime.contentType(extname)
+    const contentType: string | false = mime.contentType(extname)
     if (!contentType) throw new ErrorRequestResponse(unknownHint)
     const filename = this.entity.name + extname
     return { contentType, buffer, filename }
@@ -46,7 +38,7 @@ export abstract class BookEntityBase {
 
   abstract readProp(): Promise<BookTypes.PropertyJson>
 
-  protected abstract writeProp(prop: BookTypes.PropertyJson): Promise<void>
+  abstract writeProp(prop: BookTypes.PropertyJson): Promise<void>
 
   async posGet(): Promise<BookTypes.PropertyPosition> {
     const prop = await this.readProp()

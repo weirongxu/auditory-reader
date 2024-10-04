@@ -18,24 +18,24 @@ import type { BookTypes } from '../core/book/types.js'
 export const API = {
   book: {
     async add(params: BookCreate): Promise<BookTypes.EntityJson> {
-      return await booksCreateRouter.action(params)
+      return await booksCreateRouter.json(params)
     },
     async fetchUrlInfo(params: BookFetchUrlInfoQuery) {
-      return await booksFetchUrlInfoRouter.action(params)
+      return await booksFetchUrlInfoRouter.json(params)
     },
     async addByUrl(params: BookCreateByUrl): Promise<BookTypes.EntityJson> {
-      return await booksCreateByUrlRouter.action(params)
+      return await booksCreateByUrlRouter.json(params)
     },
     async update(params: BookUpdateQuery): Promise<void> {
-      await booksUpdateRouter.action(params)
+      await booksUpdateRouter.json(params)
     },
     async top(params: BookMoveTopItQuery): Promise<void> {
-      await booksMoveTopRouter.action(params)
+      await booksMoveTopRouter.json(params)
     },
     async search(
       params: BookSearchQuery,
     ): Promise<{ matches: BookSearchMatch[] }> {
-      return await booksSearchRouter.action(params)
+      return await booksSearchRouter.json(params)
     },
   },
 }

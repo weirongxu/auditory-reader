@@ -156,7 +156,7 @@ function BookSearchView({
       if (loading) return
       setSearchResponse(null)
       setLoading(true)
-      const res = await booksSearchRouter.action({ uuid, search: newSearch })
+      const res = await booksSearchRouter.json({ uuid, search: newSearch })
       setSearchResponse(res)
       setLoading(false)
       refSearchInput.current?.blur()

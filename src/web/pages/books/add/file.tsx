@@ -14,7 +14,7 @@ import { LanguageSelect } from '../../../components/language-select.js'
 type Values = {
   name: string
   langCode: LangCode
-  file: File
+  file: File | undefined
 }
 
 export function AddFile() {
@@ -25,7 +25,7 @@ export function AddFile() {
 
   useEffect(() => {
     async(async () => {
-      if (file.name.endsWith('.epub')) {
+      if (file?.name.endsWith('.epub')) {
         const buf = await file.arrayBuffer()
         const epub = await BookEpub.read(buf)
         if (!epub) return
@@ -56,10 +56,11 @@ export function AddFile() {
         async(async () => {
           try {
             setSubmitted(true)
+            if (!values.file) return
             if (values.file.name.endsWith('.epub')) {
               const buf = await values.file.arrayBuffer()
               const fileBase64 = arrayBufferToBase64(buf)
-              const entity = await booksCreateRouter.action({
+              const entity = await booksCreateRouter.json({
                 name: values.name,
                 langCode: values.langCode,
                 bufferBase64: fileBase64,
@@ -69,7 +70,7 @@ export function AddFile() {
             } else if (values.file.name.endsWith('.txt')) {
               const buf = await values.file.arrayBuffer()
               const fileBase64 = arrayBufferToBase64(buf)
-              const entity = await booksCreateRouter.action({
+              const entity = await booksCreateRouter.json({
                 name: values.name,
                 langCode: values.langCode,
                 bufferBase64: fileBase64,
@@ -94,14 +95,7 @@ export function AddFile() {
         <LanguageSelect />
       </Form.Item>
       <Form.Item label={t('file')} name="file" rules={[{ required: true }]}>
-        <FileInput
-          onChange={(files) => {
-            const file = files.at(0)
-            if (!file) return
-            async(async () => {})
-          }}
-          prompt={t('prompt.uploadBook')}
-        ></FileInput>
+        <FileInput prompt={t('prompt.uploadBook')}></FileInput>
       </Form.Item>
       <Form.Item>
         <Button block type="primary" htmlType="submit" loading={submitted}>

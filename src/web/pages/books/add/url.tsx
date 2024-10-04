@@ -37,7 +37,7 @@ export function AddUrl() {
           async(async () => {
             try {
               setSubmitted(true)
-              const entity = await booksCreateByUrlRouter.action({
+              const entity = await booksCreateByUrlRouter.json({
                 name: values.name,
                 langCode: values.langCode,
                 url: values.url,
@@ -75,7 +75,7 @@ export function AddUrl() {
                 if (!url) return
                 setIsFetchingURL(true)
                 booksFetchUrlInfoRouter
-                  .action({ url })
+                  .json({ url })
                   .then((info) => {
                     form.setFieldValue('name', info.title)
                     if (info.lang) form.setFieldValue('langCode', info.lang)

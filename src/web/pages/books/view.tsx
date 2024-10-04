@@ -30,7 +30,7 @@ export const useBookView = (uuid: string) => {
     [bookData],
     async (bookData): Promise<BookTypes.PropertyPosition | undefined> => {
       if (!bookData) return
-      return booksPositionRouter.action({ uuid: bookData.item.uuid })
+      return booksPositionRouter.json({ uuid: bookData.item.uuid })
     },
   )
   const [pos, setPos] = useState<BookTypes.PropertyPosition>()
@@ -63,7 +63,7 @@ export const useBookView = (uuid: string) => {
     if (book === undefined || section === undefined || paragraph === undefined)
       return
     booksPositionSyncRouter
-      .action({ uuid: book.item.uuid, pos: { section, paragraph } })
+      .json({ uuid: book.item.uuid, pos: { section, paragraph } })
       .catch(console.error)
   }, [book, paragraph, section])
 

@@ -142,6 +142,9 @@ devDependencies:
   '@types/express-session':
     specifier: ^1.18.0
     version: 1.18.0
+  '@types/file-saver':
+    specifier: ~2.0.7
+    version: 2.0.7
   '@types/gh-pages':
     specifier: ^6.1.0
     version: 6.1.0
@@ -184,6 +187,9 @@ devDependencies:
   eslint-plugin-import:
     specifier: ^2.29.1
     version: 2.30.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)
+  file-saver:
+    specifier: ^2.0.5
+    version: 2.0.5
   gh-pages:
     specifier: ^6.1.1
     version: 6.1.1
@@ -2031,6 +2037,10 @@ packages:
       '@types/express-serve-static-core': 5.0.0
       '@types/qs': 6.9.16
       '@types/serve-static': 1.15.7
+    dev: true
+
+  /@types/file-saver@2.0.7:
+    resolution: {integrity: sha512-dNKVfHd/jk0SkR/exKGj2ggkB45MAkzvWCaqLUUgkyjITkGNzH8H+yUwr+BLJUBjZOe9w8X3wgmXhZDRg1ED6A==}
     dev: true
 
   /@types/gh-pages@6.1.0:
@@ -4317,6 +4327,10 @@ packages:
     engines: {node: ^10.12.0 || >=12.0.0}
     dependencies:
       flat-cache: 3.2.0
+    dev: true
+
+  /file-saver@2.0.5:
+    resolution: {integrity: sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==}
     dev: true
 
   /filelist@1.0.4:

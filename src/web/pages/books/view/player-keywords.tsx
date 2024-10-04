@@ -39,7 +39,7 @@ export class PlayerKeywords {
   }) {
     const text = this.getBriefText(pos)
     if (!text) return
-    const res = await booksKeywordsUpsertRouter.action({
+    const res = await booksKeywordsUpsertRouter.json({
       keywords: [
         {
           keyword,
@@ -78,7 +78,7 @@ export class PlayerKeywords {
   ): Promise<undefined | BookTypes.PropertyKeyword> {
     const text = this.getBriefText(pos)
     if (!text) return
-    const res = await booksKeywordsUpsertRouter.action({
+    const res = await booksKeywordsUpsertRouter.json({
       keywords: [
         {
           uuid,
@@ -122,7 +122,7 @@ export class PlayerKeywords {
     )
       return
 
-    await booksKeywordsDeleteRouter.action({
+    await booksKeywordsDeleteRouter.json({
       uuid: this.uuid,
       keywordUuids: [keyword.uuid],
     })
