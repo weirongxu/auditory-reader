@@ -83,13 +83,15 @@ function TooltipButton({
     [description, hotkey],
   )
   return (
-    <Popover
-      style={{ pointerEvents: 'none' }}
-      content={isMobile ? null : tooltip}
-      placement="top"
-    >
-      <ControlButton {...btnProps} />
-    </Popover>
+    <ControlButton {...btnProps}>
+      <Popover
+        style={{ pointerEvents: 'none' }}
+        content={isMobile ? null : tooltip}
+        placement="top"
+      >
+        <div>{btnProps.children}</div>
+      </Popover>
+    </ControlButton>
   )
 }
 
