@@ -11,6 +11,7 @@
     --main-bg-blue: #03c;
     --main-fg-blue: #DDD;
     --main-bg-highlight: rgba(10, 120, 220, 0.3);
+    --main-bg-symbol: rgba(10, 120, 220, 0.6);
     --main-fg-highlight: var(--main-fg);
   }
   :root.${y.JK}  {
@@ -127,12 +128,17 @@
 
       ${i}
 
-      .${y.is} > div, .${y.pJ} > div, .${y.TO} > div {
+      .${y.is} > div, .${y.pJ} > div {
         background-color: var(--main-bg-highlight) !important;
         color: var(--main-fg-highlight) !important;
         position: absolute;
         user-select: none;
         pointer-events: none;
+      }
+
+      .${y.TO} > div {
+        position: absolute;
+        border-bottom: 0.3em dotted var(--main-bg-symbol);
       }
 
       .${y.lc} {
