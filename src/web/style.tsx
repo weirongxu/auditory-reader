@@ -12,6 +12,7 @@ export const globalStyle = `
     --main-bg-blue: #03c;
     --main-fg-blue: #DDD;
     --main-bg-highlight: rgba(10, 120, 220, 0.3);
+    --main-bg-symbol: rgba(10, 120, 220, 0.6);
     --main-fg-highlight: var(--main-fg);
   }
   :root.${COLOR_SCHEME_DARK_CLASS}  {
