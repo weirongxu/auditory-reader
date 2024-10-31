@@ -775,16 +775,21 @@ export class PlayerIframeController {
 
       ${hoverStyle}
 
-      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div, .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div {
-        background-color: var(--main-bg-highlight) !important;
-        color: var(--main-fg-highlight) !important;
+      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div,
+      .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div,
+      .${ROOT_KEYWORD_HIGHLIGHT_CLASS} > div {
         position: absolute;
         user-select: none;
         pointer-events: none;
       }
 
+      .${ROOT_UTTERER_HIGHLIGHT_CLASS} > div,
+      .${ROOT_ANNOTATION_HIGHLIGHT_CLASS} > div {
+        background-color: var(--main-bg-highlight) !important;
+        color: var(--main-fg-highlight) !important;
+      }
+
       .${ROOT_KEYWORD_HIGHLIGHT_CLASS} > div {
-        position: absolute;
         border-bottom: 0.3em dotted var(--main-bg-symbol);
       }
 
