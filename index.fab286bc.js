@@ -128,16 +128,21 @@
 
       ${i}
 
-      .${y.is} > div, .${y.pJ} > div {
-        background-color: var(--main-bg-highlight) !important;
-        color: var(--main-fg-highlight) !important;
+      .${y.is} > div,
+      .${y.pJ} > div,
+      .${y.TO} > div {
         position: absolute;
         user-select: none;
         pointer-events: none;
       }
 
+      .${y.is} > div,
+      .${y.pJ} > div {
+        background-color: var(--main-bg-highlight) !important;
+        color: var(--main-fg-highlight) !important;
+      }
+
       .${y.TO} > div {
-        position: absolute;
         border-bottom: 0.3em dotted var(--main-bg-symbol);
       }
 
