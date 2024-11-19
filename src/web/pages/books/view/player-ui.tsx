@@ -252,7 +252,7 @@ export function usePlayerUI({
       disabledVertical,
     })
 
-  const PlayerCtrlGroup = useMemo(() => {
+  const PlayerCtrlGroup1 = useMemo(() => {
     const buttons: (JSX.Element | null)[] = [
       <TooltipButton
         key="nav"
@@ -278,16 +278,6 @@ export function usePlayerUI({
           <Icon icon={faBookBookmark} />
         </TooltipButton>
       ) : null,
-      <TooltipButton
-        key="annotation"
-        description={t('hotkey.annotationToggle')}
-        hotkey="b"
-        onClick={() => {
-          void player.annotations.toggle(pos, selection ?? null)
-        }}
-      >
-        <Icon icon={faBookmark} />
-      </TooltipButton>,
       keywords && keywords.length > 0 ? (
         <TooltipButton
           key="keywords"
@@ -298,18 +288,6 @@ export function usePlayerUI({
           }}
         >
           <Icon icon={faFileLines} />
-        </TooltipButton>
-      ) : null,
-      selection?.selectedText ? (
-        <TooltipButton
-          key="keyword"
-          description={t('hotkey.keywordAdd')}
-          hotkey="B"
-          onClick={() => {
-            void player.keywords.add({ pos, keyword: selection.selectedText })
-          }}
-        >
-          <Icon icon={faQuoteRight} />
         </TooltipButton>
       ) : null,
     ]
@@ -406,11 +384,38 @@ export function usePlayerUI({
     isLastSection,
     keywords,
     player,
-    pos,
-    selection,
     setViewPanelType,
     started,
   ])
+
+  const PlayerCtrlGroup2 = useMemo(() => {
+    const buttons: (JSX.Element | null)[] = [
+      <TooltipButton
+        key="annotation"
+        description={t('hotkey.annotationToggle')}
+        hotkey="b"
+        onClick={() => {
+          void player.annotations.toggle(pos, selection ?? null)
+        }}
+      >
+        <Icon icon={faBookmark} />
+      </TooltipButton>,
+      selection?.selectedText ? (
+        <TooltipButton
+          key="keyword"
+          description={t('hotkey.keywordAdd')}
+          hotkey="B"
+          onClick={() => {
+            void player.keywords.add({ pos, keyword: selection.selectedText })
+          }}
+        >
+          <Icon icon={faQuoteRight} />
+        </TooltipButton>
+      ) : null,
+    ]
+
+    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
+  }, [player, pos, selection])
 
   const TimerRemainUI = useMemo(() => {
     return (
@@ -445,10 +450,6 @@ export function usePlayerUI({
     return <>{TimerRemainUI}</>
   }, [TimerRemainUI])
 
-  const bottomLeft = useMemo(() => {
-    return <>{PlayerCtrlGroup}</>
-  }, [PlayerCtrlGroup])
-
   const bottomRight = useMemo(() => {
     return <>{book.item.isTmp && TmpStoreBtn}</>
   }, [TmpStoreBtn, book.item.isTmp])
@@ -465,7 +466,8 @@ export function usePlayerUI({
 
   useAppBarSync({
     topRight,
-    bottomLeft,
+    bottomLeft1: PlayerCtrlGroup1,
+    bottomLeft2: PlayerCtrlGroup2,
     bottomRight,
     settings: appSettings,
   })
