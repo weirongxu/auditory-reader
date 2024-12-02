@@ -290,21 +290,21 @@ export function usePlayerUI({
           <Icon icon={faFileLines} />
         </TooltipButton>
       ) : null,
+      <TooltipButton
+        key="prev-section"
+        hotkey="shift + ←"
+        description={t('hotkey.prevSection')}
+        disabled={isFirstSection}
+        onClick={() => {
+          player.prevSection().catch(console.error)
+        }}
+      >
+        <Icon icon={faBackwardFast} />
+      </TooltipButton>,
     ]
 
     if (!collapsed)
       buttons.push(
-        <TooltipButton
-          key="prev-section"
-          hotkey="shift + ←"
-          description={t('hotkey.prevSection')}
-          disabled={isFirstSection}
-          onClick={() => {
-            player.prevSection().catch(console.error)
-          }}
-        >
-          <Icon icon={faBackwardFast} />
-        </TooltipButton>,
         <TooltipButton
           key="prev-paragraph"
           hotkey="↑"
@@ -345,6 +345,10 @@ export function usePlayerUI({
         >
           <Icon icon={faForward} />
         </TooltipButton>,
+      )
+
+    if (isMobile)
+      buttons.push(
         <TooltipButton
           key="next-section"
           hotkey="shift + →"
@@ -356,10 +360,6 @@ export function usePlayerUI({
         >
           <Icon icon={faForwardFast} />
         </TooltipButton>,
-      )
-
-    if (isMobile)
-      buttons.push(
         <ControlButton
           key="collapse"
           onClick={() => {
