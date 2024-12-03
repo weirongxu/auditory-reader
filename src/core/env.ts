@@ -31,9 +31,11 @@ type Config = {
 }
 
 const dataPath = 'server-data'
-const config: Config = isBrowser
-  ? {}
-  : JSON.parse(fs.readFileSync('auditory-reader.config.json', 'utf8'))
+const configPath = 'auditory-reader.config.json'
+const config: Config =
+  !isBrowser && fs.existsSync(configPath)
+    ? JSON.parse(fs.readFileSync(configPath, 'utf8'))
+    : {}
 
 const appPublicRoot = config.appPublicPath || process.env.APP_PUBLIC_PATH || '/'
 
