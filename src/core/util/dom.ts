@@ -1,5 +1,7 @@
 import type { JSDOM, DOMWindow } from 'jsdom'
 import { isUrl } from './url.js'
+import { Readability } from '@mozilla/readability'
+import { env } from '../env.js'
 
 export type DOMView = DOMWindow
 
@@ -13,12 +15,13 @@ export function isInputElement(element: any): element is Element {
   return false
 }
 
-export async function jsDOMParser(xml: string): Promise<{
+export function jsDOMParser(xml: string): {
   view: DOMView
   doc: Document
-}> {
-  // @ts-ignore
-  const dom: JSDOM = new JSDOM('', { pretendToBeVisual: true })
+} {
+  const dom: JSDOM =
+    // @ts-ignore
+    new globalThis.JSDOM('', { pretendToBeVisual: true })
   const DOMParser = dom.window.DOMParser
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/html')
@@ -61,22 +64,52 @@ export function isAnchorElement(node: any): node is HTMLAnchorElement {
   return !!view && node instanceof view.HTMLAnchorElement
 }
 
-export async function HTMLImgs2DataURL(
-  urlStr: string,
+export async function getArticleXml(doc: Document, baseURL?: string) {
+  const article = new Readability(doc).parse()
+
+  if (!article) throw new Error('parse article error')
+
+  const articleDom = jsDOMParser(article.content)
+  const articleDoc = articleDom.doc
+
+  if (env.appMode === 'server')
+    await htmlImgs2DataURL(articleDoc.body, { baseURL })
+
+  return serializeBodyXml(articleDom)
+}
+
+function serializeBodyXml({ view, doc }: { view: DOMView; doc: Document }) {
+  const nodes = Array.from(doc.body.childNodes)
+  let content = ''
+  for (const node of nodes) {
+    if (node.nodeType === view.Node.TEXT_NODE) {
+      content += node.textContent
+    } else {
+      content += new view.XMLSerializer().serializeToString(node)
+    }
+  }
+  return content
+}
+
+export async function htmlImgs2DataURL(
   element: HTMLElement,
-  options: { referrer?: string } = {},
+  options: { referrer?: string; baseURL?: string } = {},
 ) {
-  const url = new URL(urlStr)
+  const baseURL = options.baseURL ? new URL(options.baseURL) : undefined
   const imgs = [...element.querySelectorAll('img')]
   const headers = new Headers({
     ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
   })
   for (const img of imgs) {
-    let src = img.src || img.getAttribute('data-src')
+    let src =
+      img.src ||
+      img.getAttribute('data-src') ||
+      img.getAttribute('data-original')
     if (!src) continue
+    if (src.startsWith('data:')) continue
     try {
-      if (src.startsWith('//')) {
-        src = `${url.protocol}:${src}`
+      if (src.startsWith('//') && baseURL) {
+        src = `${baseURL.protocol}:${src}`
       }
       if (!isUrl(src)) return
       const res = await fetch(src, {
@@ -93,7 +126,7 @@ export async function HTMLImgs2DataURL(
   }
 }
 
-export async function SVGImgs2DataURL(
+export async function svgImgs2DataURL(
   svgElement: SVGSVGElement,
   options: { referrer?: string; baseURL?: string } = {},
 ) {
@@ -123,9 +156,12 @@ export async function SVGImgs2DataURL(
   }
 }
 
-export async function svgToDataUri(svgElement: SVGSVGElement, baseURL: string) {
+export async function svgToDataUri(
+  svgElement: SVGSVGElement,
+  baseURL?: string,
+) {
   const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement
-  await SVGImgs2DataURL(clonedSvg, { baseURL })
+  await svgImgs2DataURL(clonedSvg, { baseURL })
   clonedSvg.setAttribute('width', `${svgElement.clientWidth}px`)
   const xml = new XMLSerializer().serializeToString(clonedSvg)
   svgElement.cloneNode()

@@ -55,7 +55,7 @@ export const booksSearchRouter = new URouter<
       contType &&
       ['/xml', '/html', '/xhtml'].some((t) => contType.includes(t))
     ) {
-      const { doc } = await jsDOMParser(content)
+      const { doc } = jsDOMParser(content)
       const readableExtractor = new ReadableExtractor(doc, navs)
       const parts = readableExtractor.toReadableParts()
       const nav = navs.find((it) => it.spineIndex === section)

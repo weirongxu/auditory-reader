@@ -1,15 +1,26 @@
+import path from '@file-services/path'
 import { Button, Form, Input } from 'antd'
 import { t } from 'i18next'
-import path from '@file-services/path'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateRouter } from '../../../../core/api/books/create.js'
 import { BookEpub } from '../../../../core/book/book-epub.js'
+import { htmlToEpub, textToEpub } from '../../../../core/generate/converters.js'
 import { parseLangCode, type LangCode } from '../../../../core/lang.js'
+import {
+  getBookNameByHtml,
+  getBookNameByText,
+} from '../../../../core/util/book.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
+import {
+  isEpubFile,
+  isHtmlFile,
+  isTextFile,
+} from '../../../../core/util/file.js'
 import { async } from '../../../../core/util/promise.js'
 import { FileInput } from '../../../components/file-input.js'
 import { LanguageSelect } from '../../../components/language-select.js'
+import { booksCreateByHtmlRouter } from '../../../../core/api/books/create-by-html.js'
 
 type Values = {
   name: string
@@ -25,7 +36,8 @@ export function AddFile() {
 
   useEffect(() => {
     async(async () => {
-      if (file?.name.endsWith('.epub')) {
+      if (!file) return
+      if (isEpubFile(file)) {
         const buf = await file.arrayBuffer()
         const epub = await BookEpub.read(buf)
         if (!epub) return
@@ -36,6 +48,16 @@ export function AddFile() {
         if (langCode) {
           form.setFieldValue('langCode', langCode)
         }
+      } else if (isTextFile(file)) {
+        const content = await file.text()
+        const name = getBookNameByText(content)
+        if (!name) return
+        form.setFieldValue('name', name)
+      } else if (isHtmlFile(file)) {
+        const html = await file.text()
+        const name = await getBookNameByHtml(html)
+        if (!name) return
+        form.setFieldValue('name', name)
       }
     })
   }, [file, form])
@@ -57,24 +79,29 @@ export function AddFile() {
           try {
             setSubmitted(true)
             if (!values.file) return
-            if (values.file.name.endsWith('.epub')) {
-              const buf = await values.file.arrayBuffer()
-              const fileBase64 = arrayBufferToBase64(buf)
+            let epubBuf: ArrayBuffer | undefined
+            let html: string | undefined
+            if (isEpubFile(values.file)) {
+              epubBuf = await values.file.arrayBuffer()
+            } else if (isTextFile(values.file)) {
+              const text = await values.file.text()
+              epubBuf = await textToEpub(text, values.name, values.langCode)
+            } else if (isHtmlFile(values.file)) {
+              html = await values.file.text()
+            }
+            if (epubBuf) {
+              const fileBase64 = arrayBufferToBase64(epubBuf)
               const entity = await booksCreateRouter.json({
                 name: values.name,
                 langCode: values.langCode,
                 bufferBase64: fileBase64,
-                type: 'epub',
               })
               nav(`/books/added-successful/${entity.uuid}`)
-            } else if (values.file.name.endsWith('.txt')) {
-              const buf = await values.file.arrayBuffer()
-              const fileBase64 = arrayBufferToBase64(buf)
-              const entity = await booksCreateRouter.json({
+            } else if (html) {
+              const entity = await booksCreateByHtmlRouter.json({
                 name: values.name,
                 langCode: values.langCode,
-                bufferBase64: fileBase64,
-                type: 'text',
+                html,
               })
               nav(`/books/added-successful/${entity.uuid}`)
             }

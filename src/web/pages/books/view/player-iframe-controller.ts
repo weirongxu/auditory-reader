@@ -1,9 +1,8 @@
+import path from '@file-services/path'
 import { useMountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
-import path from '@file-services/path'
 import type { RefObject } from 'react'
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
-import type { BookNav } from '../../../../core/book/book-base.js'
 import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import {
@@ -1397,7 +1396,7 @@ export class PlayerIframeController {
   }
 
   protected updateActiveNavs() {
-    interface RequiredNav extends BookNav {
+    interface RequiredNav extends BookTypes.Nav {
       spineIndex: number
     }
 
@@ -1406,7 +1405,7 @@ export class PlayerIframeController {
       (nav): nav is RequiredNav => nav.spineIndex === this.states.pos.section,
     )
 
-    const findNav = (): BookNav | undefined => {
+    const findNav = (): BookTypes.Nav | undefined => {
       // get last nav of less than spineIndex
       if (navs.length === 0) {
         const lastNav = findLast(
@@ -1455,7 +1454,7 @@ export class PlayerIframeController {
     }
 
     // find all parent navs
-    const matchedNavs: BookNav[] = [matchedNav]
+    const matchedNavs: BookTypes.Nav[] = [matchedNav]
     let index = matchedNavIndex - 1
     let level = matchedNav.level - 1
     while (index >= 0 && level > 0) {

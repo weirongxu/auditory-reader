@@ -1,6 +1,5 @@
 import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
-import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
@@ -10,7 +9,7 @@ import type { Player } from './player.js'
 type PlayerStates = {
   started: boolean
   pos: BookTypes.PropertyPosition
-  activeNavs: BookNav[]
+  activeNavs: BookTypes.Nav[]
   loading: boolean
   scrollPercent: number | undefined
   selection: BookTypes.PropertyRange | undefined
@@ -59,7 +58,7 @@ export class PlayerStatesManager {
     this.events.fire('pos', pos)
   }
 
-  set activeNavs(activeNavs: BookNav[]) {
+  set activeNavs(activeNavs: BookTypes.Nav[]) {
     this.#states.activeNavs = activeNavs
     this.events.fire('activeNavs', activeNavs)
   }
@@ -175,7 +174,7 @@ export function usePlayerSync(
   }: {
     setPos: Dispatch<BookTypes.PropertyPosition>
     setStarted: Dispatch<boolean>
-    setActiveNavs: Dispatch<BookNav[]>
+    setActiveNavs: Dispatch<BookTypes.Nav[]>
     setLoading: Dispatch<boolean>
     setScrollPercent: Dispatch<number | undefined>
     setSelection: Dispatch<BookTypes.PropertyRange | undefined>

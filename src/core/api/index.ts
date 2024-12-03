@@ -3,6 +3,7 @@ import { booksAnnotationsDeleteRouter } from './books/annotations-delete.js'
 import { booksAnnotationsUpsertRouter } from './books/annotations-upsert.js'
 import { booksAnnotationsRouter } from './books/annotations.js'
 import { booksCoverRouter } from './books/cover.js'
+import { booksCreateByHtmlRouter } from './books/create-by-html.js'
 import { booksCreateByUrlRouter } from './books/create-by-url.js'
 import { booksCreateRouter } from './books/create.js'
 import { booksDownloadRouter } from './books/download.js'
@@ -37,6 +38,7 @@ export const ROUTERS = [
   booksFetchUrlInfoRouter,
   booksTmpStoreRouter,
   booksCreateByUrlRouter,
+  booksCreateByHtmlRouter,
   booksMoveAfterRouter,
   booksMoveTopRouter,
   booksPageRouter,

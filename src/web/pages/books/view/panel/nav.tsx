@@ -1,8 +1,9 @@
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
+import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
+import type { BookView } from '../../view.js'
 import type { Player } from '../player.js'
 
 function NavList({
@@ -11,9 +12,9 @@ function NavList({
   selectedNav,
   player,
 }: {
-  navs: BookNav[]
-  activeNavs: BookNav[]
-  selectedNav: BookNav | undefined
+  navs: BookTypes.Nav[]
+  activeNavs: BookTypes.Nav[]
+  selectedNav: BookTypes.Nav | undefined
   player: Player
 }) {
   if (!navs.length) return null
@@ -58,7 +59,7 @@ function NavTree({
   player,
 }: {
   book: BookView
-  activeNavs?: BookNav[]
+  activeNavs?: BookTypes.Nav[]
   player: Player
 }) {
   const { addHotkeys } = useHotkeys()
@@ -66,7 +67,7 @@ function NavTree({
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
 
   const selectedNav = useMemo(() => {
-    return book.flattenedNavs[selectedIndex] as BookNav | undefined
+    return book.flattenedNavs[selectedIndex] as BookTypes.Nav | undefined
   }, [book.flattenedNavs, selectedIndex])
 
   // selected hotkeys
@@ -140,7 +141,7 @@ function NavTree({
 export function useBookViewNav(
   book: BookView,
   player: Player,
-  activeNavs?: BookNav[],
+  activeNavs?: BookTypes.Nav[],
 ) {
   return {
     NavTreeView: (

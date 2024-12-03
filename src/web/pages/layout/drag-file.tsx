@@ -1,18 +1,26 @@
 import { faClose } from '@fortawesome/free-solid-svg-icons'
 import { Button, Form, Typography } from 'antd'
 import { t } from 'i18next'
-import path from '@file-services/path'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { booksCreateByHtmlRouter } from '../../../core/api/books/create-by-html.js'
 import { booksCreateByUrlRouter } from '../../../core/api/books/create-by-url.js'
 import { booksCreateRouter } from '../../../core/api/books/create.js'
 import { booksFetchUrlInfoRouter } from '../../../core/api/books/fetch-url-info.js'
 import { BookEpub } from '../../../core/book/book-epub.js'
 import { TMP_UUID } from '../../../core/consts.js'
+import { textToEpub } from '../../../core/generate/converters.js'
 import type { LangCode } from '../../../core/lang.js'
 import { parseLangCode } from '../../../core/lang.js'
+import { getBookNameByHtml } from '../../../core/util/book.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 import { eventBan } from '../../../core/util/dom.js'
+import {
+  getBookNameByFile,
+  isEpubFile,
+  isHtmlFile,
+  isTextFile,
+} from '../../../core/util/file.js'
 import { async } from '../../../core/util/promise.js'
 import { isUrl } from '../../../core/util/url.js'
 import { FlexBox } from '../../components/flex-box.js'
@@ -20,7 +28,7 @@ import { Icon } from '../../components/icon.js'
 import { LanguageSelect } from '../../components/language-select.js'
 import { SpinFullscreen } from '../../components/spin.js'
 
-type DragItem = DragItemUrl | DragItemEpub | DragItemText
+type DragItem = DragItemUrl | DragItemEpub | DragItemHtml | DragItemText
 
 type DragItemUrl = {
   type: 'url'
@@ -33,14 +41,21 @@ type DragItemEpub = {
   type: 'file-epub'
   title: string
   langCode?: LangCode
-  bufferBase64: string
+  buffer: ArrayBuffer
+}
+
+type DragItemHtml = {
+  type: 'file-html'
+  title: string
+  langCode?: LangCode
+  html: string
 }
 
 type DragItemText = {
   type: 'file-text'
   title: string
   langCode?: LangCode
-  bufferBase64: string
+  content: string
 }
 
 function hasFileOrUrl(event: React.DragEvent<HTMLDivElement>) {
@@ -72,34 +87,53 @@ export function DragFile({ children }: { children: React.ReactNode }) {
         return
       }
       setLoading(true)
+      let epubBuf: ArrayBuffer | undefined
+      let url: string | undefined
+      let html: string | undefined
       switch (dragItem.type) {
-        case 'file-epub':
-          await booksCreateRouter.json({
-            bufferBase64: dragItem.bufferBase64,
-            langCode: dragItem.langCode,
-            name: dragItem.title,
-            type: 'epub',
-            isTmp: true,
-          })
+        case 'file-epub': {
+          epubBuf = dragItem.buffer
           break
-        case 'file-text':
-          await booksCreateRouter.json({
-            bufferBase64: dragItem.bufferBase64,
-            langCode: dragItem.langCode,
-            name: dragItem.title,
-            type: 'text',
-            isTmp: true,
-          })
+        }
+        case 'file-html': {
+          html = dragItem.html
           break
-        case 'url':
-          await booksCreateByUrlRouter.json({
-            url: dragItem.url,
-            langCode: dragItem.langCode,
-            name: dragItem.title,
-            isTmp: true,
-          })
+        }
+        case 'file-text': {
+          epubBuf = await textToEpub(
+            dragItem.content,
+            dragItem.title,
+            dragItem.langCode,
+          )
           break
+        }
+        case 'url': {
+          url = dragItem.url
+          break
+        }
       }
+      if (epubBuf)
+        await booksCreateRouter.json({
+          bufferBase64: arrayBufferToBase64(epubBuf),
+          langCode: dragItem.langCode,
+          name: dragItem.title,
+          isTmp: true,
+        })
+      else if (url)
+        await booksCreateByUrlRouter.json({
+          url,
+          langCode: dragItem.langCode,
+          name: dragItem.title,
+          isTmp: true,
+        })
+      else if (html)
+        await booksCreateByHtmlRouter.json({
+          html,
+          langCode: dragItem.langCode,
+          name: dragItem.title,
+          isTmp: true,
+        })
+
       setLoading(false)
       setDragItem(null)
       nav(`/books/view/${TMP_UUID}`)
@@ -137,27 +171,34 @@ export function DragFile({ children }: { children: React.ReactNode }) {
               if (item.kind === 'file') {
                 const file = item.getAsFile()
                 if (!file) continue
-                const buf = await file.arrayBuffer()
-                const epub = await BookEpub.read(buf)
-                if (!epub) continue
-                const langCode = parseLangCode(epub.language)
-                const ext = path.extname(file.name)
-                const basename = path.basename(file.name, ext)
-                const bufferBase64 = arrayBufferToBase64(buf)
-                if (ext === '.epub')
+                const basename = getBookNameByFile(file)
+                if (isEpubFile(file)) {
+                  const buf = await file.arrayBuffer()
+                  const epub = await BookEpub.read(buf)
+                  if (!epub) continue
+                  const langCode = parseLangCode(epub.language)
                   return setDragItem({
-                    bufferBase64,
+                    buffer: buf,
                     title: epub.title ?? basename,
                     type: 'file-epub',
                     langCode,
                   })
-                else if (ext === '.txt' || ext === '.text')
+                } else if (isTextFile(file)) {
+                  const content = await file.text()
                   return setDragItem({
-                    bufferBase64,
+                    content,
                     title: basename,
                     type: 'file-text',
-                    langCode,
                   })
+                } else if (isHtmlFile(file)) {
+                  const html = await file.text()
+                  const title = await getBookNameByHtml(html)
+                  return setDragItem({
+                    html,
+                    title,
+                    type: 'file-html',
+                  })
+                }
               } else if (item.kind === 'string') {
                 const url = await new Promise<string>((resolve) => {
                   item.getAsString(resolve)

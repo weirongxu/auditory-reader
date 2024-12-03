@@ -18,7 +18,7 @@ export abstract class BookEntityBase {
   }> {
     const buffer = await this.readFileBuffer()
     const unknownHint = 'Book type unknown'
-    const extname: string | undefined = getBookExtension(this.entity)
+    const extname: string | undefined = getBookExtension()
     if (!extname) throw new ErrorRequestResponse(unknownHint)
     const contentType: string | false = mime.contentType(extname)
     if (!contentType) throw new ErrorRequestResponse(unknownHint)

@@ -1,4 +1,4 @@
-import type { BookNav } from '../book/book-base.js'
+import type { BookTypes } from '../book/types.js'
 import { PARA_BOX_CLASS, PARA_IGNORE_CLASS } from '../consts.js'
 import { compact, orderBy } from './collection.js'
 import {
@@ -172,7 +172,7 @@ export class ReadableExtractor {
 
   constructor(
     private doc: Document,
-    private flattenedNavs: BookNav[],
+    private flattenedNavs: BookTypes.Nav[],
   ) {
     this.#navAnchorSet = new Set(
       compact(this.flattenedNavs.map((n) => n.hrefAnchor)),

@@ -191,7 +191,6 @@ export abstract class BookListBase {
     const entityJson: BookTypes.EntityJson = {
       name: entity.name,
       uuid: entity.uuid,
-      type: entity.type,
       langCode: entity.langCode,
       isFavorited: entity.isFavorited,
       createdAt: entity.createdAt.toISOString(),

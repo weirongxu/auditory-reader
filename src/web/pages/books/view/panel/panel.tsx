@@ -1,17 +1,17 @@
 import { t } from 'i18next'
 import { useMemo } from 'react'
-import type { BookNav, BookView } from '../../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useViewPanelType } from '../../../../store.js'
+import type { BookView } from '../../view.js'
 import type { Player } from '../player.js'
 import { useBookViewAnnotations } from './annotations.js'
-import { useBookViewNav } from './nav.js'
 import { useBookViewKeywords } from './keywords.js'
+import { useBookViewNav } from './nav.js'
 
 export function useBookPanel(
   book: BookView,
   player: Player,
-  activeNavs: BookNav[] | undefined,
+  activeNavs: BookTypes.Nav[] | undefined,
   pos: BookTypes.PropertyPosition,
   selection: BookTypes.PropertyRange | undefined,
 ) {

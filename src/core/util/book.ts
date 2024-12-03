@@ -1,14 +1,20 @@
 import type { BookTypes } from '../book/types.js'
+import { jsDOMParser } from './dom.js'
+import { splitLines } from './text.js'
 
-export function getBookExtension(entity: { type: BookTypes.EntityType }) {
-  switch (entity.type) {
-    case 'epub':
-      return '.epub'
-    case 'text':
-      return '.txt'
-    default:
-      return undefined
-  }
+export function getBookExtension() {
+  return '.epub'
+}
+
+export function getBookNameByText(content: string) {
+  const lines = splitLines(content)
+  return lines.map((line) => line.trim()).find((line) => !!line)
+}
+
+export async function getBookNameByHtml(html: string) {
+  const articleDom = jsDOMParser(html)
+  const articleDoc = articleDom.doc
+  return articleDoc.title
 }
 
 export function bookJsonToEntity(
@@ -16,7 +22,6 @@ export function bookJsonToEntity(
 ): BookTypes.Entity {
   const entity: BookTypes.Entity = {
     name: entityJson.name,
-    type: entityJson.type,
     langCode: entityJson.langCode,
     isFavorited: entityJson.isFavorited,
     isArchived: Boolean(entityJson.isArchived),

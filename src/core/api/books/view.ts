@@ -1,4 +1,3 @@
-import type { BookNav, BookSpine } from '../../book/book-base.js'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'
@@ -9,8 +8,8 @@ export type BookViewQuery = {
 
 export type BookViewRes = {
   item: BookTypes.Entity
-  navs: BookNav[]
-  spines: BookSpine[]
+  navs: BookTypes.Nav[]
+  spines: BookTypes.Spine[]
 }
 
 export const booksViewRouter = new URouter<BookViewQuery, BookViewRes>(

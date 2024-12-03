@@ -19,12 +19,12 @@ import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
-import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { filterOptionLabel } from '../../../../core/util/antd.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import { Icon } from '../../../components/icon.js'
+import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import {
   useAutoSection,
   useDisabledVertical,
@@ -45,7 +45,6 @@ import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
-import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -219,7 +218,7 @@ export function usePlayerUI({
 }: {
   started: boolean
   player: Player
-  activeNavs?: BookNav[]
+  activeNavs?: BookTypes.Nav[]
   selection?: BookTypes.PropertyRange
 }) {
   const { book, pos } = useBookContext()

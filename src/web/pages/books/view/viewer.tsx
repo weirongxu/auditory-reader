@@ -2,7 +2,6 @@ import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { BookNav } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { SpinCenter } from '../../../components/spin.js'
@@ -19,7 +18,7 @@ export function useViewer() {
   const { book, pos, setPos } = useBookContext()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [started, setStarted] = useState(false)
-  const [activeNavs, setActiveNavs] = useState<BookNav[]>()
+  const [activeNavs, setActiveNavs] = useState<BookTypes.Nav[]>()
   const [loading, setLoading] = useState<boolean>(false)
   const [scrollPercent, setScrollPercent] = useState<number | undefined>()
   const [selection, setSelection] = useState<

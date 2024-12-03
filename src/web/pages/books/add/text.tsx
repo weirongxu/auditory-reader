@@ -3,10 +3,11 @@ import { t } from 'i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { booksCreateRouter } from '../../../../core/api/books/create.js'
+import { textToEpub } from '../../../../core/generate/converters.js'
 import { type LangCode } from '../../../../core/lang.js'
+import { getBookNameByText } from '../../../../core/util/book.js'
 import { arrayBufferToBase64 } from '../../../../core/util/converter.js'
 import { async } from '../../../../core/util/promise.js'
-import { splitLines } from '../../../../core/util/text.js'
 import { LanguageSelect } from '../../../components/language-select.js'
 import { Textarea } from '../../../components/textarea.js'
 
@@ -26,8 +27,7 @@ export function AddText() {
     if (!content) return
     const name = form.getFieldValue('name')
     if (!name) {
-      const lines = splitLines(content)
-      const newName = lines.find((line) => !!line.trim())
+      const newName = getBookNameByText(content)
       if (newName) form.setFieldValue('name', newName)
     }
   }, [content, form])
@@ -48,13 +48,16 @@ export function AddText() {
         async(async () => {
           try {
             setSubmitted(true)
-            const buf = new TextEncoder().encode(values.content)
-            const fileBase64 = arrayBufferToBase64(buf)
+            const epubBuf = await textToEpub(
+              values.content,
+              values.name,
+              values.langCode,
+            )
+            const fileBase64 = arrayBufferToBase64(epubBuf)
             const entity = await booksCreateRouter.json({
               name: values.name,
               langCode: values.langCode,
               bufferBase64: fileBase64,
-              type: 'text',
             })
             nav(`/books/added-successful/${entity.uuid}`)
           } finally {

@@ -1,18 +1,18 @@
 import { useUnmountEffect } from '@react-hookz/web'
 import type { RefObject } from 'react'
 import { useRef } from 'react'
-import type { BookView } from '../../../../core/book/book-base.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async } from '../../../../core/util/promise.js'
+import type { BookView } from '../view.js'
 import { PlayerAnnotations } from './player-annotations.js'
 import {
   PlayerIframeController,
   usePlayerIframe,
 } from './player-iframe-controller.js'
+import { PlayerKeywords } from './player-keywords.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
-import { PlayerKeywords } from './player-keywords.js'
 
 export class Player {
   states: PlayerStatesManager

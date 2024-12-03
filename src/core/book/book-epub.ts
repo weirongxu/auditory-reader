@@ -1,24 +1,9 @@
-import JSZip from 'jszip'
 import path from '@file-services/path'
+import JSZip from 'jszip'
 import { compact } from '../util/collection.js'
-import { arrayBufferToBuffer } from '../util/converter.js'
 import type { XMLElem } from '../util/xml-dom.js'
 import { XMLDOMLoader } from '../util/xml-dom.js'
-import type { BookFile, BookNav, BookSpine } from './book-base.js'
-import { BookBase } from './book-base.js'
-
-type ManifestItem = {
-  id: string
-  href: string
-  mediaType: string
-  properties?: string
-}
-
-type SpineItem = {
-  manifest: ManifestItem
-  idref: string
-  linear: string
-}
+import type { BookTypes } from './types.js'
 
 // JSDOM unsupported :scope selector
 
@@ -70,7 +55,7 @@ function scopeQuerySelector(
   return first.value ?? null
 }
 
-export class BookEpub extends BookBase {
+export class BookEpub {
   protected static async getRootPath(xml: XMLDOMLoader) {
     const containerRoot = await xml.htmlDom('META-INF/container.xml')
     if (!containerRoot) {
@@ -108,9 +93,7 @@ export class BookEpub extends BookBase {
     protected xmlLoader: XMLDOMLoader,
     protected rootPkg: XMLElem,
     protected rootDir: string,
-  ) {
-    super()
-  }
+  ) {}
 
   #version?: 2 | 3
   get version(): 2 | 3 {
@@ -143,8 +126,8 @@ export class BookEpub extends BookBase {
     return this.#language
   }
 
-  #manifestItems?: ManifestItem[]
-  get manifestItems(): ManifestItem[] {
+  #manifestItems?: BookTypes.ManifestItem[]
+  get manifestItems(): BookTypes.ManifestItem[] {
     if (!this.#manifestItems) {
       const items =
         this.rootPkg.findDescendant('manifest')?.childrenFilter('item') ?? []
@@ -170,8 +153,8 @@ export class BookEpub extends BookBase {
     return this.#spine
   }
 
-  #spineItems?: SpineItem[]
-  get spineItems(): SpineItem[] {
+  #spineItems?: BookTypes.SpineItem[]
+  get spineItems(): BookTypes.SpineItem[] {
     if (!this.#spineItems) {
       this.#spineItems = compact(
         [...this.spine.childrenFilter('itemref')].map((item) => {
@@ -189,8 +172,8 @@ export class BookEpub extends BookBase {
     return this.#spineItems
   }
 
-  #spines?: BookSpine[]
-  get spines(): BookSpine[] {
+  #spines?: BookTypes.Spine[]
+  get spines(): BookTypes.Spine[] {
     if (!this.#spines) {
       this.#spines = this.spineItems.map((s) => ({
         href: s.manifest.href,
@@ -200,7 +183,7 @@ export class BookEpub extends BookBase {
     return this.#spines
   }
 
-  async file(href: string): Promise<BookFile | undefined> {
+  async file(href: string): Promise<BookTypes.File | undefined> {
     const file = await this.xmlLoader.file(href)
     if (!file) return
     const arrBuf = await file.arrayBuffer()
@@ -209,7 +192,7 @@ export class BookEpub extends BookBase {
     return { buffer: arrBuf, mediaType: manifest?.mediaType }
   }
 
-  async cover(): Promise<BookFile | undefined> {
+  async cover(): Promise<BookTypes.File | undefined> {
     const coverElem = this.rootPkg
       .findDescendant('metadata')
       ?.findDescendants('meta')
@@ -264,10 +247,10 @@ export class BookEpub extends BookBase {
     return this.parseNav3(navRoot, navDir)
   }
 
-  protected parseNav3(dom: Element, dir: string, level = 1): BookNav[] {
-    const nav: BookNav[] = compact(
+  protected parseNav3(dom: Element, dir: string, level = 1): BookTypes.Nav[] {
+    const nav: BookTypes.Nav[] = compact(
       Array.from(scopeQuerySelectorAll(dom, ['li'])).map(
-        (el): BookNav | undefined => {
+        (el): BookTypes.Nav | undefined => {
           const elem = Array.from(el.children).find(
             (l) => l.tagName.toLowerCase() !== 'ol',
           )
@@ -314,9 +297,9 @@ export class BookEpub extends BookBase {
     return this.parseNav2(navRoot, navDir)
   }
 
-  protected parseNav2(dom: XMLElem, dir: string, level = 1): BookNav[] {
-    const nav: BookNav[] = compact(
-      dom.childrenFilter('navPoint').map((el): BookNav | undefined => {
+  protected parseNav2(dom: XMLElem, dir: string, level = 1): BookTypes.Nav[] {
+    const nav: BookTypes.Nav[] = compact(
+      dom.childrenFilter('navPoint').map((el): BookTypes.Nav | undefined => {
         const label = el.findChild('navLabel')?.findChild('text')?.text()
         if (!label) return
         let href: string | undefined
@@ -344,8 +327,8 @@ export class BookEpub extends BookBase {
     return nav
   }
 
-  #navs?: BookNav[]
-  async navs(): Promise<BookNav[]> {
+  #navs?: BookTypes.Nav[]
+  async navs(): Promise<BookTypes.Nav[]> {
     if (!this.#navs) {
       if (this.version >= 3) {
         this.#navs = await this.loadNav3()

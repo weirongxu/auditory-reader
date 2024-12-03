@@ -20,7 +20,7 @@ export class XMLDOMLoader {
   constructor(protected zip: JSZip) {}
 
   protected async htmlToDOM(xml: string) {
-    const dom = await jsDOMParser(xml)
+    const dom = jsDOMParser(xml)
     return dom.doc
   }
 

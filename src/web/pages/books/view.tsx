@@ -3,8 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { booksPositionSyncRouter } from '../../../core/api/books/position-sync.js'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
-import { booksViewRouter } from '../../../core/api/books/view.js'
-import type { BookView } from '../../../core/book/book-base.js'
+import {
+  booksViewRouter,
+  type BookViewRes,
+} from '../../../core/api/books/view.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
 import { useFetch } from '../../../core/route/use-fetch.js'
@@ -15,6 +17,10 @@ import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
 import styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
+
+export interface BookView extends BookViewRes {
+  flattenedNavs: BookTypes.Nav[]
+}
 
 export const useBookView = (uuid: string) => {
   const {

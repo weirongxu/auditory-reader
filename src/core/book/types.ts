@@ -3,8 +3,6 @@ import type { LangCode } from '../lang.js'
 import type { SortOrder } from './enums.js'
 
 export namespace BookTypes {
-  export type EntityType = 'epub' | 'text'
-
   /**
    * Using tmp content when uuid is '$tmp'
    */
@@ -19,7 +17,6 @@ export namespace BookTypes {
   export type EntityJson = {
     uuid: EntityUUID
     name: string
-    type: EntityType
     langCode: LangCode
     isFavorited: boolean
     createdAt: string
@@ -31,7 +28,6 @@ export namespace BookTypes {
   export type Entity = {
     uuid: EntityUUID
     name: string
-    type: EntityType
     langCode: LangCode
     isFavorited: boolean
     isArchived: boolean
@@ -88,6 +84,40 @@ export namespace BookTypes {
     alias?: string[]
     note?: string
     color?: string
+  }
+
+  export type Nav = {
+    /** root (minimum) level is 1 */
+    level: number
+    label: string
+    href?: string
+    hrefBase?: string
+    hrefAnchor?: string
+    spineIndex?: number
+    children: Nav[]
+  }
+
+  export type Spine = {
+    id: string
+    href: string
+  }
+
+  export type ManifestItem = {
+    id: string
+    href: string
+    mediaType: string
+    properties?: string
+  }
+
+  export type SpineItem = {
+    manifest: ManifestItem
+    idref: string
+    linear: string
+  }
+
+  export type File = {
+    buffer: ArrayBuffer
+    mediaType?: string
   }
 
   export interface FilterParams {

@@ -1,3 +1,5 @@
+export const appName = 'auditory-reader'
+
 export const PARA_BOX_CLASS = '__para_box__'
 export const PARA_IGNORE_CLASS = '__para_ignore__'
 export const PARA_ACTIVE_CLASS = '__para_active__'

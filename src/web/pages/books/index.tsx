@@ -475,7 +475,7 @@ function BookButtons({
     const bookEpub = await booksDownloadRouter.file({
       uuid: book.uuid,
     })
-    const bookExt = getBookExtension(book)
+    const bookExt = getBookExtension()
     const bookName = book.name
     const filename = `${bookName}${bookExt}`
     saveAs(bookEpub, filename)

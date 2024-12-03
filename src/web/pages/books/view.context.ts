@@ -1,6 +1,6 @@
 import { atom, useAtom } from 'jotai'
-import type { BookView } from '../../../core/book/book-base.js'
 import type { BookTypes } from '../../../core/book/types.js'
+import type { BookView } from './view.js'
 
 export type BookContextProps = {
   uuid: string

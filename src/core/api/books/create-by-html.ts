@@ -1,39 +1,45 @@
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
+import { htmlToEpub } from '../../generate/converters.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-import { base64ToArrayBuffer } from '../../util/converter.js'
 
-export type BookCreate = {
+export type BookCreateByHtml = {
   name: string
   langCode: LangCode
-  bufferBase64: string
+  html: string
   /**
    * @default false
    */
   isTmp?: boolean
 }
 
-export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
-  'books/create',
-).routeLogined(async ({ req, userInfo }) => {
-  const body = await req.body
-  const buf = base64ToArrayBuffer(body.bufferBase64)
+export const booksCreateByHtmlRouter = new URouter<
+  BookCreateByHtml,
+  BookTypes.EntityJson
+>('books/create-by-html').routeLogined(async ({ req, userInfo }) => {
+  const body: BookCreateByHtml = await req.body
+
   const uuid = uuidv1()
 
+  const date = new Date()
   const entity: BookTypes.Entity = {
     uuid,
     name: body.name,
     langCode: body.langCode,
     isFavorited: false,
     isArchived: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: date,
+    updatedAt: date,
     isTmp: body.isTmp ?? false,
   }
 
-  const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
+  const epubBuf = await htmlToEpub(body.html, body.langCode)
+
+  const entityJson = await bookManager
+    .list(userInfo.account)
+    .add(entity, epubBuf)
 
   return entityJson
 })

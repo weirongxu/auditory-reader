@@ -1,9 +1,7 @@
 import { TMP_UUID } from '../consts.js'
 import { env } from '../env.js'
 import { ErrorRequestResponse } from '../route/session.js'
-import type { BookBase } from './book-base'
 import { BookEpub } from './book-epub.js'
-import { BookText } from './book-text.js'
 import type { BookEntityBase } from './entity/book-entity-base'
 import type { BookListBase } from './list/book-list-base'
 import { BookListFS } from './list/book-list-fs.js'
@@ -35,7 +33,7 @@ const extractUuid = (
 class BookManager {
   protected cacheList = new Map<string, BookListBase>()
   protected cacheEntity = new Map<string, BookEntityBase>()
-  protected cacheBook = new Map<string, BookBase>()
+  protected cacheBook = new Map<string, BookEpub>()
 
   reqTmpUuid(account: string) {
     const uuid = this.list(account).tmpUuid
@@ -84,7 +82,7 @@ class BookManager {
   }
 
   @extractUuid
-  async book(account: string, uuid: string): Promise<BookBase> {
+  async book(account: string, uuid: string): Promise<BookEpub> {
     let book = this.cacheBook.get(uuid)
     if (!book) {
       const bookEntity = await this.entity(account, uuid)
@@ -94,25 +92,10 @@ class BookManager {
     return book
   }
 
-  protected async parseBook(bookEntity: BookEntityBase): Promise<BookBase> {
-    switch (bookEntity.entity.type) {
-      case 'epub': {
-        const epub = await BookEpub.read(await bookEntity.readFileBuffer())
-        if (!epub) throw new ErrorRequestResponse('Parse epub error')
-        return epub
-      }
-      case 'text': {
-        const text = await BookText.read(
-          await bookEntity.readFileText(),
-          bookEntity.entity.name,
-        )
-        return text
-      }
-      default:
-        throw new ErrorRequestResponse(
-          `Unsupported type ${bookEntity.entity.type as string}`,
-        )
-    }
+  protected async parseBook(bookEntity: BookEntityBase): Promise<BookEpub> {
+    const epub = await BookEpub.read(await bookEntity.readFileBuffer())
+    if (!epub) throw new ErrorRequestResponse('Parse epub error')
+    return epub
   }
 }
 

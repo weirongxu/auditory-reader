@@ -1,13 +1,10 @@
-import { Readability } from '@mozilla/readability'
 import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
-import { env } from '../../env.js'
-import { EpubGen } from '../../generate/epub-gen.js'
+import { htmlToEpub } from '../../generate/converters.js'
 import type { LangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'
-import { HTMLImgs2DataURL, jsDOMParser } from '../../util/dom.js'
-import { fetchDom } from '../../util/http.js'
+import { fetchHtml } from '../../util/http.js'
 
 export type BookCreateByUrl = {
   name: string
@@ -31,7 +28,6 @@ export const booksCreateByUrlRouter = new URouter<
   const entity: BookTypes.Entity = {
     uuid,
     name: body.name,
-    type: 'epub',
     langCode: body.langCode,
     isFavorited: false,
     isArchived: false,
@@ -40,31 +36,9 @@ export const booksCreateByUrlRouter = new URouter<
     isTmp: body.isTmp ?? false,
   }
 
-  const dom = await fetchDom(body.url)
-  const doc = dom.doc
-  const article = new Readability(doc).parse()
+  const html = await fetchHtml(body.url)
 
-  if (!article) throw new Error('parse article error')
-
-  const articleDom = await jsDOMParser(article.content)
-  const articleDoc = articleDom.doc
-
-  if (env.appMode === 'server')
-    await HTMLImgs2DataURL(body.url, articleDoc.body)
-
-  const htmlContent = new articleDom.view.XMLSerializer().serializeToString(
-    articleDoc.body,
-  )
-
-  const epubBuf = await new EpubGen({
-    title: body.name,
-    date,
-    htmlContent,
-    lang: body.langCode,
-    publisher: body.url,
-    sourceURL: body.url,
-    uuid,
-  }).gen()
+  const epubBuf = await htmlToEpub(html, body.langCode, body.url)
 
   const entityJson = await bookManager
     .list(userInfo.account)
