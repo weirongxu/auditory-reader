@@ -154,7 +154,7 @@
       }
 
       .${y.TO} > div {
-        border-bottom: 0.3em dotted var(--main-bg-symbol);
+        border-bottom: 0.15em dotted var(--main-bg-symbol);
       }
 
       .${y.lc} {
