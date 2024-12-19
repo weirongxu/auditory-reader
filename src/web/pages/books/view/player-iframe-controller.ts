@@ -789,7 +789,7 @@ export class PlayerIframeController {
       }
 
       .${ROOT_KEYWORD_HIGHLIGHT_CLASS} > div {
-        border-bottom: 0.3em dotted var(--main-bg-symbol);
+        border-bottom: 0.15em dotted var(--main-bg-symbol);
       }
 
       .${PARA_ANNOTATION_CLASS} {
