@@ -117,7 +117,7 @@ export abstract class BaseHighlight {
       this.iframeCtrl.pageListScrollToLeft(left).catch(console.error)
     } else if (this.iframeCtrl.isVertical) {
       const right = sum(rects.map((r) => r.right)) / rects.length
-      this.iframeCtrl.scrollToRight(right).catch(console.error)
+      this.iframeCtrl.scrollToLeft(right).catch(console.error)
     } else {
       const top = sum(rects.map((r) => r.top)) / rects.length
       this.iframeCtrl.scrollToTop(top).catch(console.error)

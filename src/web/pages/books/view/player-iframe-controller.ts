@@ -257,7 +257,7 @@ export class PlayerIframeController {
       } else if (this.isVertical) {
         const right =
           elemRect.right + element.offsetWidth / 2 - containerRect.right
-        await this.scrollToRight(right, options)
+        await this.scrollToLeft(right, options)
       } else {
         const top = elemRect.top - containerRect.top
         await this.scrollToTop(top, options)
@@ -268,7 +268,7 @@ export class PlayerIframeController {
   /**
    * scroll to left offset with animation
    */
-  public async scrollToRight(
+  public async scrollToLeft(
     left: number,
     {
       iteration = 10,
@@ -466,21 +466,24 @@ export class PlayerIframeController {
     console.debug(`scrollElement: ${scrollElement?.tagName ?? 'null'}`)
     if (!scrollElement) return
 
-    if (!this.enabledPageList) {
+    if (this.enabledPageList) {
+      // page list
+      if (!this.viewOffsetWidth) return
+
+      const targetIndex =
+        Math.ceil((this.pageListScrollWidth * percent) / this.viewOffsetWidth) -
+        1
+      const offsetIndex = targetIndex - this.pageListCurIndex
+      await this.pageListPushAdjust(offsetIndex, jump)
+    } else if (this.isVertical) {
+      const scrollLeft =
+        -scrollElement.scrollWidth * percent + scrollElement.clientWidth
+      await this.scrollToLeft(scrollLeft, { position: 'start' })
+    } else {
       const scrollTop =
-        (scrollElement.scrollHeight - scrollElement.clientHeight) * percent
+        scrollElement.scrollHeight * percent - scrollElement.clientHeight
       await this.scrollToTop(scrollTop, { position: 'start' })
-      return
     }
-
-    // page list
-    if (!this.viewOffsetWidth) return
-
-    const targetIndex = Math.floor(
-      (this.pageListScrollWidth * percent) / this.viewOffsetWidth,
-    )
-    const offsetIndex = targetIndex - this.pageListCurIndex
-    await this.pageListPushAdjust(offsetIndex, jump)
   }
 
   #curAbsPath?: string
@@ -1058,16 +1061,16 @@ export class PlayerIframeController {
       let percent: number
       if (this.enabledPageList)
         percent =
-          this.pageListScrollLeft /
-          (this.pageListScrollWidth - scrollElement.clientWidth)
+          (this.pageListScrollLeft + scrollElement.clientWidth) /
+          this.pageListScrollWidth
       else if (this.isVertical)
         percent =
-          -scrollElement.scrollLeft /
-          (scrollElement.scrollWidth - scrollElement.clientWidth)
+          (-scrollElement.scrollLeft + scrollElement.clientWidth) /
+          scrollElement.scrollWidth
       else
         percent =
-          scrollElement.scrollTop /
-          (scrollElement.scrollHeight - scrollElement.clientHeight)
+          (scrollElement.scrollTop + scrollElement.clientHeight) /
+          scrollElement.scrollHeight
 
       this.states.scrollPercent = percent * 100
     }
