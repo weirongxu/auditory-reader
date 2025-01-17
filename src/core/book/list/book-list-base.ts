@@ -201,9 +201,6 @@ export abstract class BookListBase {
     if (entity.isTmp) {
       // delete cache
       await bookManager.delete(this.account, TMP_UUID)
-
-      const bookEntity = this.entity2bookEntity(entityJson)
-      await bookEntity.reset()
       await this.setTmp(entityJson)
     } else {
       const list = await this.rawList()
@@ -212,6 +209,10 @@ export abstract class BookListBase {
 
     await this.write()
     await this.bookAdd(entity, file)
+    if (entity.isTmp) {
+      const bookEntity = this.entity2bookEntity(entityJson)
+      await bookEntity.reset()
+    }
     return entityJson
   }
 
