@@ -977,7 +977,7 @@ export function BookList() {
 
   useAppBarSync({
     topRight: TopRightBar,
-    bottomRight: AddBtn,
+    bottomRight2: AddBtn,
   })
 
   // reset page & activatedIndex

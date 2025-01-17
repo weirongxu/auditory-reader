@@ -263,32 +263,6 @@ export function usePlayerUI({
       >
         <Icon icon={faFolderTree} />
       </TooltipButton>,
-      annotations && annotations.length > 0 ? (
-        <TooltipButton
-          key="annotations"
-          hotkey="m"
-          description={t('annotation')}
-          onClick={() => {
-            setViewPanelType((v) =>
-              v === 'annotation' ? 'none' : 'annotation',
-            )
-          }}
-        >
-          <Icon icon={faBookBookmark} />
-        </TooltipButton>
-      ) : null,
-      keywords && keywords.length > 0 ? (
-        <TooltipButton
-          key="keywords"
-          description={t('keyword')}
-          hotkey="M"
-          onClick={() => {
-            setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword'))
-          }}
-        >
-          <Icon icon={faFileLines} />
-        </TooltipButton>
-      ) : null,
       <TooltipButton
         key="prev-section"
         hotkey="shift + ←"
@@ -345,20 +319,22 @@ export function usePlayerUI({
           <Icon icon={faForward} />
         </TooltipButton>,
       )
+    buttons.push(
+      <TooltipButton
+        key="next-section"
+        hotkey="shift + →"
+        description={t('hotkey.nextSection')}
+        disabled={isLastSection}
+        onClick={() => {
+          player.nextSection().catch(console.error)
+        }}
+      >
+        <Icon icon={faForwardFast} />
+      </TooltipButton>,
+    )
 
     if (isMobile)
       buttons.push(
-        <TooltipButton
-          key="next-section"
-          hotkey="shift + →"
-          description={t('hotkey.nextSection')}
-          disabled={isLastSection}
-          onClick={() => {
-            player.nextSection().catch(console.error)
-          }}
-        >
-          <Icon icon={faForwardFast} />
-        </TooltipButton>,
         <ControlButton
           key="collapse"
           onClick={() => {
@@ -375,19 +351,50 @@ export function usePlayerUI({
 
     return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
   }, [
-    annotations,
     collapsed,
     isFirstParagraph,
     isFirstSection,
     isLastParagraph,
     isLastSection,
-    keywords,
     player,
     setViewPanelType,
     started,
   ])
 
   const PlayerCtrlGroup2 = useMemo(() => {
+    const buttons: (JSX.Element | null)[] = [
+      annotations && annotations.length > 0 ? (
+        <TooltipButton
+          key="annotations"
+          hotkey="m"
+          description={t('annotation')}
+          onClick={() => {
+            setViewPanelType((v) =>
+              v === 'annotation' ? 'none' : 'annotation',
+            )
+          }}
+        >
+          <Icon icon={faBookBookmark} />
+        </TooltipButton>
+      ) : null,
+      keywords && keywords.length > 0 ? (
+        <TooltipButton
+          key="keywords"
+          description={t('keyword')}
+          hotkey="M"
+          onClick={() => {
+            setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword'))
+          }}
+        >
+          <Icon icon={faFileLines} />
+        </TooltipButton>
+      ) : null,
+    ]
+
+    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
+  }, [annotations, keywords, setViewPanelType])
+
+  const PlayerCtrlGroupRight = useMemo(() => {
     const buttons: (JSX.Element | null)[] = [
       <TooltipButton
         key="annotation"
@@ -449,7 +456,7 @@ export function usePlayerUI({
     return <>{TimerRemainUI}</>
   }, [TimerRemainUI])
 
-  const bottomRight = useMemo(() => {
+  const bottomRight2 = useMemo(() => {
     return <>{book.item.isTmp && TmpStoreBtn}</>
   }, [TmpStoreBtn, book.item.isTmp])
 
@@ -467,7 +474,8 @@ export function usePlayerUI({
     topRight,
     bottomLeft1: PlayerCtrlGroup1,
     bottomLeft2: PlayerCtrlGroup2,
-    bottomRight,
+    bottomRight1: PlayerCtrlGroupRight,
+    bottomRight2,
     settings: appSettings,
   })
 

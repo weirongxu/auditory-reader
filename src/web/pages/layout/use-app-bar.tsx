@@ -8,14 +8,16 @@ export const appBarStatesAtom = atom<{
   settings: React.ReactNode
   bottomLeft1: React.ReactNode
   bottomLeft2: React.ReactNode
-  bottomRight: React.ReactNode
+  bottomRight1: React.ReactNode
+  bottomRight2: React.ReactNode
 }>({
   topLeft: null,
   topRight: null,
   settings: null,
   bottomLeft1: null,
   bottomLeft2: null,
-  bottomRight: null,
+  bottomRight1: null,
+  bottomRight2: null,
 })
 
 export const useAppBarSync = ({
@@ -24,14 +26,16 @@ export const useAppBarSync = ({
   settings,
   bottomLeft1,
   bottomLeft2,
-  bottomRight,
+  bottomRight1,
+  bottomRight2,
 }: {
   topLeft?: React.ReactNode
   topRight?: React.ReactNode
   settings?: React.ReactNode
   bottomLeft1?: React.ReactNode
   bottomLeft2?: React.ReactNode
-  bottomRight?: React.ReactNode
+  bottomRight1?: React.ReactNode
+  bottomRight2?: React.ReactNode
 }) => {
   const [, setAppBarStates] = useAtom(appBarStatesAtom)
 
@@ -42,16 +46,18 @@ export const useAppBarSync = ({
       settings,
       bottomLeft1,
       bottomLeft2,
-      bottomRight,
+      bottomRight1,
+      bottomRight2,
     })
   }, [
     topLeft,
     topRight,
     settings,
     bottomLeft1,
-    bottomRight,
     setAppBarStates,
     bottomLeft2,
+    bottomRight1,
+    bottomRight2,
   ])
 
   useUnmountEffect(() => {
@@ -61,7 +67,8 @@ export const useAppBarSync = ({
       settings: null,
       bottomLeft1: null,
       bottomLeft2: null,
-      bottomRight: null,
+      bottomRight1: null,
+      bottomRight2: null,
     })
   })
 }

@@ -101,7 +101,8 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
         {appBarStates.bottomLeft2}
       </FlexBox>
       <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
-        {appBarStates.bottomRight}
+        {appBarStates.bottomRight1}
+        {appBarStates.bottomRight2}
         <FlexBox dir="row" style={{ alignItems: 'center' }} gap={4}>
           <Button
             shape="circle"
