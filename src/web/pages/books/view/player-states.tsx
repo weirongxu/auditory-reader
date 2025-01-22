@@ -6,12 +6,18 @@ import { ChangedEmitter } from '../../../../core/util/emitter.js'
 import type { PageListType } from '../../../store.js'
 import type { Player } from './player.js'
 
+export type PageScrollPercent = {
+  percent: number
+  progress: number
+  length: number
+}
+
 type PlayerStates = {
   started: boolean
   pos: BookTypes.PropertyPosition
   activeNavs: BookTypes.Nav[]
   loading: boolean
-  scrollPercent: number | undefined
+  scrollPercent: PageScrollPercent | undefined
   selection: BookTypes.PropertyRange | undefined
 }
 
@@ -76,7 +82,7 @@ export class PlayerStatesManager {
     return this.#states.scrollPercent
   }
 
-  set scrollPercent(scrollPercent: number | undefined) {
+  set scrollPercent(scrollPercent: PageScrollPercent | undefined) {
     this.#states.scrollPercent = scrollPercent
     this.events.fire('scrollPercent', scrollPercent)
   }
@@ -176,7 +182,7 @@ export function usePlayerSync(
     setStarted: Dispatch<boolean>
     setActiveNavs: Dispatch<BookTypes.Nav[]>
     setLoading: Dispatch<boolean>
-    setScrollPercent: Dispatch<number | undefined>
+    setScrollPercent: Dispatch<PageScrollPercent | undefined>
     setSelection: Dispatch<BookTypes.PropertyRange | undefined>
   },
 ) {

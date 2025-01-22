@@ -1059,20 +1059,33 @@ export class PlayerIframeController {
 
     const onScroll = () => {
       let percent: number
-      if (this.enabledPageList)
+      let startPercent: number
+      let lengthPercent: number
+      if (this.enabledPageList && this.pageListCount) {
         percent =
           (this.pageListScrollLeft + scrollElement.clientWidth) /
           this.pageListScrollWidth
-      else if (this.isVertical)
+        startPercent = this.pageListScrollLeft / this.pageListScrollWidth
+        lengthPercent = 1 / this.pageListCount
+      } else if (this.isVertical) {
         percent =
           (-scrollElement.scrollLeft + scrollElement.clientWidth) /
           scrollElement.scrollWidth
-      else
+        startPercent = -scrollElement.scrollLeft / scrollElement.scrollWidth
+        lengthPercent = scrollElement.clientWidth / scrollElement.scrollWidth
+      } else {
         percent =
           (scrollElement.scrollTop + scrollElement.clientHeight) /
           scrollElement.scrollHeight
+        startPercent = scrollElement.scrollTop / scrollElement.scrollHeight
+        lengthPercent = scrollElement.clientHeight / scrollElement.scrollHeight
+      }
 
-      this.states.scrollPercent = percent * 100
+      this.states.scrollPercent = {
+        percent: percent * 100,
+        progress: startPercent * 100,
+        length: lengthPercent * 100,
+      }
     }
     onScroll()
     const disposeScrollEvent = this.events.on('scroll', () => onScroll())

@@ -9,7 +9,7 @@ import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useViewPanelType } from '../../../store.js'
 import { useColorScheme } from '../../../theme.js'
 import { useBookContext } from '../view.context.js'
-import { usePlayerSync } from './player-states.js'
+import { usePlayerSync, type PageScrollPercent } from './player-states.js'
 import { usePlayerUI } from './player-ui.js'
 import { useCreatePlayer } from './player.js'
 import { ViewProgressBar } from './progress-bar.js'
@@ -20,7 +20,9 @@ export function useViewer() {
   const [started, setStarted] = useState(false)
   const [activeNavs, setActiveNavs] = useState<BookTypes.Nav[]>()
   const [loading, setLoading] = useState<boolean>(false)
-  const [scrollPercent, setScrollPercent] = useState<number | undefined>()
+  const [scrollPercent, setScrollPercent] = useState<
+    PageScrollPercent | undefined
+  >()
   const [selection, setSelection] = useState<
     BookTypes.PropertyRange | undefined
   >()

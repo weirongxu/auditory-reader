@@ -1,3 +1,4 @@
+import type { PageScrollPercent } from './player-states.js'
 import type { Player } from './player.js'
 
 export function ViewProgressBar({
@@ -5,9 +6,11 @@ export function ViewProgressBar({
   scrollPercent,
 }: {
   player: Player
-  scrollPercent: number | undefined
+  scrollPercent: PageScrollPercent | undefined
 }) {
-  const progress = scrollPercent?.toFixed(2) ?? '0'
+  const percent = scrollPercent?.percent.toFixed(2) ?? '0'
+  const progress = scrollPercent?.progress ?? '0'
+  const length = scrollPercent?.length ?? '0'
 
   return (
     <div
@@ -17,18 +20,21 @@ export function ViewProgressBar({
         overflow: 'hidden',
         borderRadius: 8,
         background: 'var(--main-bg-active)',
+        position: 'relative',
       }}
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect()
         const percent = (event.clientX - rect.left) / rect.width
         player.iframeCtrler.scrollToPercent(percent, true).catch(console.error)
       }}
-      title={`${progress}%`}
+      title={`${percent}%`}
     >
       <div
         style={{
-          transition: 'width 0.2s',
-          width: `${progress}%`,
+          position: 'absolute',
+          transition: 'width,left 0.2s',
+          left: `${progress}%`,
+          width: `${length}%`,
           height: '100%',
           background: 'var(--main-fg-active)',
         }}
