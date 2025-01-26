@@ -14,10 +14,10 @@ export function ViewProgressBar({
   return (
     <div
       style={{
-        height: 8,
+        height: 6,
         width: '100%',
         overflow: 'hidden',
-        borderRadius: 8,
+        borderRadius: 6,
         background: 'var(--main-bg-active)',
         position: 'relative',
       }}

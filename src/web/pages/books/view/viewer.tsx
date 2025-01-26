@@ -58,7 +58,7 @@ export function useViewer() {
 
   const MainContent = useMemo(
     () => (
-      <FlexBox flex={1} style={{ position: 'relative' }}>
+      <FlexBox flex={1} gap={4} style={{ position: 'relative' }}>
         <ViewProgressBar
           scrollPercent={{
             length: sectionLength,
