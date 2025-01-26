@@ -1121,10 +1121,6 @@ export class PlayerIframeController {
         description: href,
       })
     }
-    const openLink = async (href: string) => {
-      if (await confirmLink(href))
-        window.open(href, '_blank', 'noopener,noreferrer')
-    }
 
     const onClickLink = (link: HTMLAnchorElement) => {
       async(async () => {
@@ -1138,7 +1134,8 @@ export class PlayerIframeController {
           const href = link.href
           if (!href) return
           if (!href.startsWith(this.mainContentRootUrl))
-            return await openLink(href)
+            if (await confirmLink(href))
+              return window.open(href, '_blank', 'noopener,noreferrer')
           uri = href.substring(this.mainContentRootUrl.length)
         }
         if (await confirmLink(uri)) {

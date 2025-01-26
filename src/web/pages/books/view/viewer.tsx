@@ -53,9 +53,23 @@ export function useViewer() {
     selection,
   })
 
+  const sectionLength = (1 / book.spines.length) * 100
+  const sectionPercent = (pos.section / book.spines.length) * 100
+
   const MainContent = useMemo(
     () => (
       <FlexBox flex={1} style={{ position: 'relative' }}>
+        <ViewProgressBar
+          scrollPercent={{
+            length: sectionLength,
+            percent: sectionPercent,
+            progress: sectionPercent,
+          }}
+          onClick={(percent) => {
+            const section = Math.floor(percent * book.spines.length)
+            void player.gotoSection(section, 0)
+          }}
+        ></ViewProgressBar>
         {loading && (
           <div
             style={{
@@ -76,12 +90,21 @@ export function useViewer() {
           ref={iframeRef}
         ></iframe>
         <ViewProgressBar
-          player={player}
           scrollPercent={scrollPercent}
+          onClick={(percent) => {
+            void player.iframeCtrler.scrollToPercent(percent, true)
+          }}
         ></ViewProgressBar>
       </FlexBox>
     ),
-    [loading, scrollPercent, player],
+    [
+      sectionLength,
+      sectionPercent,
+      loading,
+      scrollPercent,
+      book.spines.length,
+      player,
+    ],
   )
 
   // hotkey
