@@ -19,10 +19,25 @@ export namespace BookTypes {
     name: string
     langCode: LangCode
     isFavorited: boolean
+    isArchived?: boolean
     createdAt: string
     updatedAt: string
     isTmp: boolean
-    isArchived?: boolean
+    position?: PropertyPosition
+    pageParagraphs?: PageParagraph[]
+  }
+
+  export type EntityRaw = {
+    uuid: EntityUUID
+    name: string
+    langCode: LangCode
+    isFavorited: boolean
+    isArchived: boolean
+    createdAt: Date
+    updatedAt: Date
+    isTmp: boolean
+    position: PropertyPosition | null
+    pageParagraphs: PageParagraph[] | null
   }
 
   export type Entity = {
@@ -34,6 +49,8 @@ export namespace BookTypes {
     createdAt: Date
     updatedAt: Date
     isTmp: boolean
+    progress: number
+    position: PropertyPosition | null
   }
 
   export type EntityUpdate = {
@@ -41,9 +58,18 @@ export namespace BookTypes {
     langCode?: LangCode
     isFavorited?: boolean
     isArchived?: boolean
+    position?: PropertyPosition
+    pageParagraphs?: PageParagraph[]
+  }
+
+  export type PageParagraph = {
+    paragraphCount: number
   }
 
   export type PropertyJson = {
+    /**
+     * @deprecated
+     */
     position?: PropertyPosition
     annotations?: PropertyAnnotation[]
     keywords?: PropertyKeyword[]
@@ -124,6 +150,7 @@ export namespace BookTypes {
     archive: 'all' | 'active' | 'archived'
     favorite: 'all' | 'favorited' | 'unfavorited'
     order: SortOrder
+    uuids: string[]
     search: string
   }
 
@@ -135,7 +162,7 @@ export namespace BookTypes {
   export interface PageResult {
     page: number
     perPage: number
-    items: Entity[]
+    items: EntityRaw[]
     count: number
     pageCount: number
   }

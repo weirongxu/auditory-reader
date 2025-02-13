@@ -50,7 +50,7 @@ export class BookListFS extends BookListBase {
   }
 
   protected async bookAdd(
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
     file: ArrayBuffer,
   ): Promise<void> {
     await BookEntityFS.create(this.allBooksDir, entity, file)

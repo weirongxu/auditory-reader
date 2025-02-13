@@ -6,14 +6,14 @@ export class BookEntityIndexedDB extends BookEntityBase {
   protected propJson?: BookTypes.PropertyJson
   protected uid: string
 
-  static async create(entity: BookTypes.Entity, file: ArrayBuffer) {
+  static async create(entity: BookTypes.EntityRaw, file: ArrayBuffer) {
     const bookEntity = new BookEntityIndexedDB(entity)
     await bookEntity.writeFile(file)
     const prop = await bookEntity.readProp()
     await bookEntity.writeProp(prop)
   }
 
-  constructor(entity: BookTypes.Entity) {
+  constructor(entity: BookTypes.EntityRaw) {
     super(entity)
     if (this.entity.isTmp) {
       this.uid = '$tmp'

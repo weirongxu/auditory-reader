@@ -2,7 +2,7 @@ import { v1 as uuidv1 } from 'uuid'
 import { bookManager } from '../../book/book-manager.js'
 import type { BookTypes } from '../../book/types.js'
 import { URouter } from '../../route/router.js'
-import { bookJsonToEntity } from '../../util/book.js'
+import { bookJsonToEntityRaw } from '../../util/book.js'
 import { base64ToArrayBuffer } from '../../util/converter.js'
 
 export type BookImportQuery = {
@@ -15,7 +15,7 @@ export const booksImportRouter = new URouter<BookImportQuery, { ok: boolean }>(
   'books/import',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
-  const entity = bookJsonToEntity(body.entity)
+  const entity = bookJsonToEntityRaw(body.entity)
   const uuid = uuidv1()
   entity.uuid = uuid
   const buffer = base64ToArrayBuffer(body.bufferBase64)

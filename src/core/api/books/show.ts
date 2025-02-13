@@ -6,7 +6,7 @@ export type BookShowQuery = {
   uuid: string
 }
 
-export const booksShowRouter = new URouter<BookShowQuery, BookTypes.Entity>(
+export const booksShowRouter = new URouter<BookShowQuery, BookTypes.EntityRaw>(
   'books/show',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body

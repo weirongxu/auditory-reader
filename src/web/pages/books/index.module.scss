@@ -22,22 +22,32 @@
     }
     th {
       padding: 4px 4px;
+      // dragger
       &:nth-child(1) {
         width: 30px;
       }
+      // selector
       &:nth-child(2) {
         width: 30px;
       }
+      // favorite
       &:nth-child(3) {
         width: 60px;
       }
+      // progress
       &:nth-child(4) {
+        width: 60px;
+      }
+      // cover
+      &:nth-child(5) {
         width: 50px;
       }
-      &:nth-child(5) {
+      // name
+      &:nth-child(6) {
         width: auto;
       }
-      &:nth-child(6) {
+      // actions
+      &:nth-child(7) {
         width: 50px;
       }
     }

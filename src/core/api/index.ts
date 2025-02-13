@@ -12,7 +12,7 @@ import { booksImportRouter } from './books/import.js'
 import { booksKeywordsDeleteRouter } from './books/keywords-delete.js'
 import { booksKeywordsUpsertRouter } from './books/keywords-upsert.js'
 import { booksKeywordsRouter } from './books/keywords.js'
-import { booksListRouter } from './books/list.js'
+import { booksExportListRouter } from './books/export-list.js'
 import { booksMoveAfterRouter } from './books/move-after.js'
 import { booksMoveTopRouter } from './books/move-top.js'
 import { booksPageRouter } from './books/page.js'
@@ -42,7 +42,7 @@ export const ROUTERS = [
   booksMoveAfterRouter,
   booksMoveTopRouter,
   booksPageRouter,
-  booksListRouter,
+  booksExportListRouter,
   booksRemoveRouter,
   booksShowRouter,
   booksDownloadRouter,

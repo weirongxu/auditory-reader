@@ -1,5 +1,5 @@
 import { TMP_UUID } from '../../consts.js'
-import { bookJsonToEntity } from '../../util/book.js'
+import { bookJsonToEntityRaw } from '../../util/book.js'
 import { orderBy } from '../../util/collection.js'
 import { bookManager } from '../book-manager.js'
 import type { BookEntityBase } from '../entity/book-entity-base.js'
@@ -44,6 +44,7 @@ export abstract class BookListBase {
   protected async rawListFilter({
     archive = 'active',
     favorite = 'all',
+    uuids,
     search,
     order,
   }: Partial<BookTypes.FilterParams>): Promise<BookTypes.EntityJson[]> {
@@ -56,6 +57,7 @@ export abstract class BookListBase {
       list = list.filter((it) =>
         favorite === 'favorited' ? it.isFavorited : !it.isFavorited,
       )
+    if (uuids) list = list.filter((it) => uuids.includes(it.uuid))
     if (search)
       list = list.filter((it) =>
         it.name.toLowerCase().includes(search.toLowerCase()),
@@ -164,8 +166,8 @@ export abstract class BookListBase {
     return list.find((it) => it.uuid === uuid)
   }
 
-  protected toEntity(entityJson: BookTypes.EntityJson): BookTypes.Entity {
-    return bookJsonToEntity(entityJson)
+  protected toEntity(entityJson: BookTypes.EntityJson): BookTypes.EntityRaw {
+    return bookJsonToEntityRaw(entityJson)
   }
 
   public async update(
@@ -181,11 +183,14 @@ export abstract class BookListBase {
       entityJson.isFavorited = update.isFavorited
     if (update.isArchived !== undefined)
       entityJson.isArchived = update.isArchived
+    if (update.position !== undefined) entityJson.position = update.position
+    if (update.pageParagraphs !== undefined)
+      entityJson.pageParagraphs = update.pageParagraphs
     await this.write()
   }
 
   public async add(
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
     file: ArrayBuffer,
   ): Promise<BookTypes.EntityJson> {
     const entityJson: BookTypes.EntityJson = {
@@ -242,7 +247,7 @@ export abstract class BookListBase {
   ): BookEntityBase
 
   protected abstract bookAdd(
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
     file: ArrayBuffer,
   ): Promise<void>
 

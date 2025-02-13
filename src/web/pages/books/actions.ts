@@ -10,11 +10,11 @@ import { arrayBufferToBase64 } from '../../../core/util/converter.js'
 
 const toPercent = (f: number) => Math.floor(f * 100)
 
-const bookFilename = (entity: BookTypes.Entity | BookTypes.EntityJson) =>
+const bookFilename = (entity: BookTypes.EntityRaw | BookTypes.EntityJson) =>
   `${entity.name}${getBookExtension()}`
 
 export const exportBooks = async (
-  books: BookTypes.Entity[],
+  books: BookTypes.EntityRaw[],
   onProgress: (percent: number) => void,
 ) => {
   const zip = new JSZip()

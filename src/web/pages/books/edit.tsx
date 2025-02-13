@@ -21,7 +21,7 @@ function UpdateForm({
   book,
   reload,
 }: {
-  book: BookTypes.Entity
+  book: BookTypes.EntityRaw
   reload: () => void
 }) {
   const [form] = Form.useForm<Values>()

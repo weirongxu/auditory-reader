@@ -12,7 +12,8 @@ export const booksPositionSyncRouter = new URouter<
   { ok: boolean }
 >('books/position-sync').routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
-  const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
-  await bookEntity.posSet(body.pos)
+  await bookManager.update(userInfo.account, body.uuid, {
+    position: body.pos,
+  })
   return { ok: true }
 })

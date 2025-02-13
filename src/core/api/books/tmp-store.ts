@@ -10,7 +10,7 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
   const bookEntityTmp = await bookManager.entity(userInfo.account, TMP_UUID)
   const uuid = uuidv1()
 
-  const entity: BookTypes.Entity = {
+  const entity: BookTypes.EntityRaw = {
     uuid,
     name: bookEntityTmp.entity.name,
     langCode: bookEntityTmp.entity.langCode,
@@ -19,6 +19,8 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
     createdAt: new Date(),
     updatedAt: new Date(),
     isTmp: false,
+    position: bookEntityTmp.entity.position,
+    pageParagraphs: bookEntityTmp.entity.pageParagraphs,
   }
 
   const buf = await bookEntityTmp.readFileBuffer()
@@ -28,7 +30,12 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
 
   const bookEntity = await bookManager.entity(userInfo.account, entityJson.uuid)
-  await bookEntity.posSet(pos)
+  await bookEntity.posSet(
+    pos ?? {
+      section: 0,
+      paragraph: 0,
+    },
+  )
   await bookEntity.annotationsUpsert(annotations)
 
   return entityJson

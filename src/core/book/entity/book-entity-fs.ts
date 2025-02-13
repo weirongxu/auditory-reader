@@ -28,7 +28,7 @@ export class BookEntityFS extends BookEntityBase {
 
   static async create(
     allBooksDir: string,
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
     file: ArrayBuffer,
   ) {
     const bookEntity = new BookEntityFS(allBooksDir, entity)
@@ -40,7 +40,7 @@ export class BookEntityFS extends BookEntityBase {
 
   constructor(
     protected readonly allBooksDir: string,
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
   ) {
     super(entity)
     const prefix = entity.uuid.slice(0, 2)

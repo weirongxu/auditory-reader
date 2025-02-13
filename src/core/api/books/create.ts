@@ -22,7 +22,7 @@ export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
   const buf = base64ToArrayBuffer(body.bufferBase64)
   const uuid = uuidv1()
 
-  const entity: BookTypes.Entity = {
+  const entity: BookTypes.EntityRaw = {
     uuid,
     name: body.name,
     langCode: body.langCode,
@@ -31,6 +31,8 @@ export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
     createdAt: new Date(),
     updatedAt: new Date(),
     isTmp: body.isTmp ?? false,
+    pageParagraphs: null,
+    position: null,
   }
 
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)

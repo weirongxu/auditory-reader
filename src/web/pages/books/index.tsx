@@ -64,7 +64,7 @@ import {
   usePage,
 } from './index-atoms.js'
 import styles from './index.module.scss'
-import { booksListRouter } from '../../../core/api/books/list.js'
+import { booksExportListRouter } from '../../../core/api/books/export-list.js'
 
 const DragType = 'book'
 
@@ -670,6 +670,27 @@ function BookRow({
         )}
       </td>
       <td>
+        <div
+          style={{
+            border: '1px solid var(--main-fg)',
+            textAlign: 'center',
+            position: 'relative',
+          }}
+        >
+          {book.progress * 100}%
+          <div
+            style={{
+              left: 0,
+              top: 0,
+              width: `${book.progress * 100}%`,
+              height: '100%',
+              position: 'absolute',
+              backgroundColor: 'var(--main-bg-highlight)',
+            }}
+          ></div>
+        </div>
+      </td>
+      <td>
         <div className="cell-center">
           <img
             onClick={() => {
@@ -875,15 +896,14 @@ export function BookList() {
             size="small"
             onClick={() => {
               async(async () => {
-                const list = await booksListRouter.json({
+                const list = await booksExportListRouter.json({
                   filter: {
-                    archive: archived ? 'archived' : 'active',
-                    favorite: favorited ? 'favorited' : 'all',
-                    search: searchDeferred,
+                    archive: 'all',
+                    favorite: 'all',
                   },
                 })
                 try {
-                  setProgressPercent(null)
+                  setProgressPercent(0)
                   await exportBooks(list.items, (percent) => {
                     setProgressPercent(percent)
                   })
@@ -915,9 +935,14 @@ export function BookList() {
               size="small"
               onClick={() => {
                 async(async () => {
+                  const list = await booksExportListRouter.json({
+                    filter: {
+                      uuids: selectedUuids,
+                    },
+                  })
                   try {
-                    setProgressPercent(null)
-                    await exportBooks(selectedBooks, (percent) => {
+                    setProgressPercent(0)
+                    await exportBooks(list.items, (percent) => {
                       setProgressPercent(percent)
                     })
                   } finally {
@@ -926,7 +951,7 @@ export function BookList() {
                 })
               }}
             >
-              {t('export')}
+              {t('exportSelected')}
             </Button>
             <Button
               type="primary"
@@ -942,16 +967,7 @@ export function BookList() {
         )}
       </Button.Group>
     )
-  }, [
-    archived,
-    favorited,
-    moveBooksTop,
-    reload,
-    removeBooks,
-    searchDeferred,
-    selectedBooks,
-    selectedUuids.length,
-  ])
+  }, [moveBooksTop, reload, removeBooks, selectedBooks, selectedUuids])
 
   const TopRightBar = useMemo(() => {
     return (
@@ -1072,6 +1088,7 @@ export function BookList() {
                     ></Checkbox>
                   </th>
                   <th>{t('favorite')}</th>
+                  <th>{t('progress')}</th>
                   <th>{t('cover')}</th>
                   <th>{t('bookName')}</th>
                   <th></th>

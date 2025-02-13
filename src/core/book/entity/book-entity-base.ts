@@ -5,7 +5,7 @@ import { orderBy } from '../../util/collection.js'
 import { getBookExtension } from '../../util/book.js'
 
 export abstract class BookEntityBase {
-  constructor(public readonly entity: BookTypes.Entity) {}
+  constructor(public readonly entity: BookTypes.EntityRaw) {}
 
   abstract readFileBuffer(): Promise<ArrayBuffer>
 
@@ -40,16 +40,17 @@ export abstract class BookEntityBase {
 
   abstract writeProp(prop: BookTypes.PropertyJson): Promise<void>
 
-  async posGet(): Promise<BookTypes.PropertyPosition> {
+  /**
+   * @deprecated
+   */
+  async posGet(): Promise<BookTypes.PropertyPosition | undefined> {
     const prop = await this.readProp()
-    return (
-      prop.position ?? {
-        section: 0,
-        paragraph: 0,
-      }
-    )
+    return prop.position
   }
 
+  /**
+   * @deprecated
+   */
   async posSet(pos: BookTypes.PropertyPosition): Promise<void> {
     const prop = await this.readProp()
     prop.position = pos

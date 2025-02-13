@@ -6,12 +6,12 @@ export type BookPost = {
   filter: Partial<BookTypes.FilterParams>
 }
 
-export type BookList = {
-  items: BookTypes.Entity[]
+export type BookExportList = {
+  items: BookTypes.EntityRaw[]
 }
 
-export const booksListRouter = new URouter<BookPost, BookList>(
-  'books/list',
+export const booksExportListRouter = new URouter<BookPost, BookExportList>(
+  'books/export-list',
 ).routeLogined(async ({ req, userInfo }) => {
   const body = await req.body
   const { filter } = body

@@ -28,7 +28,7 @@ export class BookListIndexedDB extends BookListBase {
   }
 
   protected async bookAdd(
-    entity: BookTypes.Entity,
+    entity: BookTypes.EntityRaw,
     file: ArrayBuffer,
   ): Promise<void> {
     await BookEntityIndexedDB.create(entity, file)

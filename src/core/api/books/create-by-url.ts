@@ -25,7 +25,7 @@ export const booksCreateByUrlRouter = new URouter<
   const uuid = uuidv1()
 
   const date = new Date()
-  const entity: BookTypes.Entity = {
+  const entity: BookTypes.EntityRaw = {
     uuid,
     name: body.name,
     langCode: body.langCode,
@@ -34,6 +34,8 @@ export const booksCreateByUrlRouter = new URouter<
     createdAt: date,
     updatedAt: date,
     isTmp: body.isTmp ?? false,
+    position: null,
+    pageParagraphs: null,
   }
 
   const html = await fetchHtml(body.url)
