@@ -3,6 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Button, InputNumber, Space, type InputNumberProps } from 'antd'
 import { isMobile } from '../../core/util/browser.js'
 
+function normalizeValue(value: number): number {
+  return parseFloat(value.toFixed(10))
+}
+
 export function RInputNumber(props: InputNumberProps<number>) {
   if (isMobile) {
     let step = 1
@@ -14,8 +18,8 @@ export function RInputNumber(props: InputNumberProps<number>) {
         <Button
           size={props.size}
           onClick={() => {
-            const value = props.value ?? 0
-            props.onChange?.(value - step)
+            const value = (props.value ?? 0) - step
+            props.onChange?.(normalizeValue(value))
           }}
         >
           <FontAwesomeIcon icon={faArrowDown} />
@@ -24,8 +28,8 @@ export function RInputNumber(props: InputNumberProps<number>) {
         <Button
           size={props.size}
           onClick={() => {
-            const value = props.value ?? 0
-            props.onChange?.(value + step)
+            const value = (props.value ?? 0) + step
+            props.onChange?.(normalizeValue(value))
           }}
         >
           <FontAwesomeIcon icon={faArrowUp} />
