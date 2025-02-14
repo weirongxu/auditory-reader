@@ -677,7 +677,7 @@ function BookRow({
             position: 'relative',
           }}
         >
-          {book.progress * 100}%
+          {(book.progress * 100).toFixed()}%
           <div
             style={{
               left: 0,
