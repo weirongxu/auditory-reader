@@ -31,16 +31,17 @@ export const exportBooks = async (
     folder: `${book.name}-(${book.uuid})`,
   }))
   zip.file('list.json', JSON.stringify({ list }, null, 2))
-  for (const [i, book] of list.entries()) {
+  for (const [i, item] of list.entries()) {
+    const bookJson = books.find((it) => it.uuid === item.uuid)
+    if (!bookJson) continue
     const bookEpub = await booksDownloadRouter.file({
-      uuid: book.uuid,
+      uuid: item.uuid,
     })
     const propertiesJson = await booksPropertyRouter.json({
-      uuid: book.uuid,
+      uuid: item.uuid,
     })
-    const bookJson = { ...book }
-    const filename = bookFilename(book)
-    const dir = book.folder
+    const filename = bookFilename(item)
+    const dir = item.folder
     zip.file(`${dir}/property.json`, JSON.stringify(propertiesJson, null, 2))
     zip.file(`${dir}/book.json`, JSON.stringify(bookJson, null, 2))
     zip.file(`${dir}/${filename}`, bookEpub.arrayBuffer())

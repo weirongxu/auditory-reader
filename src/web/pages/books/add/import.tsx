@@ -1,7 +1,7 @@
 import { Button, Form, Progress, Space, Tag } from 'antd'
 import { t } from 'i18next'
 import JSZip from 'jszip'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { async } from '../../../../core/util/promise.js'
 import { FileInput } from '../../../components/file-input.js'
 import {
