@@ -670,25 +670,27 @@ function BookRow({
         )}
       </td>
       <td>
-        <div
-          style={{
-            border: '1px solid var(--main-fg)',
-            textAlign: 'center',
-            position: 'relative',
-          }}
-        >
-          {(book.progress * 100).toFixed()}%
+        {book.progress !== null && (
           <div
             style={{
-              left: 0,
-              top: 0,
-              width: `${book.progress * 100}%`,
-              height: '100%',
-              position: 'absolute',
-              backgroundColor: 'var(--main-bg-highlight)',
+              border: '1px solid var(--main-fg)',
+              textAlign: 'center',
+              position: 'relative',
             }}
-          ></div>
-        </div>
+          >
+            {(book.progress * 100).toFixed()}%
+            <div
+              style={{
+                left: 0,
+                top: 0,
+                width: `${book.progress * 100}%`,
+                height: '100%',
+                position: 'absolute',
+                backgroundColor: 'var(--main-bg-highlight)',
+              }}
+            ></div>
+          </div>
+        )}
       </td>
       <td>
         <div className="cell-center">

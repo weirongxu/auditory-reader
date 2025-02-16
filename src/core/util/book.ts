@@ -39,7 +39,7 @@ export function bookJsonToEntityRaw(
 export function bookEntityRawToEntityRender(
   entity: BookTypes.EntityRaw,
 ): BookTypes.Entity {
-  let progress = 0
+  let progress = null
   if (entity.position && entity.pageParagraphs) {
     const section = entity.position.section
     const readParagraph =

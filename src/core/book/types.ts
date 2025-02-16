@@ -49,7 +49,7 @@ export namespace BookTypes {
     createdAt: Date
     updatedAt: Date
     isTmp: boolean
-    progress: number
+    progress: number | null
     position: PropertyPosition | null
   }
 
