@@ -4,7 +4,11 @@ import JSZip from 'jszip'
 import { useEffect, useMemo, useState } from 'react'
 import { async } from '../../../../core/util/promise.js'
 import { FileInput } from '../../../components/file-input.js'
-import { importBooks, importBooksList } from '../actions.js'
+import {
+  importBooks,
+  importBooksList,
+  type BookExportItem,
+} from '../actions.js'
 
 type Values = {
   file: File | undefined
@@ -14,20 +18,25 @@ export function AddImport() {
   const [submitted, setSubmitted] = useState(false)
   const [form] = Form.useForm<Values>()
   const file = Form.useWatch('file', form)
-  const [zip, setZip] = useState<JSZip | null>(null)
-  const list = useMemo(() => (zip ? importBooksList(zip) : []), [zip])
+  const [zipInfo, setZipInfo] = useState<{
+    zip: JSZip
+    list: BookExportItem[]
+  } | null>(null)
   const [progressPercent, setProgressPercent] = useState<number | null>(null)
 
   useEffect(() => {
     async(async () => {
-      if (file) setZip(await JSZip.loadAsync(await file.arrayBuffer()))
-      else setZip(null)
+      if (file) {
+        const zip = await JSZip.loadAsync(await file.arrayBuffer())
+        const list = await importBooksList(zip)
+        setZipInfo({ zip, list })
+      } else setZipInfo(null)
     })
   }, [file])
 
   return (
     <>
-      {!!progressPercent && <Progress percent={progressPercent} />}
+      {progressPercent !== null && <Progress percent={progressPercent} />}
       <Form<Values>
         form={form}
         style={{
@@ -40,9 +49,9 @@ export function AddImport() {
         onFinish={() => {
           async(async () => {
             try {
-              if (!zip) return
-              setProgressPercent(null)
-              await importBooks(zip, list, (percent) => {
+              if (!zipInfo) return
+              setProgressPercent(0)
+              await importBooks(zipInfo.zip, zipInfo.list, (percent) => {
                 setProgressPercent(percent)
               })
             } finally {
@@ -61,15 +70,17 @@ export function AddImport() {
           </Button>
         </Form.Item>
       </Form>
-      {!!list.length && (
+      {zipInfo?.list.length && (
         <Space
           direction="vertical"
           style={{ width: '100%', height: 300, overflow: 'auto' }}
         >
           <h3>{t('import')}</h3>
           <Space direction="vertical">
-            {list.map((item, i) => (
-              <Tag key={i}>{item.basename}</Tag>
+            {zipInfo.list.map((item, i) => (
+              <Tag key={i}>
+                {item.name} ({item.uuid})
+              </Tag>
             ))}
           </Space>
         </Space>

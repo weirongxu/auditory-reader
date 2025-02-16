@@ -1022,7 +1022,7 @@ export function BookList() {
   return (
     <>
       <Space direction="vertical" style={{ width: '100%' }}>
-        {!!progressPercent && <Progress percent={progressPercent} />}
+        {progressPercent !== null && <Progress percent={progressPercent} />}
         <Form layout="inline">
           <Form.Item label={t('archive')}>
             <Switch checked={archived} onChange={(v) => setArchived(v)} />

@@ -1,16 +1,22 @@
-import path from '@file-services/path'
 import saveAs from 'file-saver'
 import JSZip from 'jszip'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
+import { booksImportRouter } from '../../../core/api/books/import.js'
 import { booksPropertyRouter } from '../../../core/api/books/property.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { getBookExtension } from '../../../core/util/book.js'
-import { booksImportRouter } from '../../../core/api/books/import.js'
 import { arrayBufferToBase64 } from '../../../core/util/converter.js'
+import { notificationApi } from '../../common/notification.js'
 
 const toPercent = (f: number) => Math.floor(f * 100)
 
-const bookFilename = (entity: BookTypes.EntityRaw | BookTypes.EntityJson) =>
+export type BookExportItem = {
+  uuid: string
+  name: string
+  folder: string
+}
+
+const bookFilename = (entity: BookExportItem | BookTypes.EntityJson) =>
   `${entity.name}${getBookExtension()}`
 
 export const exportBooks = async (
@@ -19,7 +25,13 @@ export const exportBooks = async (
 ) => {
   const zip = new JSZip()
   const count = books.length
-  for (const [i, book] of books.entries()) {
+  const list: BookExportItem[] = books.map((book) => ({
+    uuid: book.uuid,
+    name: book.name,
+    folder: `${book.name}-(${book.uuid})`,
+  }))
+  zip.file('list.json', JSON.stringify({ list }, null, 2))
+  for (const [i, book] of list.entries()) {
     const bookEpub = await booksDownloadRouter.file({
       uuid: book.uuid,
     })
@@ -27,9 +39,8 @@ export const exportBooks = async (
       uuid: book.uuid,
     })
     const bookJson = { ...book }
-    const bookName = bookJson.name
     const filename = bookFilename(book)
-    const dir = `${bookName}-(${bookJson.uuid})`
+    const dir = book.folder
     zip.file(`${dir}/property.json`, JSON.stringify(propertiesJson, null, 2))
     zip.file(`${dir}/book.json`, JSON.stringify(bookJson, null, 2))
     zip.file(`${dir}/${filename}`, bookEpub.arrayBuffer())
@@ -38,25 +49,41 @@ export const exportBooks = async (
   saveAs(await zip.generateAsync({ type: 'blob' }), 'books.zip')
 }
 
-export type ImportBookItem = {
-  folder: string
-  basename: string
-}
-
-export const importBooksList = (zip: JSZip): ImportBookItem[] => {
+export const importBooksList = async (
+  zip: JSZip,
+): Promise<BookExportItem[]> => {
+  const listFile = zip.file('list.json')
+  if (listFile) {
+    const jsonStr = await listFile.async('text')
+    const json: { list: BookExportItem[] } = JSON.parse(jsonStr)
+    return json.list
+  }
+  notificationApi().warning({
+    message: 'Warning',
+    description: 'Cannot find list.json in zip',
+  })
   const files = Object.keys(zip.files)
   const folders = files
     .filter((name) => name.endsWith('/'))
     .map((name) => name.slice(0, -1))
-  return folders.map((folder) => ({
-    folder,
-    basename: path.basename(folder),
-  }))
+  return folders
+    .map((folder) => {
+      const match = folder.match(/^(.*?)-\((.*?)\)$/)
+      const name = match ? match[1] : null
+      const uuid = match ? match[2] : null
+      if (!name || !uuid) return null
+      return {
+        folder,
+        name,
+        uuid,
+      }
+    })
+    .filter((it) => it !== null)
 }
 
 export const importBooks = async (
   zip: JSZip,
-  list: ImportBookItem[],
+  list: BookExportItem[],
   onProgress: (percent: number) => void,
 ) => {
   const count = list.length
