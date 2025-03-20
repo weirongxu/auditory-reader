@@ -64,6 +64,31 @@ export function isAnchorElement(node: any): node is HTMLAnchorElement {
   return !!view && node instanceof view.HTMLAnchorElement
 }
 
+export function isContainBr(elem: HTMLElement) {
+  for (const node of elem.childNodes) {
+    if (!isElement(node)) continue
+    if (node.tagName.toLowerCase() === 'br' || isContainBr(node)) return true
+  }
+  return false
+}
+
+export function splitByBr(elem: HTMLElement) {
+  const nodesGroup: ChildNode[][] = []
+  let curNodes: ChildNode[] = []
+  for (const node of elem.childNodes) {
+    curNodes.push(node)
+    if (!isElement(node)) continue
+    if (node.tagName.toLowerCase() === 'br') {
+      nodesGroup.push(curNodes)
+      curNodes = []
+    } else {
+      curNodes.pop()
+      nodesGroup.push(...splitByBr(node))
+    }
+  }
+  return nodesGroup
+}
+
 export async function getArticleXml(doc: Document, baseURL?: string) {
   const article = new Readability(doc).parse()
 
@@ -172,4 +197,16 @@ export async function svgToDataUri(
 export function eventBan(event: Event | React.FormEvent<HTMLElement>) {
   event.preventDefault()
   event.stopPropagation()
+}
+
+export function wrapNode(nodes: ChildNode[], tag: string) {
+  if (!nodes[0]) throw new Error('no nodes')
+  const view = getDomView(nodes[0])
+  if (!view) throw new Error('no dom view')
+  const wrapElem = view.document.createElement(tag)
+  nodes[0].before(wrapElem)
+  for (const node of nodes) {
+    wrapElem.appendChild(node)
+  }
+  return wrapElem
 }

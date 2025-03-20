@@ -2,10 +2,13 @@ import type { BookTypes } from '../book/types.js'
 import { PARA_BOX_CLASS, PARA_IGNORE_CLASS } from '../consts.js'
 import { compact, orderBy } from './collection.js'
 import {
+  isContainBr,
   isElement,
   isImageElement,
   isTextNode,
   requiredDomView,
+  splitByBr,
+  wrapNode,
 } from './dom.js'
 
 interface ReadablePartBase {
@@ -137,8 +140,8 @@ function isAllInlineChild(elem: HTMLElement) {
     return elem.dataset.isAllInlineChild === '1'
   }
   for (const node of elem.childNodes) {
+    if (!isElement(node)) continue
     if (
-      isElement(node) &&
       !node.classList.contains(PARA_IGNORE_CLASS) &&
       (isBlockElem(node) || !isAllInlineChild(node))
     ) {
@@ -312,7 +315,7 @@ export class ReadableExtractor {
       blockElem: HTMLElement,
       anchors: string[] | undefined,
       navAnchors: string[] | undefined,
-    ) => {
+    ): ReadablePart | null => {
       blockElem.classList.add(PARA_BOX_CLASS)
       const textContent = this.getContentText(blockElem)
       const notEmpty = !!textContent.trim()
@@ -326,8 +329,10 @@ export class ReadableExtractor {
         }
         blockMap.set(blockElem, part)
         readableParts.push(part)
+        return part
       } else {
         blockMap.set(blockElem, null)
+        return null
       }
     }
 
@@ -367,13 +372,18 @@ export class ReadableExtractor {
           }
 
           if (isAllInlineChild(blockElem) && blockElem !== this.doc.body) {
-            addTextPart(blockElem, anchors, navAnchors)
+            if (isContainBr(blockElem)) {
+              const nodesGroup = splitByBr(blockElem)
+              for (const [i, nodes] of nodesGroup.entries()) {
+                const wrapElem = wrapNode(nodes, 'span')
+                const part = addTextPart(wrapElem, anchors, navAnchors)
+                if (i === 0) blockMap.set(blockElem, part)
+              }
+            } else addTextPart(blockElem, anchors, navAnchors)
           } else {
             // split block
             if (!elem.parentElement) continue
-            const wrapElem = this.doc.createElement('span')
-            elem.after(wrapElem)
-            wrapElem.appendChild(elem)
+            const wrapElem = wrapNode([elem], 'span')
             addTextPart(wrapElem, anchors, navAnchors)
           }
           break
