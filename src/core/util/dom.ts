@@ -86,6 +86,7 @@ export function splitByBr(elem: HTMLElement) {
       nodesGroup.push(...splitByBr(node))
     }
   }
+  if (curNodes.length > 0) nodesGroup.push(curNodes)
   return nodesGroup
 }
 
