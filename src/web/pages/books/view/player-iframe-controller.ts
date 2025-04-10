@@ -1252,7 +1252,7 @@ export class PlayerIframeController {
     doc.querySelector(`.${COLUMN_BREAK_CLASS}`)?.remove()
     if (pageListType === 'double') {
       // fix column double last page
-      pageCount = Math.round(
+      pageCount = Math.ceil(
         (2 * this.pageListScrollWidth) / this.viewOffsetWidth,
       )
       if (pageCount % 2 === 1) {
@@ -1265,7 +1265,7 @@ export class PlayerIframeController {
       }
       pageCount /= 2
     } else {
-      pageCount = Math.round(this.pageListScrollWidth / this.viewOffsetWidth)
+      pageCount = Math.ceil(this.pageListScrollWidth / this.viewOffsetWidth)
     }
     if (pageCount < 1) pageCount = 1
 
