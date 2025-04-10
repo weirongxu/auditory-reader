@@ -3,6 +3,7 @@ import { atom, useAtom } from 'jotai'
 import { useEffect } from 'react'
 
 export const appBarStatesAtom = atom<{
+  topProgress: undefined | number
   topLeft: React.ReactNode
   topRight: React.ReactNode
   settings: React.ReactNode
@@ -11,6 +12,7 @@ export const appBarStatesAtom = atom<{
   bottomRight1: React.ReactNode
   bottomRight2: React.ReactNode
 }>({
+  topProgress: undefined,
   topLeft: null,
   topRight: null,
   settings: null,
@@ -21,6 +23,7 @@ export const appBarStatesAtom = atom<{
 })
 
 export const useAppBarSync = ({
+  topProgress,
   topLeft,
   topRight,
   settings,
@@ -29,6 +32,7 @@ export const useAppBarSync = ({
   bottomRight1,
   bottomRight2,
 }: {
+  topProgress?: number
   topLeft?: React.ReactNode
   topRight?: React.ReactNode
   settings?: React.ReactNode
@@ -41,6 +45,7 @@ export const useAppBarSync = ({
 
   useEffect(() => {
     setAppBarStates({
+      topProgress,
       topLeft,
       topRight,
       settings,
@@ -50,6 +55,7 @@ export const useAppBarSync = ({
       bottomRight2,
     })
   }, [
+    topProgress,
     topLeft,
     topRight,
     settings,
@@ -62,6 +68,7 @@ export const useAppBarSync = ({
 
   useUnmountEffect(() => {
     setAppBarStates({
+      topProgress: undefined,
       topLeft: null,
       topRight: null,
       settings: null,

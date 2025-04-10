@@ -25,7 +25,9 @@ export const booksPageRouter = new URouter<BookPost, BookPage>(
   const { page, filter } = body
   const data = await bookManager.list(userInfo.account).page(filter, page)
   return {
-    items: data.items.map(bookEntityRawToEntityRender),
+    items: data.items.map((it) =>
+      bookEntityRawToEntityRender(it, { withPageParagraphs: false }),
+    ),
     current: data.page,
     pageCount: data.pageCount,
     count: data.count,

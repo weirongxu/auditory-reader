@@ -49,8 +49,9 @@ export namespace BookTypes {
     createdAt: Date
     updatedAt: Date
     isTmp: boolean
-    progress: number | null
     position: PropertyPosition | null
+    pageParagraphs: PageParagraph[] | null
+    progress: number | null
   }
 
   export type EntityUpdate = {

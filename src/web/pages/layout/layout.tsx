@@ -14,6 +14,7 @@ import { DragFile } from './drag-file.js'
 import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
+import { AppBarProgress } from './app-bar-progress.js'
 
 export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const title = useTitle() ?? defaultTitle
@@ -28,9 +29,13 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       dir="row"
       style={{
         justifyContent: 'end',
+        position: 'relative',
       }}
       gap={4}
     >
+      {appBarStates.topProgress && (
+        <AppBarProgress progress={appBarStates.topProgress}></AppBarProgress>
+      )}
       <FlexBox
         dir="row"
         style={{

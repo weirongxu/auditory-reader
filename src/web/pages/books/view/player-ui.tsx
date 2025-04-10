@@ -45,6 +45,7 @@ import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player'
 import { usePlayerUISync } from './player-states.js'
+import { bookProgress } from '../../../../core/util/book.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -470,7 +471,13 @@ export function usePlayerUI({
     )
   }, [player])
 
+  const topProgress = useMemo(() => {
+    if (book.item.pageParagraphs)
+      return bookProgress(book.item.pageParagraphs, pos)
+  }, [book.item.pageParagraphs, pos])
+
   useAppBarSync({
+    topProgress,
     topRight,
     bottomLeft1: PlayerCtrlGroup1,
     bottomLeft2: PlayerCtrlGroup2,

@@ -36,20 +36,25 @@ export function bookJsonToEntityRaw(
   return entity
 }
 
+export function bookProgress(
+  pageParagraphs: BookTypes.PageParagraph[],
+  position: BookTypes.PropertyPosition,
+) {
+  const section = position.section
+  const readParagraph =
+    sum(pageParagraphs.slice(0, section).map((p) => p.paragraphCount)) +
+    position.paragraph
+  const totalParagraph = sum(pageParagraphs.map((p) => p.paragraphCount))
+  return Math.round((readParagraph / totalParagraph) * 100) / 100
+}
+
 export function bookEntityRawToEntityRender(
   entity: BookTypes.EntityRaw,
+  { withPageParagraphs }: { withPageParagraphs: boolean },
 ): BookTypes.Entity {
-  let progress = null
+  let progress: number | null = null
   if (entity.position && entity.pageParagraphs) {
-    const section = entity.position.section
-    const readParagraph =
-      sum(
-        entity.pageParagraphs.slice(0, section).map((p) => p.paragraphCount),
-      ) + entity.position.paragraph
-    const totalParagraph = sum(
-      entity.pageParagraphs.map((p) => p.paragraphCount),
-    )
-    progress = Math.round((readParagraph / totalParagraph) * 100) / 100
+    progress = bookProgress(entity.pageParagraphs, entity.position)
   }
   const entityRender: BookTypes.Entity = {
     name: entity.name,
@@ -60,7 +65,8 @@ export function bookEntityRawToEntityRender(
     createdAt: new Date(entity.createdAt),
     updatedAt: new Date(entity.updatedAt),
     isTmp: entity.isTmp,
-    position: entity.position ?? null,
+    position: entity.position,
+    pageParagraphs: withPageParagraphs ? entity.pageParagraphs : null,
     progress,
   }
   return entityRender

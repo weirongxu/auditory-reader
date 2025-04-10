@@ -31,7 +31,9 @@ export const booksViewRouter = new URouter<BookViewQuery, BookViewRes>(
   }
 
   return {
-    item: bookEntityRawToEntityRender(bookEntity.entity),
+    item: bookEntityRawToEntityRender(bookEntity.entity, {
+      withPageParagraphs: true,
+    }),
     navs: await book.navs(),
     spines: book.spines,
   }
