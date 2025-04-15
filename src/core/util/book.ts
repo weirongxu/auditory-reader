@@ -45,7 +45,7 @@ export function bookProgress(
     sum(pageParagraphs.slice(0, section).map((p) => p.paragraphCount)) +
     position.paragraph
   const totalParagraph = sum(pageParagraphs.map((p) => p.paragraphCount))
-  return Math.round((readParagraph / totalParagraph) * 100) / 100
+  return readParagraph / totalParagraph
 }
 
 export function bookEntityRawToEntityRender(

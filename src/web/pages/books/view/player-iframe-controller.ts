@@ -511,8 +511,6 @@ export class PlayerIframeController {
     let spine = this.book.spines.at(section)
     if (!spine) spine = this.book.spines.at(0)
     if (!spine) return messageApi().error('book spine is empty')
-    // update section
-    this.states.pos = { ...this.states.pos, section }
 
     const absPath = spine.href
 
@@ -568,8 +566,9 @@ export class PlayerIframeController {
       } else if (locate.anchorId)
         paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
 
+      // update pos
       this.states.pos = {
-        ...this.states.pos,
+        section,
         paragraph,
       }
 
