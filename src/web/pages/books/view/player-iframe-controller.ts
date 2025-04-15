@@ -617,8 +617,8 @@ export class PlayerIframeController {
       this.viewCalculate(doc)
       this.hookResize(win, doc)
       this.resizeImgs(doc)
-      this.hookTouch()
       if (this.enabledPageList) {
+        this.hookTouch()
         await this.pageListCalculate(doc)
         this.hookPageWheel()
         this.hookSwipe()
