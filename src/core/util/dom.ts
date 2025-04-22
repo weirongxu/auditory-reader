@@ -1,7 +1,8 @@
-import type { JSDOM, DOMWindow } from 'jsdom'
-import { isUrl } from './url.js'
 import { Readability } from '@mozilla/readability'
+import type { DOMWindow, JSDOM } from 'jsdom'
 import { env } from '../env.js'
+import { arrayBufferToBase64 } from './converter.js'
+import { isUrl } from './url.js'
 
 export type DOMView = DOMWindow
 
@@ -143,9 +144,7 @@ export async function htmlImgs2DataURL(
       })
       const contentType = res.headers.get('Content-Type')
       const buf = await res.arrayBuffer()
-      img.src = `data:${contentType};base64,${Buffer.from(buf).toString(
-        'base64',
-      )}`
+      img.src = `data:${contentType};base64,${arrayBufferToBase64(buf)}`
     } catch (err) {
       console.error(err)
     }
@@ -174,7 +173,7 @@ export async function svgImgs2DataURL(
       const buf = await res.arrayBuffer()
       img.setAttribute(
         'href',
-        `data:${contentType};base64,${Buffer.from(buf).toString('base64')}`,
+        `data:${contentType};base64,${arrayBufferToBase64(buf)}`,
       )
     } catch (err) {
       console.error(err)
