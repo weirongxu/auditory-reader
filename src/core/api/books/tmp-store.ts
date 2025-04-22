@@ -20,7 +20,7 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
     updatedAt: new Date(),
     isTmp: false,
     position: bookEntityTmp.entity.position,
-    pageParagraphs: bookEntityTmp.entity.pageParagraphs,
+    pageParagraphCounts: bookEntityTmp.entity.pageParagraphCounts,
   }
 
   const buf = await bookEntityTmp.readFileBuffer()

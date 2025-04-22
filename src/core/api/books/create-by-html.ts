@@ -34,7 +34,7 @@ export const booksCreateByHtmlRouter = new URouter<
     updatedAt: date,
     isTmp: body.isTmp ?? false,
     position: null,
-    pageParagraphs: null,
+    pageParagraphCounts: null,
   }
 
   const epubBuf = await htmlToEpub(body.html, body.langCode)

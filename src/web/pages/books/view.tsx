@@ -29,9 +29,15 @@ export const useBookView = (uuid: string) => {
     error,
     reload: reloadBook,
   } = useAction(booksViewRouter, { uuid })
-  const { data: pageParagraphsData } = useAction(booksPageParagraphsRouter, {
-    uuid,
-  })
+  const { data: pageParagraphCounts } = useFetch(
+    [bookData],
+    async (bookData) => {
+      if (!bookData || bookData.item.isTmp) return
+      return (
+        await booksPageParagraphsRouter.json({ uuid: bookData.item.uuid })
+      ).pageParagraphCounts
+    },
+  )
   const {
     data: posData,
     error: posError,
@@ -87,7 +93,7 @@ export const useBookView = (uuid: string) => {
     pos,
     setPos,
     book,
-    pageParagraphs: pageParagraphsData?.pageParagraphs,
+    pageParagraphCounts,
     reload,
   }
 }
@@ -114,7 +120,8 @@ function BookViewContent() {
 }
 
 function BookViewReq({ uuid }: { uuid: string }) {
-  const { error, pos, setPos, book, pageParagraphs, reload } = useBookView(uuid)
+  const { error, pos, setPos, book, pageParagraphCounts, reload } =
+    useBookView(uuid)
   const [bookContext, setBookContext] = useAtom(bookContextAtom)
 
   useEffect(() => {
@@ -122,13 +129,13 @@ function BookViewReq({ uuid }: { uuid: string }) {
       setBookContext({
         uuid: book.item.uuid,
         book,
-        pageParagraphs: pageParagraphs ?? null,
+        pageParagraphCounts: pageParagraphCounts ?? null,
         pos,
         setPos,
         reload,
       })
     else setBookContext(null)
-  }, [book, pageParagraphs, pos, reload, setBookContext, setPos])
+  }, [book, pageParagraphCounts, pos, reload, setBookContext, setPos])
 
   if (error) return <NotFound title="book"></NotFound>
 

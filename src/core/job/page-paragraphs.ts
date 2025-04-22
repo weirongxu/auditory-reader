@@ -2,7 +2,6 @@ import path from '@file-services/path'
 import mime from 'mime-types'
 import type { BookEpub } from '../book/book-epub.js'
 import { bookManager } from '../book/book-manager.js'
-import type { BookTypes } from '../book/types.js'
 import type { UserInfo } from '../route/session.js'
 import { arrayBufferToString } from '../util/converter.js'
 import { jsDOMParser } from '../util/dom.js'
@@ -20,12 +19,12 @@ export class UpdatePageParagraphsJob extends Job {
   }
 
   async getPageParagraphs() {
-    const pageParagraphs: BookTypes.PageParagraph[] = []
+    const pageParagraphCounts: number[] = []
     for (const spine of this.book.spines) {
       const filepath = spine.href
       const file = await this.book.file(filepath)
       if (!file) {
-        pageParagraphs.push({ paragraphCount: 0 })
+        pageParagraphCounts.push(0)
         continue
       }
       const content = arrayBufferToString(file.buffer)
@@ -38,23 +37,19 @@ export class UpdatePageParagraphsJob extends Job {
         const { doc } = jsDOMParser(content)
         const readableExtractor = new ReadableExtractor(doc, [])
         const parts = readableExtractor.toReadableParts()
-        pageParagraphs.push({
-          paragraphCount: parts.length,
-        })
+        pageParagraphCounts.push(parts.length)
         await nextTick()
       } else {
-        pageParagraphs.push({
-          paragraphCount: 0,
-        })
+        pageParagraphCounts.push(0)
       }
     }
-    return pageParagraphs
+    return pageParagraphCounts
   }
 
   async start(): Promise<void> {
-    const pageParagraphs = await this.getPageParagraphs()
+    const pageParagraphCounts = await this.getPageParagraphs()
     await bookManager.update(this.userInfo.account, this.uuid, {
-      pageParagraphs,
+      pageParagraphCounts,
     })
   }
 }

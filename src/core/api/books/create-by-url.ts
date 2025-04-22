@@ -35,7 +35,7 @@ export const booksCreateByUrlRouter = new URouter<
     updatedAt: date,
     isTmp: body.isTmp ?? false,
     position: null,
-    pageParagraphs: null,
+    pageParagraphCounts: null,
   }
 
   const html = await fetchHtml(body.url)

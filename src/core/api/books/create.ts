@@ -31,7 +31,7 @@ export const booksCreateRouter = new URouter<BookCreate, BookTypes.EntityJson>(
     createdAt: new Date(),
     updatedAt: new Date(),
     isTmp: body.isTmp ?? false,
-    pageParagraphs: null,
+    pageParagraphCounts: null,
     position: null,
   }
 

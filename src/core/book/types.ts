@@ -24,7 +24,7 @@ export namespace BookTypes {
     updatedAt: string
     isTmp: boolean
     position?: PropertyPosition
-    pageParagraphs?: PageParagraph[]
+    pageParagraphCounts?: number[]
   }
 
   export type EntityRaw = {
@@ -37,7 +37,7 @@ export namespace BookTypes {
     updatedAt: Date
     isTmp: boolean
     position: PropertyPosition | null
-    pageParagraphs: PageParagraph[] | null
+    pageParagraphCounts: number[] | null
   }
 
   export type Entity = {
@@ -59,11 +59,7 @@ export namespace BookTypes {
     isFavorited?: boolean
     isArchived?: boolean
     position?: PropertyPosition
-    pageParagraphs?: PageParagraph[]
-  }
-
-  export type PageParagraph = {
-    paragraphCount: number
+    pageParagraphCounts?: number[]
   }
 
   export type PropertyJson = {

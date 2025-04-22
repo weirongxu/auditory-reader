@@ -77,9 +77,9 @@ class BookManager {
     uuid: string,
     update: BookTypes.EntityUpdate,
   ): Promise<void> {
-    await this.list(account).update(uuid, update)
     this.cacheEntity.delete(uuid)
     this.cacheBook.delete(uuid)
+    await this.list(account).update(uuid, update)
   }
 
   @extractUuid

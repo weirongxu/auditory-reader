@@ -1,11 +1,10 @@
 import { bookManager } from '../../book/book-manager.js'
-import type { BookTypes } from '../../book/types.js'
 import { UpdatePageParagraphsJob } from '../../job/page-paragraphs.js'
 import { URouter } from '../../route/router.js'
 import type { BookViewQuery } from './view.js'
 
 export type BookPageParagraphsRes = {
-  pageParagraphs: BookTypes.PageParagraph[] | null
+  pageParagraphCounts: number[] | null
 }
 
 export const booksPageParagraphsRouter = new URouter<
@@ -15,11 +14,11 @@ export const booksPageParagraphsRouter = new URouter<
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
   const book = await bookManager.book(userInfo.account, body.uuid)
-  if (!bookEntity.entity.pageParagraphs && book.spines.length < 10000) {
+  if (!bookEntity.entity.pageParagraphCounts && book.spines.length < 10000) {
     await new UpdatePageParagraphsJob(userInfo, body.uuid, book).start()
   }
   return {
-    pageParagraphs: (await bookManager.entity(userInfo.account, body.uuid))
-      .entity.pageParagraphs,
+    pageParagraphCounts: (await bookManager.entity(userInfo.account, body.uuid))
+      .entity.pageParagraphCounts,
   }
 })

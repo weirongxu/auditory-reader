@@ -184,8 +184,8 @@ export abstract class BookListBase {
     if (update.isArchived !== undefined)
       entityJson.isArchived = update.isArchived
     if (update.position !== undefined) entityJson.position = update.position
-    if (update.pageParagraphs !== undefined)
-      entityJson.pageParagraphs = update.pageParagraphs
+    if (update.pageParagraphCounts !== undefined)
+      entityJson.pageParagraphCounts = update.pageParagraphCounts
     await this.write()
   }
 

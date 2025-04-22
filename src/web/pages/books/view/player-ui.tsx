@@ -222,7 +222,7 @@ export function usePlayerUI({
   activeNavs?: BookTypes.Nav[]
   selection?: BookTypes.PropertyRange
 }) {
-  const { book, pos, pageParagraphs } = useBookContext()
+  const { book, pos, pageParagraphCounts: pageParagraphs } = useBookContext()
   const nav = useNavigate()
   const { annotations, keywords, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
