@@ -15,11 +15,7 @@ export class Queue {
 
   constructor(public options: QueueOptions) {}
 
-  run(key: string, job: Job) {
-    this.wait(key, job).catch(console.error)
-  }
-
-  async wait(key: string, job: Job): Promise<void> {
+  async run(key: string, job: Job): Promise<void> {
     const list = this.listMap.get(key) ?? []
     if (list.length >= this.options.concurrency) {
       switch (this.options.exceedStrategy) {
@@ -29,7 +25,7 @@ export class Queue {
           await new Promise<void>((resolve) => {
             this.onFinished.on(() => resolve())
           })
-          return await this.wait(key, job)
+          return await this.run(key, job)
       }
     }
     list.push(job)
