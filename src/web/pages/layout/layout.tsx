@@ -33,7 +33,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
       }}
       gap={4}
     >
-      {appBarStates.topProgress && (
+      {!!appBarStates.topProgress && (
         <AppBarProgress progress={appBarStates.topProgress}></AppBarProgress>
       )}
       <FlexBox
