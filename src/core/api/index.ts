@@ -29,6 +29,7 @@ import { booksViewRouter } from './books/view.js'
 import { loginRouter } from './login.js'
 import { logoutRouter } from './logout.js'
 import { userRouter } from './user.js'
+import { booksPageParagraphsRouter } from './books/page-paragraphs.js'
 
 export const ROUTERS = [
   loginRouter,
@@ -58,6 +59,7 @@ export const ROUTERS = [
   booksKeywordsDeleteRouter,
   booksUpdateRouter,
   booksViewRouter,
+  booksPageParagraphsRouter,
   booksCoverRouter,
   booksRenderRouter,
   booksSearchRouter,

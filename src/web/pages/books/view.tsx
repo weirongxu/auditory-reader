@@ -17,6 +17,7 @@ import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
 import styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
+import { booksPageParagraphsRouter } from '../../../core/api/books/page-paragraphs.js'
 
 export interface BookView extends BookViewRes {
   flattenedNavs: BookTypes.Nav[]
@@ -28,6 +29,9 @@ export const useBookView = (uuid: string) => {
     error,
     reload: reloadBook,
   } = useAction(booksViewRouter, { uuid })
+  const { data: pageParagraphsData } = useAction(booksPageParagraphsRouter, {
+    uuid,
+  })
   const {
     data: posData,
     error: posError,
@@ -83,6 +87,7 @@ export const useBookView = (uuid: string) => {
     pos,
     setPos,
     book,
+    pageParagraphs: pageParagraphsData?.pageParagraphs,
     reload,
   }
 }
@@ -109,7 +114,7 @@ function BookViewContent() {
 }
 
 function BookViewReq({ uuid }: { uuid: string }) {
-  const { error, pos, setPos, book, reload } = useBookView(uuid)
+  const { error, pos, setPos, book, pageParagraphs, reload } = useBookView(uuid)
   const [bookContext, setBookContext] = useAtom(bookContextAtom)
 
   useEffect(() => {
@@ -117,12 +122,13 @@ function BookViewReq({ uuid }: { uuid: string }) {
       setBookContext({
         uuid: book.item.uuid,
         book,
+        pageParagraphs: pageParagraphs ?? null,
         pos,
         setPos,
         reload,
       })
     else setBookContext(null)
-  }, [book, pos, reload, setBookContext, setPos])
+  }, [book, pageParagraphs, pos, reload, setBookContext, setPos])
 
   if (error) return <NotFound title="book"></NotFound>
 

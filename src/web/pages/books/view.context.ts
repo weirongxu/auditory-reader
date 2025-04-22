@@ -5,6 +5,7 @@ import type { BookView } from './view.js'
 export type BookContextProps = {
   uuid: string
   book: BookView
+  pageParagraphs: BookTypes.PageParagraph[] | null
   pos: BookTypes.PropertyPosition
   setPos: React.Dispatch<
     React.SetStateAction<BookTypes.PropertyPosition | undefined>

@@ -222,7 +222,7 @@ export function usePlayerUI({
   activeNavs?: BookTypes.Nav[]
   selection?: BookTypes.PropertyRange
 }) {
-  const { book, pos } = useBookContext()
+  const { book, pos, pageParagraphs } = useBookContext()
   const nav = useNavigate()
   const { annotations, keywords, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
@@ -472,9 +472,8 @@ export function usePlayerUI({
   }, [player])
 
   const topProgress = useMemo(() => {
-    if (book.item.pageParagraphs)
-      return bookProgress(book.item.pageParagraphs, pos)
-  }, [book.item.pageParagraphs, pos])
+    if (pageParagraphs) return bookProgress(pageParagraphs, pos)
+  }, [pageParagraphs, pos])
 
   useAppBarSync({
     topProgress,

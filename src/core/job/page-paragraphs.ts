@@ -52,8 +52,9 @@ export class UpdatePageParagraphsJob extends Job {
   }
 
   async start(): Promise<void> {
-    void bookManager.update(this.userInfo.account, this.uuid, {
-      pageParagraphs: await this.getPageParagraphs(),
+    const pageParagraphs = await this.getPageParagraphs()
+    await bookManager.update(this.userInfo.account, this.uuid, {
+      pageParagraphs,
     })
   }
 }

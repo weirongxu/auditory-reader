@@ -50,7 +50,6 @@ export function bookProgress(
 
 export function bookEntityRawToEntityRender(
   entity: BookTypes.EntityRaw,
-  { withPageParagraphs }: { withPageParagraphs: boolean },
 ): BookTypes.Entity {
   let progress: number | null = null
   if (entity.position && entity.pageParagraphs) {
@@ -66,7 +65,6 @@ export function bookEntityRawToEntityRender(
     updatedAt: new Date(entity.updatedAt),
     isTmp: entity.isTmp,
     position: entity.position,
-    pageParagraphs: withPageParagraphs ? entity.pageParagraphs : null,
     progress,
   }
   return entityRender

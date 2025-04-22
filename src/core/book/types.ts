@@ -50,7 +50,6 @@ export namespace BookTypes {
     updatedAt: Date
     isTmp: boolean
     position: PropertyPosition | null
-    pageParagraphs: PageParagraph[] | null
     progress: number | null
   }
 
