@@ -5,14 +5,18 @@ import nextPageURL from './sound/next-page.mp3'
 import shutterURL from './sound/shutter.mp3'
 import rewindURL from './sound/rewind.mp3'
 
+async function playHowlSound(howl: Howl): Promise<void> {
+  howl.play()
+  await new Promise<void>((resolve) => {
+    howl.once('end', () => resolve())
+  })
+}
+
 const shutterSound = new Howl({
   src: [shutterURL],
 })
 export async function shutterPlay() {
-  shutterSound.play()
-  await new Promise((resolve) => {
-    shutterSound.once('end', resolve)
-  })
+  await playHowlSound(shutterSound)
 }
 
 const pressEnterSound = new Howl({
@@ -20,10 +24,7 @@ const pressEnterSound = new Howl({
 })
 
 export async function pressEnterPlay() {
-  pressEnterSound.play()
-  await new Promise((resolve) => {
-    pressEnterSound.once('end', resolve)
-  })
+  await playHowlSound(pressEnterSound)
 }
 
 const nextPageSound = new Howl({
@@ -31,10 +32,7 @@ const nextPageSound = new Howl({
 })
 
 export async function nextPagePlay() {
-  nextPageSound.play()
-  await new Promise((resolve) => {
-    nextPageSound.once('end', resolve)
-  })
+  await playHowlSound(nextPageSound)
 }
 
 const rainSound = new Howl({
@@ -61,8 +59,5 @@ const rewindSound = new Howl({
 })
 
 export async function rewindPlay() {
-  rewindSound.play()
-  await new Promise((resolve) => {
-    rewindSound.once('end', resolve)
-  })
+  await playHowlSound(rewindSound)
 }
