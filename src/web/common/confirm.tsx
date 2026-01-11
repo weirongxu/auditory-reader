@@ -56,25 +56,43 @@ export const useConfirmHotkey = ({
 }: {
   enable?: boolean
   onOk: () => void
-  onClose?: () => void
+  onClose: () => void
   level?: number
 }) => {
-  const { addHotkey } = useHotkeys()
+  const { addHotkeys } = useHotkeys()
   const onOkRef = useSyncedRef(onOk)
   const onCloseRef = useSyncedRef(onClose)
 
   useEffect(() => {
     if (enable) {
-      return addHotkey(
-        'Enter',
-        t('hotkey.ok'),
-        () => {
-          onOkRef.current()
-        },
+      return addHotkeys(
+        [
+          [
+            'y',
+            t('hotkey.ok'),
+            () => {
+              onOkRef.current()
+            },
+          ],
+          [
+            'n',
+            t('hotkey.escape'),
+            () => {
+              onCloseRef.current()
+            },
+          ],
+          [
+            'Enter',
+            t('hotkey.ok'),
+            () => {
+              onOkRef.current()
+            },
+          ],
+        ],
         { level },
       )
     }
-  }, [addHotkey, enable, level, onOkRef])
+  }, [addHotkeys, enable, level, onOkRef])
 
   useKeyEscape(
     () => {

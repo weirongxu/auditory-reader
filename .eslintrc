@@ -3,8 +3,12 @@
     "node": true,
     "browser": true
   },
-  "extends": ["@raidou/eslint-config-react"],
-  "plugins": ["import"],
+  "extends": [
+    "@raidou/eslint-config-react"
+  ],
+  "plugins": [
+    "import"
+  ],
   "rules": {
     "@typescript-eslint/consistent-type-imports": "warn",
     "import/extensions": [
