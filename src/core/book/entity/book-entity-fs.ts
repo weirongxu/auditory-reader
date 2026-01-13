@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from '@file-services/path'
 import type { BookTypes } from '../types.js'
 import { BookEntityBase } from './book-entity-base.js'
+import { bufferToArrayBuffer } from '../../util/converter.js'
 
 export class BookEntityFS extends BookEntityBase {
   /**
@@ -65,7 +66,7 @@ export class BookEntityFS extends BookEntityBase {
   }
 
   async readFileBuffer(): Promise<ArrayBuffer> {
-    return fs.promises.readFile(this.bufferPath)
+    return bufferToArrayBuffer(await fs.promises.readFile(this.bufferPath))
   }
 
   async readFileText(): Promise<string> {

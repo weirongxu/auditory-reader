@@ -13,7 +13,12 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
 }
 
-export function base64ToArrayBuffer(base64Str: string): Uint8Array {
+export function base64ToArrayBuffer(base64Str: string): ArrayBuffer {
+  const uint8 = base64ToUint8array(base64Str)
+  return uint8.buffer
+}
+
+export function base64ToUint8array(base64Str: string): Uint8Array<ArrayBuffer> {
   if (isBrowser) {
     return Uint8Array.from(self.atob(base64Str), (c) => c.charCodeAt(0))
   } else {
@@ -28,6 +33,15 @@ export function arrayBufferToBuffer(ab: ArrayBuffer): Buffer {
     buf[i] = view[i]!
   }
   return buf
+}
+
+export function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
+  const ab = new ArrayBuffer(buf.length)
+  const view = new Uint8Array(ab)
+  for (let i = 0; i < buf.length; ++i) {
+    view[i] = buf[i]!
+  }
+  return ab
 }
 
 export function arrayBufferToString(ab: ArrayBuffer): string {
