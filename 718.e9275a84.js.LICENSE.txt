@@ -1,6 +1,7 @@
 /*! Bundled license information:
 
 @jspm/core/nodelibs/browser/chunk-DtuTasat.js:
+@jspm/core/nodelibs/browser/chunk-B738Er4n.js:
   (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
 
 tough-cookie/dist/cookie/cookie.js:
@@ -326,17 +327,7 @@ decimal.js/decimal.js:
    *  MIT Licence
    *)
 
-@jspm/core/nodelibs/browser/chunk-B738Er4n.js:
-  (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
-
 @jspm/core/nodelibs/browser/assert.js:
-  (*!
-   * The buffer module from node.js, for the browser.
-   *
-   * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
-   * @license  MIT
-   *)
-
 @jspm/core/nodelibs/browser/chunk-CjPlbOtt.js:
   (*!
    * The buffer module from node.js, for the browser.
