@@ -221,7 +221,7 @@ export class ReadableExtractor {
         // skip invisible
         const isVisible =
           // JSDom not support checkVisibility
-          // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unnecessary-condition
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           node.checkVisibility
             ? node.checkVisibility({
                 contentVisibilityAuto: true,
@@ -239,7 +239,7 @@ export class ReadableExtractor {
       if (!isTextNode(node)) continue
 
       // no content
-      const content = node.textContent?.trim()
+      const content = node.textContent.trim()
       if (!content) continue
 
       this.addText(node)

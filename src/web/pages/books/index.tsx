@@ -24,7 +24,14 @@ import {
 import { saveAs } from 'file-saver'
 import { t } from 'i18next'
 import { useAtom } from 'jotai'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
 import { getBooksCoverPath } from '../../../core/api/books/cover.js'
@@ -608,7 +615,9 @@ function BookRow({
   const coverUrl = `${getBooksCoverPath(book.uuid)}`
 
   const opacity = isDragging ? 0.2 : 1
-  if (!hasOrder) drop(refEl)
+  useLayoutEffect(() => {
+    if (!hasOrder) drop(refEl)
+  }, [drop, hasOrder])
   return (
     <tr
       ref={refEl}

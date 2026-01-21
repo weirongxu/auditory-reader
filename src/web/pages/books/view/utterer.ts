@@ -94,7 +94,7 @@ export class Utterer {
 
   async startLoop() {
     let retriedCount = 0
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, no-constant-condition
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (!this.states.started) return
       try {

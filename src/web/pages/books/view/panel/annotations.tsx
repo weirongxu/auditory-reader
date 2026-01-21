@@ -164,10 +164,10 @@ function Annotations({
       setSelectedIndex((idx) => (idx <= 0 ? 0 : idx - 1))
     }
     const nextAnnotation = () => {
-      annotations &&
-        setSelectedIndex((idx) =>
-          idx >= annotations.length - 1 ? annotations.length - 1 : idx + 1,
-        )
+      if (!annotations) return
+      setSelectedIndex((idx) =>
+        idx >= annotations.length - 1 ? annotations.length - 1 : idx + 1,
+      )
     }
     const gotoAnnotation = () => {
       const selectedAnnotation = annotations?.[selectedIndex]
@@ -270,9 +270,9 @@ export function useBookViewAnnotations(
   )
 
   useEffect(() => {
-    player.annotations.reload = reload
+    player.annotations.setReload(reload)
     return () => {
-      player.annotations.reload = undefined
+      player.annotations.setReload(undefined)
     }
   }, [player.annotations, reload])
 
@@ -284,13 +284,13 @@ export function useBookViewAnnotations(
     return player.annotations.closestIndexByPos(pos)
   }, [player.annotations, pos])
 
-  const activeAnnotation = useMemo(
-    () =>
-      activeAnnotationIndex !== null
-        ? annotations?.items.at(activeAnnotationIndex)
-        : undefined,
-    [annotations, activeAnnotationIndex],
-  )
+  // const activeAnnotation = useMemo(
+  //   () =>
+  //     activeAnnotationIndex !== null
+  //       ? annotations?.items.at(activeAnnotationIndex)
+  //       : undefined,
+  //   [annotations, activeAnnotationIndex],
+  // )
 
   const closestAnnotation = useMemo(
     () =>

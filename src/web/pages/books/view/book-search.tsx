@@ -149,7 +149,7 @@ function BookSearchView({
     useState<BookSearchResponse | null>(null)
   const bookSearch = useBookSearch()
 
-  searchTriggerRef.callback = useCallback(
+  const searchCallback = useCallback(
     async (newSearch: string) => {
       setOpen(true)
       setSearch(newSearch)
@@ -163,6 +163,13 @@ function BookSearchView({
     },
     [loading, refSearchInput, setOpen, uuid],
   )
+
+  useEffect(() => {
+    searchTriggerRef.callback = searchCallback
+    return () => {
+      searchTriggerRef.callback = undefined
+    }
+  }, [searchCallback])
 
   useMountEffect(() => {
     setTimeout(() => {

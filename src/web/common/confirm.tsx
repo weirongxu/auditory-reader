@@ -92,11 +92,11 @@ export const useConfirmHotkey = ({
         { level },
       )
     }
-  }, [addHotkeys, enable, level, onOkRef])
+  }, [addHotkeys, enable, level, onCloseRef, onOkRef])
 
   useKeyEscape(
     () => {
-      onCloseRef.current?.()
+      onCloseRef.current()
     },
     { enable: !!enable && !!onClose },
   )

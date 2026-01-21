@@ -255,7 +255,7 @@ export class BookEpub {
             (l) => l.tagName.toLowerCase() !== 'ol',
           )
           if (!elem) return
-          const label = elem.textContent ?? ''
+          const label = elem.textContent
           let href: string | undefined
           let hrefBase: string | undefined
           let hrefAnchor: string | undefined

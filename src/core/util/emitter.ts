@@ -35,7 +35,7 @@ export class SingleEmitter<T> {
   }
 
   off(callback: Listener<T>) {
-    const idx = this.#callbacks.findIndex(() => callback)
+    const idx = this.#callbacks.findIndex((cb) => cb === callback)
     if (idx === -1) return
     this.#callbacks.splice(idx, 1)
   }

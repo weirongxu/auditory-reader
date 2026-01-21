@@ -33,7 +33,7 @@ export const booksFetchUrlInfoRouter = new URouter<
       doc.querySelector('h1') ??
       doc.querySelector('meta[name=og\\:title]') ??
       doc.querySelector('head>title')
-    title = titleDom?.textContent?.trim() ?? ''
+    title = titleDom?.textContent.trim() ?? ''
   }
 
   lang ??= doc.activeElement?.getAttribute('lang') ?? undefined

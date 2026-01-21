@@ -1,6 +1,6 @@
 import { useUnmountEffect } from '@react-hookz/web'
 import type { RefObject } from 'react'
-import { useRef } from 'react'
+import { useState } from 'react'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async } from '../../../../core/util/promise.js'
@@ -211,13 +211,17 @@ export function useCreatePlayer(
   pos: BookTypes.PropertyPosition,
   iframeRef: RefObject<HTMLIFrameElement>,
 ) {
-  const player = useRef<Player>()
-  if (!player.current) {
-    player.current = new Player(book, pos, iframeRef)
-  }
+  const [player] = useState(() => new Player(book, pos, iframeRef))
+
   useUnmountEffect(() => {
-    player.current?.unmount.fire()
+    player.unmount.fire()
+    player.pause()
   })
-  usePlayerIframe(player.current)
-  return player.current
+
+  useUnmountEffect(() => {
+    player.pause()
+  })
+
+  usePlayerIframe(player)
+  return player
 }

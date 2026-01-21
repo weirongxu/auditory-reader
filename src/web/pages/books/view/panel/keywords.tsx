@@ -164,10 +164,10 @@ function Keywords({
       setSelectedIndex((idx) => (idx <= 0 ? 0 : idx - 1))
     }
     const nextKeyword = () => {
-      keywords &&
-        setSelectedIndex((idx) =>
-          idx >= keywords.length - 1 ? keywords.length - 1 : idx + 1,
-        )
+      if (!keywords) return
+      setSelectedIndex((idx) =>
+        idx >= keywords.length - 1 ? keywords.length - 1 : idx + 1,
+      )
     }
     const gotoKeyword = () => {
       const selectedKeyword = keywords?.[selectedIndex]
@@ -254,9 +254,9 @@ export function useBookViewKeywords(book: BookView, player: Player) {
   )
 
   useEffect(() => {
-    player.keywords.reload = reload
+    player.keywords.setReload(reload)
     return () => {
-      player.keywords.reload = undefined
+      player.keywords.setReload(undefined)
     }
   }, [player.keywords, reload])
 

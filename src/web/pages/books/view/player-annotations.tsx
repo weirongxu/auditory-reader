@@ -9,11 +9,15 @@ import type { Player } from './player.js'
 
 export class PlayerAnnotations {
   /** book uuid */
-  uuid: string
-  reload?: () => void
+  private uuid: string
+  private reload?: () => void
 
   constructor(public readonly player: Player) {
     this.uuid = player.book.item.uuid
+  }
+
+  setReload(reload?: () => void) {
+    this.reload = reload
   }
 
   async upsert(

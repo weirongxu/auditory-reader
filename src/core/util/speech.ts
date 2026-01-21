@@ -72,7 +72,7 @@ export class Speech {
     const indexMap = new Map<number, TextAlias>()
     for (const alias of aliasArray) {
       let i = -1
-      // eslint-disable-next-line no-constant-condition, @typescript-eslint/no-unnecessary-condition
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         i = text.indexOf(alias.source, i + 1)
         if (i === -1) break
@@ -210,7 +210,7 @@ export class Speech {
         'error',
         (error) => {
           if (this.state === 'cancel') resolve('cancel')
-          else reject(error)
+          else reject(new Error(error.error))
         },
         { once: true },
       )

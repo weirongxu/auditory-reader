@@ -1,5 +1,6 @@
 import path from '@file-services/path'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSyncedRef } from '@react-hookz/web'
+import { useCallback, useEffect, useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import { env } from '../env.js'
@@ -52,11 +53,9 @@ export function useAction<Req, Res>(
   options?: ActionOptions,
 ) {
   const navigate = useNavigate()
-  const refArg = useRef<Req>(arg)
-  refArg.current = arg
+  const refArg = useSyncedRef<Req>(arg)
   const argJson = JSON.stringify(arg)
-  const refOptions = useRef<ActionOptions | undefined>(options)
-  refOptions.current = options
+  const refOptions = useSyncedRef<ActionOptions | undefined>(options)
   const [data, setData] = useState<Res>()
   const [error, setError] = useState<any>()
 
@@ -78,7 +77,7 @@ export function useAction<Req, Res>(
           }
         })
     },
-    [navigate, router],
+    [navigate, refArg, router],
   )
 
   const reload = useCallback(
@@ -89,7 +88,7 @@ export function useAction<Req, Res>(
       }
       load(options?.signal ?? new AbortController().signal)
     },
-    [load],
+    [load, refOptions],
   )
 
   // load

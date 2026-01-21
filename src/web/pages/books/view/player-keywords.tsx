@@ -16,6 +16,10 @@ export class PlayerKeywords {
     this.uuid = player.book.item.uuid
   }
 
+  setReload(reload?: () => void) {
+    this.reload = reload
+  }
+
   private getBriefText(pos: BookTypes.PropertyPosition) {
     const node = this.player.iframeCtrler.readableParts.at(pos.paragraph)
     if (!node) return

@@ -1,5 +1,5 @@
 import { t } from 'i18next'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
@@ -104,7 +104,7 @@ function NavTree({
   }, [activeNavs])
 
   // change selected nav item
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (lastActiveNav === undefined) return
     const lastActiveNavIndex = book.flattenedNavs.indexOf(lastActiveNav)
     if (lastActiveNavIndex === -1) return

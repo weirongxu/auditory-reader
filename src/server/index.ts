@@ -87,5 +87,4 @@ for (const router of ROUTERS) {
 
 app.listen(env.appPort)
 
-// eslint-disable-next-line no-console
 console.log(`Server started at port ${env.appPort}`)
