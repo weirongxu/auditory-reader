@@ -1138,8 +1138,7 @@ export class PlayerIframeController {
           uri = href.substring(this.mainContentRootUrl.length)
         }
         if (await confirmLink(uri)) {
-          await this.gotoUrlPath(uri)
-          this.player.utterer.cancel()
+          await this.player.gotoUrlPath(uri)
         }
       })
     }

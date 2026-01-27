@@ -3,15 +3,20 @@ import { Speech, type SpeakResult } from '../../../../core/util/speech.js'
 import type { Player } from './player'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states'
-import {
-  nextPagePlay,
-  pressEnterPlay,
-  rewindPlay,
-  shutterPlay,
-} from './sound.js'
+import { rewindPlay, shutterPlay } from './sound.js'
 import { UttererHighlight } from './highlight/utterer-highlight.js'
+import { Mutex } from 'async-mutex'
 
 const speakRetriedMax = 3
+
+const suspendMutex = new Mutex()
+
+export class UttererSuspendStored {
+  constructor(
+    public started: boolean,
+    public mutexRelease: () => void,
+  ) {}
+}
 
 export class Utterer {
   hl: UttererHighlight
@@ -31,6 +36,20 @@ export class Utterer {
 
   cancel() {
     this.speech.cancel()
+  }
+
+  async suspend() {
+    const mutexRelease = await suspendMutex.acquire()
+    const stored = new UttererSuspendStored(this.states.started, mutexRelease)
+    this.states.started = false
+    this.speech.cancel()
+    return stored
+  }
+
+  resume(stored: UttererSuspendStored) {
+    this.states.started = stored.started
+    stored.mutexRelease()
+    this.startLoop()
   }
 
   async speakNode(node: ReadablePartText): Promise<SpeakResult> {
@@ -79,7 +98,7 @@ export class Utterer {
         this.states.autoNextSection
       ) {
         await this.player.nextSection()
-        await nextPagePlay()
+        // await nextPagePlay()
       }
       // stop
       else {
@@ -88,11 +107,15 @@ export class Utterer {
     } else {
       // next paragraph
       await this.player.nextParagraph()
-      await pressEnterPlay()
+      // await pressEnterPlay()
     }
   }
 
-  async startLoop() {
+  startLoop() {
+    this.#startLoop().catch(console.error)
+  }
+
+  async #startLoop() {
     let retriedCount = 0
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {

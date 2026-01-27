@@ -35,6 +35,7 @@
     "@types/jsdom": "^21.1.6",
     "@types/mime-types": "^2.1.4",
     "antd": "^5.21.2",
+    "async-mutex": "^0.5.0",
     "dedent": "^1.5.3",
     "dnd-core": "^16.0.1",
     "domhandler": "^5.0.3",

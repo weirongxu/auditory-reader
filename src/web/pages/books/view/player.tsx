@@ -13,6 +13,7 @@ import {
 import { PlayerKeywords } from './player-keywords.js'
 import { PlayerStatesManager } from './player-states.js'
 import { Utterer } from './utterer.js'
+import { nextPagePlay, pressEnterPlay } from './sound.js'
 
 export class Player {
   states: PlayerStatesManager
@@ -58,7 +59,7 @@ export class Player {
 
   start() {
     this.states.started = true
-    this.utterer.startLoop().catch(console.error)
+    this.utterer.startLoop()
   }
 
   pause() {
@@ -108,13 +109,17 @@ export class Player {
     section ??= this.states.pos.section
     paragraph ??= this.states.pos.paragraph
 
+    if (
+      this.states.pos.section === section &&
+      this.states.pos.paragraph === paragraph
+    )
+      // Skip when same position
+      return
+
+    const stored = await this.utterer.suspend()
     if (this.states.pos.section === section) {
       // Same section
-
-      if (this.states.pos.paragraph === paragraph)
-        // Skip when same position
-        return
-
+      await pressEnterPlay()
       this.states.pos = {
         section,
         paragraph,
@@ -123,14 +128,14 @@ export class Player {
         await this.iframeCtrler.scrollToCurParagraph(animated)
     } else {
       // Change section
+      await nextPagePlay()
       await this.iframeCtrler.load({
         section,
         paragraph,
         animated,
       })
     }
-
-    this.utterer.cancel()
+    this.utterer.resume(stored)
   }
 
   async gotoSection(section: number, paragraph: number) {
@@ -154,8 +159,9 @@ export class Player {
   }
 
   async gotoUrlPath(urlPath: string) {
+    const stored = await this.utterer.suspend()
     await this.iframeCtrler.gotoUrlPath(urlPath)
-    this.utterer.cancel()
+    this.utterer.resume(stored)
   }
 
   get isFirstPage() {
