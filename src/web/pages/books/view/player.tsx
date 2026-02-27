@@ -119,7 +119,7 @@ export class Player {
     const stored = await this.utterer.suspend()
     if (this.states.pos.section === section) {
       // Same section
-      await pressEnterPlay()
+      void pressEnterPlay()
       this.states.pos = {
         section,
         paragraph,
@@ -128,7 +128,7 @@ export class Player {
         await this.iframeCtrler.scrollToCurParagraph(animated)
     } else {
       // Change section
-      await nextPagePlay()
+      void nextPagePlay()
       await this.iframeCtrler.load({
         section,
         paragraph,
