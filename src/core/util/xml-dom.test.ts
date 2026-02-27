@@ -1,3 +1,4 @@
+import { expect, it } from 'vitest'
 import { compact } from './collection.js'
 import { parseXML } from './xml-dom.js'
 

@@ -1,3 +1,4 @@
+import { expect, it } from 'vitest'
 import { compact, orderBy, range } from './collection.js'
 
 it('range', () => {
