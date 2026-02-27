@@ -96,6 +96,8 @@ export async function getArticleXml(doc: Document, baseURL?: string) {
 
   if (!article) throw new Error('parse article error')
 
+  if (!article.content) throw new Error('parse article content error')
+
   const articleDom = jsDOMParser(article.content)
   const articleDoc = articleDom.doc
 

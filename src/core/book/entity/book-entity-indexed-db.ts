@@ -1,5 +1,5 @@
 import { getDB } from '../indexedDB.js'
-import type { BookTypes } from '../types'
+import type { BookTypes } from '../types.js'
 import { BookEntityBase } from './book-entity-base.js'
 
 export class BookEntityIndexedDB extends BookEntityBase {

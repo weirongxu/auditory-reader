@@ -24,9 +24,8 @@ export const booksFetchUrlInfoRouter = new URouter<
   const article = new Readability(doc).parse()
   let title: string, lang: string | undefined
   if (article) {
-    title = article.title
-    // @ts-ignore
-    lang = article.lang as string | undefined
+    title = article.title ?? ''
+    lang = article.lang ?? undefined
   } else {
     const titleDom =
       doc.querySelector('article h1') ??

@@ -1,10 +1,9 @@
 import { atom, useAtom } from 'jotai'
-import type { Dispatch, SetStateAction } from 'react'
 import { useCallback, useMemo } from 'react'
 import type { BookTypes } from '../core/book/types.js'
+import { isBrowser } from '../core/util/browser.js'
 import { orderBy } from '../core/util/collection.js'
 import { globalStore } from './store/global.js'
-import { isBrowser } from '../core/util/browser.js'
 
 const allVoicesAtom = atom<SpeechSynthesisVoice[]>([])
 if (isBrowser) {
@@ -21,30 +20,25 @@ function createStore<T>(options: {
   storeKey: string
   read: (value: string | null) => T
   write: (value: T) => string | null
-}): () => [T, Dispatch<SetStateAction<T>>] {
+}) {
   const { storeKey, read, write } = options
   const getOriginStoredValue = () => localStorage.getItem(storeKey)
-  const globalAtom = atom(read(getOriginStoredValue()))
+  const initAtom = atom(read(getOriginStoredValue()))
 
-  return () => {
-    const [inner, setInner] = useAtom(globalAtom)
-    const setValue: Dispatch<SetStateAction<T>> = useCallback(
-      (getValue: SetStateAction<T>): void => {
-        let value: T
-        if (typeof getValue === 'function') {
-          value = (getValue as any)(inner)
-        } else {
-          value = getValue
-        }
-        setInner(value)
-        const writeValue = write(value)
-        if (writeValue) localStorage.setItem(storeKey, writeValue)
-        else localStorage.removeItem(storeKey)
-      },
-      [inner, setInner],
-    )
-    return [inner, setValue]
-  }
+  const pipeAtom = atom(
+    (get) => get(initAtom),
+    (get, set, value: T | ((prev: T) => T)) => {
+      const newValue =
+        typeof value === 'function'
+          ? (value as (prev: T) => T)(get(initAtom))
+          : value
+      set(initAtom, newValue)
+      const writeValue = write(newValue)
+      if (writeValue) localStorage.setItem(storeKey, writeValue)
+      else localStorage.removeItem(storeKey)
+    },
+  )
+  return () => useAtom(pipeAtom)
 }
 
 export type ViewPanelType = 'none' | 'nav' | 'annotation' | 'keyword'

@@ -1,14 +1,10 @@
 {
   "compilerOptions": {
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "target": "ES2020",
     "strict": true,
@@ -19,18 +15,9 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "incremental": true,
-    "module": "ESNext"
+    "module": "preserve"
   },
-  "exclude": [
-    "node_modules",
-    "lib",
-    "server-public",
-    "sw-public"
-  ],
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.js",
-    "**/*.mjs"
-  ]
+  "exclude": ["node_modules", "lib", "server-public", "sw-public"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs"]
 }
+

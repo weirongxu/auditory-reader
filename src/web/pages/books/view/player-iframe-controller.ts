@@ -58,7 +58,7 @@ import { globalStyle } from '../../../style.js'
 import { AnnotationHighlight } from './highlight/annotation-highlight.js'
 import type { HighlightBlock } from './highlight/highlight.js'
 import { KeywordHighlight } from './highlight/keyword-highlight.js'
-import type { Player } from './player'
+import type { Player } from './player.js'
 import type { PlayerStatesManager } from './player-states.js'
 
 type PageListNode = {

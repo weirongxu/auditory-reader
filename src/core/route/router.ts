@@ -5,9 +5,9 @@ import {
   ActionUnauthorized,
   getActionPath,
 } from './action.js'
-import type { URequest } from './request'
-import type { UResponse } from './response'
-import type { UserInfo } from './session'
+import type { URequest } from './request.js'
+import type { UResponse } from './response.js'
+import type { UserInfo } from './session.js'
 
 type ApiContext<R, P, M> = {
   req: URequest<R>

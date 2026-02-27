@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 import { env } from '../env.js'
-import type { URouter } from './router'
+import type { URouter } from './router.js'
 
 export type Action<ReqType, ResType> = (body: ReqType) => Promise<ResType>
 

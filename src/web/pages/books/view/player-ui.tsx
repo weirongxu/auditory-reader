@@ -43,7 +43,7 @@ import { useBookEditDialog } from '../edit.js'
 import { useBookContext } from '../view.context.js'
 import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
-import type { Player } from './player'
+import type { Player } from './player.js'
 import { usePlayerUISync } from './player-states.js'
 import { bookProgress } from '../../../../core/util/book.js'
 

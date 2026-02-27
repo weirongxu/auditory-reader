@@ -1,7 +1,7 @@
-import type { BookEntityBase } from '../entity/book-entity-base'
+import type { BookEntityBase } from '../entity/book-entity-base.js'
 import { BookEntityIndexedDB } from '../entity/book-entity-indexed-db.js'
 import { getDB } from '../indexedDB.js'
-import type { BookTypes } from '../types'
+import type { BookTypes } from '../types.js'
 import { BookListBase } from './book-list-base.js'
 
 export class BookListIndexedDB extends BookListBase {
