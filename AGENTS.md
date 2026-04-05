@@ -4,7 +4,7 @@ pnpm test:lint
 pnpm test:units
 ```
 
-- Uses `test:types filepath` and `test:lint filepath` to check after changed code
+- Uses `test:types filepath` and `test:lint filepath` to check after edit
 - **`src/core/util/`**: Shared utilities (DOM, speech, text processing, collections)
 - **Jotai atoms** for client-side state in `src/web/store/`
 - Uses `@file-services/path` instead of `path`

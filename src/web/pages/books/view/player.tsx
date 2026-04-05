@@ -4,6 +4,8 @@ import { useState } from 'react'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async } from '../../../../core/util/promise.js'
+import { globalStore } from '../../../store/global.js'
+import { bookContextAtom } from '../view.context.js'
 import type { BookView } from '../view.js'
 import { PlayerAnnotations } from './player-annotations.js'
 import {
@@ -35,24 +37,36 @@ export class Player {
     this.annotations = new PlayerAnnotations(this)
     this.keywords = new PlayerKeywords(this)
 
-    const onVisibilityChange = () => {
-      // TODO
-      // if (document.visibilityState === 'visible') this.reload()
+    let wakeLock: WakeLockSentinel | undefined
+    let hiddenAt: number | undefined
+    const hiddenThresholdMs = 10 * 60 * 1000
+    const onPlayStateChange = () => {
+      // auto reload
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now()
+      } else if (
+        hiddenAt !== undefined &&
+        !this.states.started &&
+        Date.now() - hiddenAt >= hiddenThresholdMs
+      ) {
+        hiddenAt = undefined
+        globalStore.get(bookContextAtom)?.reload()
+      }
+
+      // wake lock
       async(async () => {
-        // wakeLock
-        let lock: WakeLockSentinel | undefined
-        await lock?.release().catch(console.error)
-        lock = undefined
+        await wakeLock?.release().catch(console.error)
+        wakeLock = undefined
         if (this.states.started && this.states.docVisible) {
-          lock = await navigator.wakeLock.request('screen')
+          wakeLock = await navigator.wakeLock.request('screen')
         }
       })
     }
-    onVisibilityChange()
-    document.addEventListener('visibilitychange', onVisibilityChange)
-    const startedDispose = this.states.events.on('started', onVisibilityChange)
+    onPlayStateChange()
+    document.addEventListener('visibilitychange', onPlayStateChange)
+    const startedDispose = this.states.events.on('started', onPlayStateChange)
     this.unmount.on(() => {
-      document.removeEventListener('visibilitychange', onVisibilityChange)
+      document.removeEventListener('visibilitychange', onPlayStateChange)
       startedDispose()
     })
   }
