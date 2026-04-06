@@ -209,3 +209,9 @@ export const useDisabledVertical = createStore<boolean>({
   read: (v) => (v ? v === '1' : false),
   write: (v) => (v ? '1' : '0'),
 })
+
+export const usePanelExpanded = createStore<boolean>({
+  storeKey: 'panelExpanded',
+  read: (v) => v === '1',
+  write: (v) => (v ? '1' : '0'),
+})

@@ -1,7 +1,12 @@
+import {
+  faDownLeftAndUpRightToCenter,
+  faUpRightAndDownLeftFromCenter,
+} from '@fortawesome/free-solid-svg-icons'
 import { t } from 'i18next'
 import { useMemo } from 'react'
 import type { BookTypes } from '../../../../../core/book/types.js'
-import { useViewPanelType } from '../../../../store.js'
+import { Icon } from '../../../../components/icon.js'
+import { usePanelExpanded, useViewPanelType } from '../../../../store.js'
 import type { BookView } from '../../view.js'
 import type { Player } from '../player.js'
 import { useBookViewAnnotations } from './annotations.js'
@@ -16,6 +21,7 @@ export function useBookPanel(
   selection: BookTypes.PropertyRange | undefined,
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
+  const [panelExpanded, setPanelExpanded] = usePanelExpanded()
   const { NavTreeView } = useBookViewNav(book, player, activeNavs)
   const { annotations, AnnotationView } = useBookViewAnnotations(
     book,
@@ -25,6 +31,26 @@ export function useBookPanel(
   )
   const { keywords, KeywordView } = useBookViewKeywords(book, player)
 
+  const toggleExpanded = useMemo(
+    () => () => setPanelExpanded((v) => !v),
+    [setPanelExpanded],
+  )
+
+  const ExpandIcon = useMemo(
+    () => (
+      <Icon
+        icon={
+          panelExpanded
+            ? faDownLeftAndUpRightToCenter
+            : faUpRightAndDownLeftFromCenter
+        }
+        size="sm"
+        onClick={toggleExpanded}
+      />
+    ),
+    [panelExpanded, toggleExpanded],
+  )
+
   const BookPanelView = useMemo(
     () => (
       <>
@@ -32,23 +58,30 @@ export function useBookPanel(
           className={[
             'book-panel',
             viewPanelType === 'none' ? 'hidden' : '',
+            panelExpanded ? 'expanded' : '',
           ].join(' ')}
         >
           {viewPanelType === 'nav' && (
             <>
-              <h3>{t('nav')}</h3>
+              <h3>
+                {t('nav')} {ExpandIcon}
+              </h3>
               {NavTreeView}
             </>
           )}
           {viewPanelType === 'annotation' && (
             <>
-              <h3>{t('annotation')}</h3>
+              <h3>
+                {t('annotation')} {ExpandIcon}
+              </h3>
               {AnnotationView}
             </>
           )}
           {viewPanelType === 'keyword' && (
             <>
-              <h3>{t('keyword')}</h3>
+              <h3>
+                {t('keyword')} {ExpandIcon}
+              </h3>
               {KeywordView}
             </>
           )}
@@ -62,7 +95,15 @@ export function useBookPanel(
         ></div>
       </>
     ),
-    [AnnotationView, KeywordView, NavTreeView, setViewPanelType, viewPanelType],
+    [
+      AnnotationView,
+      ExpandIcon,
+      KeywordView,
+      NavTreeView,
+      panelExpanded,
+      setViewPanelType,
+      viewPanelType,
+    ],
   )
 
   return useMemo(

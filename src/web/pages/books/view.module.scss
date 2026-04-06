@@ -22,6 +22,9 @@
       &.hidden {
         display: none;
       }
+      &.expanded {
+        width: 100%;
+      }
       @include mobile {
         display: flex;
         max-width: 300px;
@@ -33,6 +36,9 @@
         &.hidden {
           display: flex;
           transform: translateX(-100%);
+        }
+        &.expanded {
+          max-width: 100%;
         }
       }
 
