@@ -140,9 +140,11 @@ function KeywordItem({
 function Keywords({
   keywords,
   player,
+  panelExpanded,
 }: {
   keywords: BookTypes.PropertyKeyword[] | undefined | null
   player: Player
+  panelExpanded: boolean
 }) {
   const { addHotkeys } = useHotkeys()
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
@@ -216,7 +218,7 @@ function Keywords({
     selectedKeywordDiv?.scrollIntoView({
       block: 'center',
     })
-  }, [selectedKeyword])
+  }, [selectedKeyword, panelExpanded])
 
   return (
     <div className="panel-content book-keywords" ref={refKeyword}>
@@ -240,7 +242,11 @@ function Keywords({
   )
 }
 
-export function useBookViewKeywords(book: BookView, player: Player) {
+export function useBookViewKeywords(
+  book: BookView,
+  player: Player,
+  panelExpanded: boolean,
+) {
   const uuid = book.item.uuid
 
   const { data: keywords, reload } = useAction(
@@ -263,7 +269,11 @@ export function useBookViewKeywords(book: BookView, player: Player) {
   return {
     keywords: keywords?.items,
     KeywordView: (
-      <Keywords keywords={keywords?.items} player={player}></Keywords>
+      <Keywords
+        keywords={keywords?.items}
+        player={player}
+        panelExpanded={panelExpanded}
+      ></Keywords>
     ),
   }
 }

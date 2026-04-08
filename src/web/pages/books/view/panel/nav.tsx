@@ -57,10 +57,12 @@ function NavTree({
   book,
   activeNavs,
   player,
+  panelExpanded,
 }: {
   book: BookView
   activeNavs?: BookTypes.Nav[]
   player: Player
+  panelExpanded: boolean
 }) {
   const { addHotkeys } = useHotkeys()
   const refNav = useRef<HTMLDivElement>(null)
@@ -113,6 +115,7 @@ function NavTree({
 
   // scroll to selected nav
   useEffect(() => {
+    void panelExpanded
     if (!selectedNav) return
     const navDiv = refNav.current
     if (!navDiv) return
@@ -120,7 +123,7 @@ function NavTree({
     selectedNavDiv?.scrollIntoView({
       block: 'center',
     })
-  }, [selectedNav])
+  }, [selectedNav, panelExpanded])
 
   return (
     <div ref={refNav} className="panel-content book-nav">
@@ -141,11 +144,17 @@ function NavTree({
 export function useBookViewNav(
   book: BookView,
   player: Player,
-  activeNavs?: BookTypes.Nav[],
+  activeNavs: BookTypes.Nav[] | undefined,
+  panelExpanded: boolean,
 ) {
   return {
     NavTreeView: (
-      <NavTree book={book} player={player} activeNavs={activeNavs}></NavTree>
+      <NavTree
+        book={book}
+        player={player}
+        activeNavs={activeNavs}
+        panelExpanded={panelExpanded}
+      ></NavTree>
     ),
   }
 }

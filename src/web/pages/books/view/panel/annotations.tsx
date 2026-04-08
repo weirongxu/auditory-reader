@@ -138,11 +138,13 @@ function Annotations({
   activeAnnotationIndex,
   closestAnnotationIndex,
   player,
+  panelExpanded,
 }: {
   annotations: BookTypes.PropertyAnnotation[] | undefined | null
   activeAnnotationIndex: number | null
   closestAnnotationIndex: number | null
   player: Player
+  panelExpanded: boolean
 }) {
   const { addHotkeys } = useHotkeys()
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
@@ -218,6 +220,7 @@ function Annotations({
 
   // scroll to selected annotation
   useEffect(() => {
+    void panelExpanded
     if (!selectedAnnotation) return
     const annotationDiv = refAnnotation.current
     if (!annotationDiv) return
@@ -226,7 +229,7 @@ function Annotations({
     selectedAnnotationDiv?.scrollIntoView({
       block: 'center',
     })
-  }, [selectedAnnotation])
+  }, [selectedAnnotation, panelExpanded])
 
   return (
     <div className="panel-content book-annotations" ref={refAnnotation}>
@@ -256,6 +259,7 @@ export function useBookViewAnnotations(
   player: Player,
   pos: BookTypes.PropertyPosition,
   selection: BookTypes.PropertyRange | undefined,
+  panelExpanded: boolean,
 ) {
   const uuid = book.item.uuid
 
@@ -308,6 +312,7 @@ export function useBookViewAnnotations(
         closestAnnotationIndex={closestAnnotationIndex}
         activeAnnotationIndex={activeAnnotationIndex}
         player={player}
+        panelExpanded={panelExpanded}
       ></Annotations>
     ),
     closestAnnotation,

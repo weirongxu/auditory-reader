@@ -22,14 +22,24 @@ export function useBookPanel(
 ) {
   const [viewPanelType, setViewPanelType] = useViewPanelType()
   const [panelExpanded, setPanelExpanded] = usePanelExpanded()
-  const { NavTreeView } = useBookViewNav(book, player, activeNavs)
+  const { NavTreeView } = useBookViewNav(
+    book,
+    player,
+    activeNavs,
+    panelExpanded,
+  )
   const { annotations, AnnotationView } = useBookViewAnnotations(
     book,
     player,
     pos,
     selection,
+    panelExpanded,
   )
-  const { keywords, KeywordView } = useBookViewKeywords(book, player)
+  const { keywords, KeywordView } = useBookViewKeywords(
+    book,
+    player,
+    panelExpanded,
+  )
 
   const toggleExpanded = useMemo(
     () => () => setPanelExpanded((v) => !v),
