@@ -30,6 +30,7 @@ export const langEn = {
     speakBookName: 'Speak selected book name',
     playToggle: 'Play / Pause',
     navToggle: 'Toggle table contents panel',
+    panelToggleExpanded: 'Toggle panel expanded',
     prevNav: 'Select previous nav',
     nextNav: 'Select next nav',
     gotoNav: 'Go to selected nav',

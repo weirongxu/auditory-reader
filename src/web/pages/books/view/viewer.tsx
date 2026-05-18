@@ -6,7 +6,7 @@ import type { BookTypes } from '../../../../core/book/types.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
-import { useViewPanelType } from '../../../store.js'
+import { useViewPanelType, usePanelExpanded } from '../../../store.js'
 import { useColorScheme } from '../../../theme.js'
 import { useBookContext } from '../view.context.js'
 import { usePlayerSync, type PageScrollPercent } from './player-states.js'
@@ -28,6 +28,7 @@ export function useViewer() {
   >()
   const { addHotkeys } = useHotkeys()
   const [, setViewPanelType] = useViewPanelType()
+  const [, setPanelExpanded] = usePanelExpanded()
   const nav = useNavigate()
 
   const player = useCreatePlayer(book, pos, iframeRef)
@@ -152,6 +153,11 @@ export function useViewer() {
           selection?.selectedText &&
           player.keywords.add({ pos, keyword: selection.selectedText }),
       ],
+      [
+        { shift: true, key: 't' },
+        t('hotkey.panelToggleExpanded'),
+        () => setPanelExpanded((v) => !v),
+      ],
 
       // navigation
       ['u', t('hotkey.goBack'), () => nav('../')],
@@ -181,7 +187,16 @@ export function useViewer() {
       [['g', 'g'], t('hotkey.firstParagraph'), firstParagraph],
       [{ shift: true, key: 'G' }, t('hotkey.lastParagraph'), lastParagraph],
     ])
-  }, [addHotkeys, book, nav, player, pos, selection, setViewPanelType])
+  }, [
+    addHotkeys,
+    book,
+    nav,
+    player,
+    pos,
+    selection,
+    setViewPanelType,
+    setPanelExpanded,
+  ])
 
   // leave
   useUnmountEffect(() => {

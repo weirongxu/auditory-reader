@@ -32,6 +32,7 @@ export const langZh: LangEn = {
     speakBookName: '朗读选择的书名',
     playToggle: '播放 / 暂停',
     navToggle: '开关显示导航',
+    panelToggleExpanded: '切换面板展开',
     prevNav: '选择上一个导航',
     nextNav: '选择下一个导航',
     gotoNav: '跳转到选择的导航',
