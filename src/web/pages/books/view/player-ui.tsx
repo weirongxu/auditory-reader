@@ -54,7 +54,7 @@ function ControlButton(props: {
 }) {
   return (
     <Button
-      style={{ padding: '14px 4px' }}
+      style={{ padding: '6px 2px' }}
       size="small"
       type="primary"
       {...props}
