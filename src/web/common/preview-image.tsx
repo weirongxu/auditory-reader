@@ -1,4 +1,5 @@
 import { atom, useAtom } from 'jotai'
+
 import { PinchZoomPan } from '../components/pinch-zoom-pan.js'
 
 export const previewImgSrcAtom = atom<string | null>(null)

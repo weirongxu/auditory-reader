@@ -1,8 +1,9 @@
 import { t } from 'i18next'
-import invert from 'invert-color'
+
 import { booksKeywordsDeleteRouter } from '../../../../core/api/books/keywords-delete.js'
 import { booksKeywordsUpsertRouter } from '../../../../core/api/books/keywords-upsert.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { invert } from '../../../../core/util/invert-color.js'
 import { uiConfirm } from '../../../common/confirm.js'
 import { messageApi } from '../../../common/notification.js'
 import type { Player } from './player.js'

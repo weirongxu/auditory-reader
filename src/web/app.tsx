@@ -1,13 +1,14 @@
 // styles
 import './app.scss'
+import 'antd/dist/reset.css'
 
 // modules
 import { Alert } from 'antd'
-import 'antd/dist/reset.css'
 import { Provider } from 'jotai'
 import { useEffect, useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
+
 import { COLOR_SCHEME_DARK_CLASS } from '../core/consts.js'
 import { ConfirmProvider } from './common/confirm.js'
 import { HintTextProvider } from './common/hint-text.js'

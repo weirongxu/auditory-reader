@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
-import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { t } from 'i18next'
+import { useEffect, useRef } from 'react'
+
+import { useHotkeys } from '../hotkey/hotkey-state.js'
 
 export function useKeyEscape(
   callback: () => void,

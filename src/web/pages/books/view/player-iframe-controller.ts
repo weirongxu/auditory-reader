@@ -2,6 +2,7 @@ import path from '@file-services/path'
 import { useMountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import type { RefObject } from 'react'
+
 import { getBooksRenderPath } from '../../../../core/api/books/render.js'
 import { NAV_TOC_SELECTOR } from '../../../../core/book/book-epub.js'
 import type { BookTypes } from '../../../../core/book/types.js'
@@ -201,7 +202,9 @@ export class PlayerIframeController {
       this.onResized(this.doc)
     })
 
-    this.player.unmount.on(() => this.unmount.fire())
+    this.player.unmount.on(() => {
+      this.unmount.fire()
+    })
   }
 
   protected pageListType(): 'none' | 'double' | 'single' {
@@ -432,9 +435,11 @@ export class PlayerIframeController {
     // exceed section range
     if (jump) {
       if (goalPageIndex < 0) {
-        return await this.player.prevSection(-1)
+        await this.player.prevSection(-1)
+        return
       } else if (goalPageIndex >= this.pageListCount) {
-        return await this.player.nextSection()
+        await this.player.nextSection()
+        return
       }
     } else {
       if (goalPageIndex < 0) goalPageIndex = 0
@@ -462,7 +467,7 @@ export class PlayerIframeController {
 
   public async scrollToPercent(percent: number, jump: boolean) {
     const scrollElement = this.doc?.scrollingElement
-    // eslint-disable-next-line no-console
+
     console.debug(`scrollElement: ${scrollElement?.tagName ?? 'null'}`)
     if (!scrollElement) return
 
@@ -816,7 +821,9 @@ export class PlayerIframeController {
   }
 
   protected hookResize(win: Window, doc: Document) {
-    const onResized = () => this.onResized(doc)
+    const onResized = () => {
+      this.onResized(doc)
+    }
 
     win.addEventListener('resize', onResized)
     this.unmount.on(() => {
@@ -885,7 +892,7 @@ export class PlayerIframeController {
     const viewRateLimit = 0.2
 
     const onStart = (event: TouchEvent) => {
-      const touch = event.touches[0] as Touch | undefined
+      const touch = event.touches[0]
       if (!touch) return
       startPoint = {
         x: touch.clientX,
@@ -903,7 +910,7 @@ export class PlayerIframeController {
         startPoint = undefined
         return
       }
-      const touch = event.touches[0] as Touch | undefined
+      const touch = event.touches[0]
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       this.pageListSetScrollLeft(startPoint.offsetLeft - deltaX)
@@ -911,7 +918,7 @@ export class PlayerIframeController {
 
     const onEnd = (event: TouchEvent) => {
       if (startPoint === undefined) return
-      const touch = event.changedTouches[0] as Touch | undefined
+      const touch = event.changedTouches[0]
       if (!touch) return
       const deltaX = touch.clientX - startPoint.x
       const speed = deltaX / (Date.now() - startPoint.timestamp)
@@ -1001,8 +1008,7 @@ export class PlayerIframeController {
     doc.addEventListener('selectionchange', () => {
       const boxSelector = `.${PARA_BOX_CLASS}`
       const getSelectionPosRange = ():
-        | (BookTypes.PropertyRange & { paragraph: number })
-        | undefined => {
+        (BookTypes.PropertyRange & { paragraph: number }) | undefined => {
         const sel = doc.getSelection()
         if (!sel || sel.rangeCount <= 0) return
         const range = sel.getRangeAt(0)
@@ -1087,11 +1093,15 @@ export class PlayerIframeController {
       }
     }
     onScroll()
-    const disposeScrollEvent = this.events.on('scroll', () => onScroll())
+    const disposeScrollEvent = this.events.on('scroll', () => {
+      onScroll()
+    })
 
     this.doc.addEventListener(
       'scroll',
-      () => this.events.fire('scroll', null),
+      () => {
+        this.events.fire('scroll', null)
+      },
       {
         passive: true,
       },
@@ -1190,8 +1200,12 @@ export class PlayerIframeController {
     }
     this.readableParts.forEach((n, i) => {
       if (n.type === 'text') {
-        n.elem.addEventListener('click', (e) => click(e, i))
-        n.elem.addEventListener('dblclick', (e) => dblclick(e, i))
+        n.elem.addEventListener('click', (e) => {
+          click(e, i)
+        })
+        n.elem.addEventListener('dblclick', (e) => {
+          dblclick(e, i)
+        })
       }
     })
   }
@@ -1201,11 +1215,8 @@ export class PlayerIframeController {
     this.viewWidth = viewRect.width
     this.viewOffsetWidth = viewRect.width + this.pageListGap
     this.viewHeight = viewRect.height
-    // eslint-disable-next-line no-console
     console.debug(`viewWidth: ${this.viewWidth}`)
-    // eslint-disable-next-line no-console
     console.debug(`viewOffsetWidth: ${this.viewOffsetWidth}`)
-    // eslint-disable-next-line no-console
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
@@ -1268,11 +1279,8 @@ export class PlayerIframeController {
     if (pageCount < 1) pageCount = 1
 
     this.pageListCount = pageCount
-    // eslint-disable-next-line no-console
     console.debug(`pageListScrollWidth: ${this.pageListScrollWidth}`)
-    // eslint-disable-next-line no-console
     console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
-    // eslint-disable-next-line no-console
     console.debug(`pageListCount: ${this.pageListCount}`)
 
     this.parsePageList(html)
@@ -1333,9 +1341,8 @@ export class PlayerIframeController {
       this.pageListResizeCurFocusPart = this.readableParts.at(paragraph)
     } else {
       // use pageListCurIndex as resize focus
-      this.pageListResizeCurFocusPart = this.pageList.at(
-        this.pageListCurIndex,
-      )?.topmost?.readablePart
+      this.pageListResizeCurFocusPart = this.pageList.at(this.pageListCurIndex)
+        ?.topmost?.readablePart
     }
   }
 

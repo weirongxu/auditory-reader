@@ -1,6 +1,7 @@
 import { faArrowDown, faArrowUp } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Button, InputNumber, Space, type InputNumberProps } from 'antd'
+import { Button, InputNumber, type InputNumberProps, Space } from 'antd'
+
 import { isMobile } from '../../core/util/browser.js'
 
 function normalizeValue(value: number): number {

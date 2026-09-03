@@ -1,9 +1,10 @@
 import { faUpload } from '@fortawesome/free-solid-svg-icons'
 import { Typography } from 'antd'
 import { useEffect, useState } from 'react'
+
+import styles from './file-input.module.scss'
 import { FlexBox } from './flex-box.js'
 import { Icon } from './icon.js'
-import styles from './file-input.module.scss'
 
 export const FileInput = ({
   accept,

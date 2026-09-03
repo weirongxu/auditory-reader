@@ -72,7 +72,6 @@ export class Speech {
     const indexMap = new Map<number, TextAlias>()
     for (const alias of aliasArray) {
       let i = -1
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       while (true) {
         i = text.indexOf(alias.source, i + 1)
         if (i === -1) break
@@ -137,7 +136,10 @@ export class Speech {
           quotePositions,
           (p) => p.charIndex <= event.charIndex,
         )
-        if (quotePosIndex === undefined) return rainStop()
+        if (quotePosIndex === undefined) {
+          rainStop()
+          return
+        }
         const posPass = quotePositions.slice(0, quotePosIndex + 1)
         const startPosList = posPass.filter((p) => p.type === 'start')
         const endPosList = posPass.filter((p) => p.type === 'end')

@@ -6,6 +6,7 @@ import {
 import { Dropdown } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { booksAnnotationsRouter } from '../../../../../core/api/books/annotations.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
@@ -198,7 +199,9 @@ function Annotations({
       [
         ['g', 'n'],
         t('hotkey.annotationNote'),
-        () => openNoteEdit(selectedAnnotation ?? null),
+        () => {
+          openNoteEdit(selectedAnnotation ?? null)
+        },
       ],
       [{ shift: true, key: 'K' }, t('hotkey.speakAnnotation'), speakAnnotation],
     ])
@@ -220,7 +223,7 @@ function Annotations({
 
   // scroll to selected annotation
   useEffect(() => {
-    void panelExpanded
+    panelExpanded
     if (!selectedAnnotation) return
     const annotationDiv = refAnnotation.current
     if (!annotationDiv) return

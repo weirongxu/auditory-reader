@@ -1,9 +1,10 @@
-import { atom, useAtom } from 'jotai'
 import { message, notification } from 'antd'
-import type { NotificationInstance } from 'antd/es/notification/interface.js'
-import { globalStore } from '../store/global.js'
-import { useEffect } from 'react'
 import type { MessageInstance } from 'antd/es/message/interface.js'
+import type { NotificationInstance } from 'antd/es/notification/interface.js'
+import { atom, useAtom } from 'jotai'
+import { useEffect } from 'react'
+
+import { globalStore } from '../store/global.js'
 
 const notificationApiAtom = atom<NotificationInstance | null>(null)
 

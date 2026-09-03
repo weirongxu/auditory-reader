@@ -3,6 +3,7 @@ import { useSyncedRef } from '@react-hookz/web'
 import { useCallback, useEffect, useState } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
+
 import { env } from '../env.js'
 import type { URouter } from './router.js'
 

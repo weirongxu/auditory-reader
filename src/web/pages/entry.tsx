@@ -1,3 +1,4 @@
+import { t } from 'i18next'
 import { useEffect } from 'react'
 import {
   HashRouter,
@@ -6,16 +7,16 @@ import {
   Routes,
   useNavigate,
 } from 'react-router-dom'
+
 import { userRouter } from '../../core/api/user.js'
 import { useAction } from '../../core/route/action.js'
+import { useHintText } from '../common/hint-text.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { useFontSize, useSpeechSpeed } from '../store.js'
 import { BooksEntry } from './books/entry.js'
 import { Layout } from './layout/layout.js'
 import { Login } from './login.js'
 import { NotFound } from './not-found.js'
-import { useHintText } from '../common/hint-text.js'
-import { t } from 'i18next'
 
 function Books() {
   const { data: user } = useAction(userRouter, null)
@@ -45,42 +46,46 @@ function Main() {
       [
         '[',
         t('hotkey.speedDown'),
-        () =>
+        () => {
           setSpeechSpeed((v) => {
             const n = (v * 10 - 1) / 10
             openHint(`${t('speed')}: ${n}`)
             return n
-          }),
+          })
+        },
       ],
       [
         ']',
         t('hotkey.speedUp'),
-        () =>
+        () => {
           setSpeechSpeed((v) => {
             const n = (v * 10 + 1) / 10
             openHint(`${t('speed')}: ${n}`)
             return n
-          }),
+          })
+        },
       ],
       [
         '-',
         t('hotkey.fontSizeDown'),
-        () =>
+        () => {
           setFontSize((v) => {
             const n = v - 1
             openHint(`${t('fontSize')}: ${n}`)
             return n
-          }),
+          })
+        },
       ],
       [
         '=',
         t('hotkey.fontSizeUp'),
-        () =>
+        () => {
           setFontSize((v) => {
             const n = v + 1
             openHint(`${t('fontSize')}: ${n}`)
             return n
-          }),
+          })
+        },
       ],
       [
         'r',

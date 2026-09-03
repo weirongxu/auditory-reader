@@ -1,13 +1,14 @@
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 import { useSyncedRef } from '@react-hookz/web'
 import { Button, Modal, Space } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
+
+import { Icon } from '../components/icon.js'
 import { useKeyEscape } from '../hooks/use-escape.js'
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { globalStore } from '../store/global.js'
-import { Icon } from '../components/icon.js'
-import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons'
 
 const confirmAtom = atom<null | {
   title: React.ReactNode
@@ -23,8 +24,12 @@ export function uiConfirm(options: {
   return new Promise<boolean>((resolve) => {
     globalStore.set(confirmAtom, {
       ...options,
-      okCallback: () => resolve(true),
-      cancelCallback: () => resolve(false),
+      okCallback: () => {
+        resolve(true)
+      },
+      cancelCallback: () => {
+        resolve(false)
+      },
     })
   })
 }
@@ -37,8 +42,12 @@ export function useConfirm() {
       return new Promise<boolean>((resolve) => {
         setConfirm({
           ...options,
-          okCallback: () => resolve(true),
-          cancelCallback: () => resolve(false),
+          okCallback: () => {
+            resolve(true)
+          },
+          cancelCallback: () => {
+            resolve(false)
+          },
         })
       })
     },

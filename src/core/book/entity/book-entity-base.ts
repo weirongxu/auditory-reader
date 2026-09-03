@@ -1,8 +1,9 @@
 import mime from 'mime-types'
+
 import { ErrorRequestResponse } from '../../route/session.js'
-import type { BookTypes } from '../types.js'
-import { orderBy } from '../../util/collection.js'
 import { getBookExtension } from '../../util/book.js'
+import { orderBy } from '../../util/collection.js'
+import type { BookTypes } from '../types.js'
 
 export abstract class BookEntityBase {
   constructor(public readonly entity: BookTypes.EntityRaw) {}

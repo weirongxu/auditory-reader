@@ -1,4 +1,5 @@
 import { atom, useAtom } from 'jotai'
+
 import type { BookTypes } from '../../../core/book/types.js'
 import type { BookView } from './view.js'
 

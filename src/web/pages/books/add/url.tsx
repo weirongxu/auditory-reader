@@ -2,9 +2,10 @@ import { Button, Form, Input, Space } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import { booksCreateByUrlRouter } from '../../../../core/api/books/create-by-url.js'
 import { booksFetchUrlInfoRouter } from '../../../../core/api/books/fetch-url-info.js'
-import { type LangCode } from '../../../../core/lang.js'
+import type { LangCode } from '../../../../core/lang.js'
 import { async } from '../../../../core/util/promise.js'
 import { LanguageSelect } from '../../../components/language-select.js'
 
@@ -81,7 +82,9 @@ export function AddUrl() {
                     if (info.lang) form.setFieldValue('langCode', info.lang)
                   })
                   .catch(console.error)
-                  .finally(() => setIsFetchingURL(false))
+                  .finally(() => {
+                    setIsFetchingURL(false)
+                  })
               }}
             >
               {t('extractUrlInfo')}

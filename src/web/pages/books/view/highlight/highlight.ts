@@ -50,7 +50,9 @@ export abstract class BaseHighlight {
   #cacheHlRectMap = new Map<number, HTMLDivElement>()
 
   public reCreateRoot(doc: Document) {
-    doc.querySelectorAll(`.${this.rootClass}`).forEach((div) => div.remove())
+    doc.querySelectorAll(`.${this.rootClass}`).forEach((div) => {
+      div.remove()
+    })
 
     this.#hlRoot = doc.createElement('div')
     this.#hlRoot.classList.add(this.rootClass)

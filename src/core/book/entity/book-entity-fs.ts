@@ -1,8 +1,9 @@
-import fs from 'fs'
 import path from '@file-services/path'
+import fs from 'fs'
+
+import { bufferToArrayBuffer } from '../../util/converter.js'
 import type { BookTypes } from '../types.js'
 import { BookEntityBase } from './book-entity-base.js'
-import { bufferToArrayBuffer } from '../../util/converter.js'
 
 export class BookEntityFS extends BookEntityBase {
   /**

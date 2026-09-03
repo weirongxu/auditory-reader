@@ -1,11 +1,12 @@
+import { Mutex } from 'async-mutex'
+
 import type { ReadablePartText } from '../../../../core/util/readable.js'
-import { Speech, type SpeakResult } from '../../../../core/util/speech.js'
+import { type SpeakResult, Speech } from '../../../../core/util/speech.js'
+import { UttererHighlight } from './highlight/utterer-highlight.js'
 import type { Player } from './player.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
 import { rewindPlay, shutterPlay } from './sound.js'
-import { UttererHighlight } from './highlight/utterer-highlight.js'
-import { Mutex } from 'async-mutex'
 
 const speakRetriedMax = 3
 
@@ -117,7 +118,6 @@ export class Utterer {
 
   async #startLoop() {
     let retriedCount = 0
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
       if (!this.states.started) return
       try {

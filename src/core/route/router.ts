@@ -33,7 +33,7 @@ export class URouter<Req = any, Res = any> {
   method: RouterMethod
   responseType: RouterResponseType
   isDynamic: boolean
-  handler?: ApiHandler<Req, Res, object>
+  handler?: ApiHandler<Req, Res>
 
   constructor(
     public readonly routePath: string,

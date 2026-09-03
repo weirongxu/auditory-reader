@@ -1,4 +1,5 @@
 import type { Request as ExpressRequest } from 'express'
+
 import { USession } from './session.js'
 
 type RequestGetter<Body> = {

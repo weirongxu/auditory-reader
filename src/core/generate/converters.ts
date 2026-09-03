@@ -1,9 +1,10 @@
 import { v1 as uuidv1 } from 'uuid'
+
+import { appName } from '../consts.js'
+import type { LangCode } from '../lang.js'
 import { getArticleXml, jsDOMParser } from '../util/dom.js'
 import { splitParagraph } from '../util/text.js'
 import { EpubGen } from './epub-gen.js'
-import type { LangCode } from '../lang.js'
-import { appName } from '../consts.js'
 
 export async function textToEpub(
   text: string,

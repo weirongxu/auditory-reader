@@ -1,6 +1,7 @@
 import { useMediaQuery } from '@react-hookz/web'
 import { App, ConfigProvider, theme } from 'antd'
-import { useUserColorScheme, type ColorScheme } from './store.js'
+
+import { type ColorScheme, useUserColorScheme } from './store.js'
 
 const { defaultAlgorithm, darkAlgorithm } = theme
 

@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
-import { useKeyEscape } from '../hooks/use-escape.js'
-import styles from './pinch-zoom-pan.module.scss'
-import { eventBan } from '../../core/util/dom.js'
-import { useHotkeys } from '../hotkey/hotkey-state.js'
 import { t } from 'i18next'
+import { useEffect, useRef } from 'react'
+
+import { eventBan } from '../../core/util/dom.js'
+import { useKeyEscape } from '../hooks/use-escape.js'
+import { useHotkeys } from '../hotkey/hotkey-state.js'
+import styles from './pinch-zoom-pan.module.scss'
 
 interface PinchZoomPanProps {
   onClose?: () => void
@@ -103,7 +104,9 @@ const mountPinchZoomPan = (
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
   ): void {
     overlay.addEventListener(type, listener)
-    disposes.push(() => overlay.removeEventListener(type, listener))
+    disposes.push(() => {
+      overlay.removeEventListener(type, listener)
+    })
   }
 
   // touch
@@ -196,7 +199,9 @@ const mountPinchZoomPan = (
   })
 
   const dispose = () => {
-    disposes.forEach((dispose) => dispose())
+    disposes.forEach((dispose) => {
+      dispose()
+    })
   }
 
   return {

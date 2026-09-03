@@ -3,23 +3,22 @@
 import '../../bundle/jsdom.js'
 
 import isPlainObject from 'is-plain-obj'
+
 import { ROUTERS } from '../../core/api/index.js'
 import { getActionPath } from '../../core/route/action.js'
 import { URequest } from '../../core/route/request.js'
-import { UResponseHold, UResponse } from '../../core/route/response.js'
+import { UResponse, UResponseHold } from '../../core/route/response.js'
 import { ErrorRequestResponse } from '../../core/route/session.js'
 
 export default null
 declare let self: ServiceWorkerGlobalScope
 
 self.addEventListener('install', (event) => {
-  // eslint-disable-next-line no-console
   console.log('service-worker: installed')
   event.waitUntil(self.skipWaiting())
 })
 
 self.addEventListener('activate', (event) => {
-  // eslint-disable-next-line no-console
   console.log('service-worker: activate event in progress.')
   event.waitUntil(self.clients.claim())
 })

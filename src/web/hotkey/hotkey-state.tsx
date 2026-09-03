@@ -2,6 +2,7 @@ import { Modal } from 'antd'
 import { t } from 'i18next'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useState } from 'react'
+
 import { orderBy } from '../../core/util/collection.js'
 import { eventBan, isInputElement } from '../../core/util/dom.js'
 import { capitalize } from '../../core/util/text.js'
@@ -157,7 +158,7 @@ function getListener() {
       key: e.key.toLowerCase(),
     }
     const triggeredKey = getHotkeyKey(hotkey)
-    // eslint-disable-next-line no-console
+
     console.log('triggered-key:', triggeredKey)
     const fullKey = curKeySeq + triggeredKey
     const fullSubKey = fullKey + sequenceSymbol

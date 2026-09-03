@@ -1,4 +1,5 @@
 import i18n from 'i18next'
+
 import { langEn } from './langs/en.js'
 import { langZh } from './langs/zh.js'
 

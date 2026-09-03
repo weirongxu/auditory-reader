@@ -1,8 +1,9 @@
 import { Select } from 'antd'
 import { t } from 'i18next'
+import { useMemo, useState } from 'react'
+
 import { useOrderedLangOptions } from '../../core/lang.js'
 import { filterOptionLabel } from '../../core/util/antd.js'
-import { useMemo, useState } from 'react'
 
 export type LanguageSelectProps = {
   value?: string

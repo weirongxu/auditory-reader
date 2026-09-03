@@ -4,25 +4,26 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { Checkbox, List, Popover, Radio, Slider, Space, Typography } from 'antd'
 import { t } from 'i18next'
+
 import { ZH_PERSON_RULES } from '../../../core/consts.js'
 import { FlexBox } from '../../components/flex-box.js'
 import { Icon } from '../../components/icon.js'
 import { RInputNumber } from '../../components/input-number.js'
 import {
+  type PageListType,
   SPLIT_PAGE_TYPES,
-  USER_COLOR_SCHEMES,
   useAutoSection,
   useDisabledVertical,
   useFontSize,
   usePageList,
   useParagraphRepeat,
   usePersonReplace,
+  USER_COLOR_SCHEMES,
+  type UserColorscheme,
   useSpeechSpeed,
   useStopTimer,
   useStopTimerSeconds,
   useUserColorScheme,
-  type PageListType,
-  type UserColorscheme,
 } from '../../store.js'
 
 export function SettingLine({ children }: { children: React.ReactNode }) {
@@ -58,7 +59,9 @@ const AutoSectionCheckBox = () => {
     <SettingLine>
       <Checkbox
         checked={autoNextSection}
-        onChange={(e) => setAutoNextSection(e.target.checked)}
+        onChange={(e) => {
+          setAutoNextSection(e.target.checked)
+        }}
       >
         {t('setting.autoNextSection')}
       </Checkbox>

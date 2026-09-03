@@ -2,6 +2,7 @@ import { Alert } from 'antd'
 import { t } from 'i18next'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import { useHotkeys } from '../hotkey/hotkey-state.js'
 
 export function NotFound({ title }: { title: string }) {
@@ -10,7 +11,15 @@ export function NotFound({ title }: { title: string }) {
 
   // hotkey
   useEffect(() => {
-    return addHotkeys([['u', t('hotkey.goBack'), () => nav('../../')]])
+    return addHotkeys([
+      [
+        'u',
+        t('hotkey.goBack'),
+        () => {
+          nav('../../')
+        },
+      ],
+    ])
   }, [addHotkeys, nav])
 
   return (

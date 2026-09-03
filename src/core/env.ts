@@ -1,5 +1,6 @@
-import fs from 'fs'
 import path from '@file-services/path'
+import fs from 'fs'
+
 import { isBrowser } from './util/browser.js'
 import { randomString } from './util/random.js'
 

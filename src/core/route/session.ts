@@ -1,4 +1,5 @@
 import type session from 'express-session'
+
 import { env } from '../env.js'
 
 type SessionNode = session.Session & Partial<session.SessionData>

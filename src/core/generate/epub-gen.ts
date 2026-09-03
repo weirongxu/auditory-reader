@@ -1,5 +1,6 @@
 import dedent from 'dedent'
 import JSZip from 'jszip'
+
 import { PARA_IGNORE_CLASS } from '../consts.js'
 
 export class EpubGen {

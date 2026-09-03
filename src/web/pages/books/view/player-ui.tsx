@@ -18,9 +18,11 @@ import { Button, Popover, Select, Space, Tag } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookTypes } from '../../../../core/book/types.js'
 import { filterOptionLabel } from '../../../../core/util/antd.js'
+import { bookProgress } from '../../../../core/util/book.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import { Icon } from '../../../components/icon.js'
@@ -45,7 +47,6 @@ import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
 import type { Player } from './player.js'
 import { usePlayerUISync } from './player-states.js'
-import { bookProgress } from '../../../../core/util/book.js'
 
 function ControlButton(props: {
   disabled?: boolean
@@ -114,7 +115,10 @@ function TimerRemainBadge({
   useEffect(() => {
     if (!started) return
     if (!stopTimerEnabled) return
-    if (!resetCount) return setResetCount((c) => c + 1)
+    if (!resetCount) {
+      setResetCount((c) => c + 1)
+      return
+    }
 
     const usedSeconds = refUsedSeconds.current ?? 0
 
@@ -179,7 +183,13 @@ function BookEditButton() {
   }, [addHotkey, book.item.uuid, openBookEdit])
 
   return (
-    <Button block type="primary" onClick={() => openBookEdit(book.item.uuid)}>
+    <Button
+      block
+      type="primary"
+      onClick={() => {
+        openBookEdit(book.item.uuid)
+      }}
+    >
       {t('editBook')}
     </Button>
   )
@@ -204,7 +214,9 @@ function VoicesSelect() {
         popupMatchSelectWidth={false}
         style={{ width: '100%' }}
         value={voiceURI}
-        onChange={(value) => setVoiceURI(value)}
+        onChange={(value) => {
+          setVoiceURI(value)
+        }}
         options={voiceOptions}
       ></Select>
     </SettingLine>

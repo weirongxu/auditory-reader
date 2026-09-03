@@ -1,14 +1,17 @@
 import { Howl } from 'howler'
+
 import keyboardURL from './sound/keyboard.mp3'
-import rainLoopURL from './sound/rain-loop.mp3'
 import nextPageURL from './sound/next-page.mp3'
-import shutterURL from './sound/shutter.mp3'
+import rainLoopURL from './sound/rain-loop.mp3'
 import rewindURL from './sound/rewind.mp3'
+import shutterURL from './sound/shutter.mp3'
 
 async function playHowlSound(howl: Howl): Promise<void> {
   howl.play()
   await new Promise<void>((resolve) => {
-    howl.once('end', () => resolve())
+    howl.once('end', () => {
+      resolve()
+    })
   })
 }
 

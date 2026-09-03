@@ -1,6 +1,7 @@
 import { atom, useAtom } from 'jotai'
+import { type SetStateAction, useCallback } from 'react'
+
 import type { SortOrder } from '../../../core/book/enums.js'
-import { useCallback, type SetStateAction } from 'react'
 
 const pageAtom = atom(1)
 

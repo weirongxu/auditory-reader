@@ -1,4 +1,5 @@
 import type { LiteralUnion } from 'type-fest'
+
 import type { LangCode } from '../lang.js'
 import type { SortOrder } from './enums.js'
 

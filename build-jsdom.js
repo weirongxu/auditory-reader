@@ -1,8 +1,8 @@
+import { build } from 'esbuild'
+import { clean } from 'esbuild-plugin-clean'
+import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import fs from 'fs'
 import { createRequire } from 'module'
-import { build } from 'esbuild'
-import { polyfillNode } from 'esbuild-plugin-polyfill-node'
-import { clean } from 'esbuild-plugin-clean'
 
 const require = createRequire(import.meta.url)
 
@@ -36,4 +36,4 @@ await build({
   ],
 })
 
-console.log(`built jsdom`)
+console.debug(`built jsdom`)

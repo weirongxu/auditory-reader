@@ -1,23 +1,38 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "target": "ES2020",
-    "strict": true,
     "outDir": "lib",
+    "jsx": "react-jsx",
+    "declaration": false,
     "allowJs": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ES2023",
+    ],
+    "target": "ES2022",
+    "module": "nodenext",
+    "stripInternal": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "strict": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
-    "skipLibCheck": true,
-    "incremental": true,
-    "module": "preserve"
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "lib", "server-public", "sw-public"],
-  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.mjs"]
+  "exclude": [
+    "src/bundle",
+  ],
+  "include": [
+    "src",
+    "*.ts",
+    "*.tsx",
+    "*.js",
+    "*.jsx",
+    "*.mjs",
+  ]
 }
-

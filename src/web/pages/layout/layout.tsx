@@ -4,6 +4,7 @@ import { t } from 'i18next'
 import { useAtom } from 'jotai'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import { logoutRouter } from '../../../core/api/logout.js'
 import { env } from '../../../core/env.js'
 import { FlexBox } from '../../components/flex-box.js'
@@ -70,7 +71,9 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
           title={t('bookName')}
           open={openedBookTitle}
           footer={false}
-          onCancel={() => setOpenedBookTitle(false)}
+          onCancel={() => {
+            setOpenedBookTitle(false)
+          }}
         >
           <Typography>{title}</Typography>
         </Modal>
@@ -120,7 +123,9 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
           <Drawer
             placement="right"
             open={showSettings}
-            onClose={() => setShowSettings(false)}
+            onClose={() => {
+              setShowSettings(false)
+            }}
             title={t('setting.title')}
             forceRender
           >

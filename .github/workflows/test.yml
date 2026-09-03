@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node-version: [20]
+        node-version: [22]
 
     env:
       NODE_ENV: test
@@ -29,6 +29,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: pnpm/action-setup@v2
         with:
-          version: 10
+          version: 11
       - run: pnpm install --frozen-lockfile
       - run: pnpm test

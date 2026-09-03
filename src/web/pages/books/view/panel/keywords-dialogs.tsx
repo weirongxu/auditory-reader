@@ -1,6 +1,7 @@
 import { Button, Form, Modal, Typography } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useState } from 'react'
+
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { FlexBox } from '../../../../components/flex-box.js'
@@ -56,7 +57,7 @@ export function useKeywordDialog({ player }: { player: Player }) {
         <form
           onSubmit={(e) => {
             eventBan(e)
-            void onOk()
+            onOk()
           }}
         >
           <Form.Item label={t('alias')}>
@@ -64,7 +65,9 @@ export function useKeywordDialog({ player }: { player: Player }) {
               <Textarea
                 autoFocus
                 value={alias}
-                onChange={(e) => setAlias(e.target.value)}
+                onChange={(e) => {
+                  setAlias(e.target.value)
+                }}
               ></Textarea>
             </FlexBox>
           </Form.Item>
@@ -72,7 +75,9 @@ export function useKeywordDialog({ player }: { player: Player }) {
             <FlexBox gap={8}>
               <Textarea
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => {
+                  setNote(e.target.value)
+                }}
               ></Textarea>
             </FlexBox>
           </Form.Item>

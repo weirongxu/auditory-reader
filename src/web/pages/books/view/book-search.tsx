@@ -3,11 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMountEffect } from '@react-hookz/web'
 import { Alert, Button, Drawer, Input, type InputRef } from 'antd'
 import { t } from 'i18next'
+import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
+
 import {
-  booksSearchRouter,
   type BookSearchMatch,
   type BookSearchResponse,
+  booksSearchRouter,
 } from '../../../../core/api/books/search.js'
 import { eventBan } from '../../../../core/util/dom.js'
 import { FlexBox } from '../../../components/flex-box.js'
@@ -16,7 +18,6 @@ import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useBookContext } from '../view.context.js'
 import styles from './book-search.module.scss'
 import type { Player } from './player.js'
-import { atom, useAtom } from 'jotai'
 
 const openAtom = atom(false)
 
@@ -186,7 +187,9 @@ function BookSearchView({
           className="flex-1"
           ref={refSearchInput}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value)
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               eventBan(e)
@@ -254,7 +257,9 @@ export function BookSearchButton({ player }: { player: Player }) {
         forceRender
         title={t('search')}
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false)
+        }}
       >
         <BookSearchView refSearchInput={refSearchInput} player={player} />
       </Drawer>

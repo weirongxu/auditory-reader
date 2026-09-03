@@ -1,5 +1,6 @@
 import { atom, useAtom } from 'jotai'
 import { useCallback, useMemo } from 'react'
+
 import type { BookTypes } from '../core/book/types.js'
 import { isBrowser } from '../core/util/browser.js'
 import { orderBy } from '../core/util/collection.js'

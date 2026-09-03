@@ -1,6 +1,7 @@
 import { useUnmountEffect } from '@react-hookz/web'
 import type { RefObject } from 'react'
 import { useState } from 'react'
+
 import type { BookTypes } from '../../../../core/book/types.js'
 import { SingleEmitter } from '../../../../core/util/emitter.js'
 import { async } from '../../../../core/util/promise.js'
@@ -14,8 +15,8 @@ import {
 } from './player-iframe-controller.js'
 import { PlayerKeywords } from './player-keywords.js'
 import { PlayerStatesManager } from './player-states.js'
-import { Utterer } from './utterer.js'
 import { nextPagePlay, pressEnterPlay } from './sound.js'
+import { Utterer } from './utterer.js'
 
 export class Player {
   states: PlayerStatesManager

@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
-
 // JSDOM
 import { JSDOM } from 'jsdom'
+
 import { env } from '../core/env.js'
 // @ts-ignore
 globalThis.JSDOM = JSDOM
@@ -10,11 +9,13 @@ globalThis.JSDOM = JSDOM
 process.env.APP_MODE = 'server'
 
 // modules
+import 'isomorphic-fetch'
+
 import path from '@file-services/path'
 import express from 'express'
 import session from 'express-session'
-import 'isomorphic-fetch'
 import GetFileStore from 'session-file-store'
+
 import { ROUTERS } from '../core/api/index.js'
 import { URequest } from '../core/route/request.js'
 import { UResponse } from '../core/route/response.js'

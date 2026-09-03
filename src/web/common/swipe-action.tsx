@@ -1,4 +1,5 @@
-import { useEffect, useRef, type CSSProperties, useState } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
+
 import { eventBan } from '../../core/util/dom.js'
 
 type SwipeAction = {
@@ -148,7 +149,9 @@ export function SwipeAction({
     >
       {left && (
         <div
-          ref={(element) => setLeftElement(element ?? undefined)}
+          ref={(element) => {
+            setLeftElement(element ?? undefined)
+          }}
           className="swipe-left-node"
           style={{
             ...getNodeStyle(left),
@@ -161,7 +164,9 @@ export function SwipeAction({
       {children}
       {right && (
         <div
-          ref={(element) => setRightElement(element ?? undefined)}
+          ref={(element) => {
+            setRightElement(element ?? undefined)
+          }}
           className="swipe-right-node"
           style={{
             ...getNodeStyle(right),

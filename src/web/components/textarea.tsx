@@ -1,5 +1,6 @@
 import { Input } from 'antd'
 import type { TextAreaProps } from 'antd/es/input/TextArea.js'
+
 import { eventBan } from '../../core/util/dom.js'
 
 export function Textarea({ ...props }: TextAreaProps) {

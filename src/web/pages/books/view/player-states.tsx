@@ -1,5 +1,6 @@
 import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
+
 import type { BookTypes } from '../../../../core/book/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
@@ -209,7 +210,9 @@ export function usePlayerSync(
       }),
     ]
     return () => {
-      disposes.forEach((dispose) => dispose())
+      disposes.forEach((dispose) => {
+        dispose()
+      })
     }
   }, [
     player,

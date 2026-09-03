@@ -37,7 +37,6 @@ export function* walkerNode(doc: Document, root: HTMLElement) {
   const view = requiredDomView(root)
   const walker = doc.createTreeWalker(root, view.NodeFilter.SHOW_ALL)
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
     const curNode = walker.nextNode()
     if (curNode) yield curNode
@@ -221,7 +220,6 @@ export class ReadableExtractor {
         // skip invisible
         const isVisible =
           // JSDom not support checkVisibility
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           node.checkVisibility
             ? node.checkVisibility({
                 contentVisibilityAuto: true,

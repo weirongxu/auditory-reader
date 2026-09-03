@@ -1,6 +1,7 @@
 import { Button, Form, Modal, Typography } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useState } from 'react'
+
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { FlexBox } from '../../../../components/flex-box.js'
@@ -51,7 +52,7 @@ export function useAnnotationNoteDialog({ player }: { player: Player }) {
         <form
           onSubmit={(e) => {
             eventBan(e)
-            void onOk()
+            onOk()
           }}
         >
           <Form.Item label={t('note')}>
@@ -59,7 +60,9 @@ export function useAnnotationNoteDialog({ player }: { player: Player }) {
               <Textarea
                 autoFocus
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => {
+                  setNote(e.target.value)
+                }}
               ></Textarea>
             </FlexBox>
           </Form.Item>

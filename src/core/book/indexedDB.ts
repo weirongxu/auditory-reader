@@ -1,5 +1,6 @@
 import type { DBSchema } from 'idb'
 import { openDB } from 'idb'
+
 import type { BookTypes } from './types.js'
 
 interface MyDB extends DBSchema {

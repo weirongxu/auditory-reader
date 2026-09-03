@@ -3,9 +3,10 @@ import { Button, Form, Typography } from 'antd'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { booksCreateRouter } from '../../../core/api/books/create.js'
 import { booksCreateByHtmlRouter } from '../../../core/api/books/create-by-html.js'
 import { booksCreateByUrlRouter } from '../../../core/api/books/create-by-url.js'
-import { booksCreateRouter } from '../../../core/api/books/create.js'
 import { booksFetchUrlInfoRouter } from '../../../core/api/books/fetch-url-info.js'
 import { BookEpub } from '../../../core/book/book-epub.js'
 import { TMP_UUID } from '../../../core/consts.js'
@@ -177,27 +178,30 @@ export function DragFile({ children }: { children: React.ReactNode }) {
                   const epub = await BookEpub.read(buf)
                   if (!epub) continue
                   const langCode = parseLangCode(epub.language)
-                  return setDragItem({
+                  setDragItem({
                     buffer: buf,
                     title: epub.title ?? basename,
                     type: 'file-epub',
                     langCode,
                   })
+                  return
                 } else if (isTextFile(file)) {
                   const content = await file.text()
-                  return setDragItem({
+                  setDragItem({
                     content,
                     title: basename,
                     type: 'file-text',
                   })
+                  return
                 } else if (isHtmlFile(file)) {
                   const html = await file.text()
                   const title = await getBookNameByHtml(html)
-                  return setDragItem({
+                  setDragItem({
                     html,
                     title,
                     type: 'file-html',
                   })
+                  return
                 }
               } else if (item.kind === 'string') {
                 const url = await new Promise<string>((resolve) => {
@@ -205,12 +209,13 @@ export function DragFile({ children }: { children: React.ReactNode }) {
                 })
                 if (!isUrl(url)) continue
                 const info = await booksFetchUrlInfoRouter.json({ url })
-                return setDragItem({
+                setDragItem({
                   type: 'url',
                   url,
                   title: info.title,
                   langCode: info.lang,
                 })
+                return
               }
             }
           } finally {

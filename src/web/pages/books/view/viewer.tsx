@@ -2,16 +2,17 @@ import { useUnmountEffect } from '@react-hookz/web'
 import { t } from 'i18next'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
 import type { BookTypes } from '../../../../core/book/types.js'
 import { FlexBox } from '../../../components/flex-box.js'
 import { SpinCenter } from '../../../components/spin.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
-import { useViewPanelType, usePanelExpanded } from '../../../store.js'
+import { usePanelExpanded, useViewPanelType } from '../../../store.js'
 import { useColorScheme } from '../../../theme.js'
 import { useBookContext } from '../view.context.js'
-import { usePlayerSync, type PageScrollPercent } from './player-states.js'
-import { usePlayerUI } from './player-ui.js'
 import { useCreatePlayer } from './player.js'
+import { type PageScrollPercent, usePlayerSync } from './player-states.js'
+import { usePlayerUI } from './player-ui.js'
 import { ViewProgressBar } from './progress-bar.js'
 
 export function useViewer() {
@@ -128,13 +129,16 @@ export function useViewer() {
       [
         't',
         t('hotkey.navToggle'),
-        () => setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav')),
+        () => {
+          setViewPanelType((v) => (v === 'nav' ? 'none' : 'nav'))
+        },
       ],
       [
         'm',
         t('hotkey.annotationsPanelToggle'),
-        () =>
-          setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation')),
+        () => {
+          setViewPanelType((v) => (v === 'annotation' ? 'none' : 'annotation'))
+        },
       ],
       [
         'b',
@@ -144,7 +148,9 @@ export function useViewer() {
       [
         { shift: true, key: 'm' },
         t('hotkey.keywordPanelToggle'),
-        () => setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword')),
+        () => {
+          setViewPanelType((v) => (v === 'keyword' ? 'none' : 'keyword'))
+        },
       ],
       [
         { shift: true, key: 'b' },
@@ -156,14 +162,28 @@ export function useViewer() {
       [
         { shift: true, key: 't' },
         t('hotkey.panelToggleExpanded'),
-        () => setPanelExpanded((v) => !v),
+        () => {
+          setPanelExpanded((v) => !v)
+        },
       ],
 
       // navigation
-      ['u', t('hotkey.goBack'), () => nav('../')],
+      [
+        'u',
+        t('hotkey.goBack'),
+        () => {
+          nav('../')
+        },
+      ],
 
       // play
-      [' ', t('hotkey.playToggle'), () => player.toggle()],
+      [
+        ' ',
+        t('hotkey.playToggle'),
+        () => {
+          player.toggle()
+        },
+      ],
       [{ shift: true, key: 'h' }, t('hotkey.prevSection'), prevSection],
       [{ shift: true, key: 'l' }, t('hotkey.nextSection'), nextSection],
       [{ shift: true, key: 'ArrowLeft' }, t('hotkey.prevSection'), prevSection],

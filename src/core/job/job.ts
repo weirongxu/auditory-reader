@@ -23,9 +23,14 @@ export class Queue {
           return
         case 'wait':
           await new Promise<void>((resolve) => {
-            this.onFinished.on(() => resolve())
+            this.onFinished.on(() => {
+              resolve()
+            })
           })
-          return await this.run(key, job)
+          {
+            await this.run(key, job)
+            return
+          }
       }
     }
     list.push(job)

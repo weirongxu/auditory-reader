@@ -1,8 +1,10 @@
 import { useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { booksPositionSyncRouter } from '../../../core/api/books/position-sync.js'
+
+import { booksPageParagraphsRouter } from '../../../core/api/books/page-paragraphs.js'
 import { booksPositionRouter } from '../../../core/api/books/position.js'
+import { booksPositionSyncRouter } from '../../../core/api/books/position-sync.js'
 import {
   booksViewRouter,
   type BookViewRes,
@@ -17,7 +19,6 @@ import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
 import styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
-import { booksPageParagraphsRouter } from '../../../core/api/books/page-paragraphs.js'
 
 export interface BookView extends BookViewRes {
   flattenedNavs: BookTypes.Nav[]
@@ -106,7 +107,7 @@ function BookViewContent() {
   const lastNav = useMemo(() => activeNavs?.at(-1), [activeNavs])
 
   useEffect(() => {
-    let mainTitle = `${book.item.name}`
+    let mainTitle = book.item.name
     if (lastNav) mainTitle = `${lastNav.label} - ${mainTitle}`
     pushTitle(mainTitle)
   }, [book, lastNav, pushTitle])

@@ -1,4 +1,5 @@
 import { Readability } from '@mozilla/readability'
+
 import type { LangCode } from '../../lang.js'
 import { parseLangCode } from '../../lang.js'
 import { URouter } from '../../route/router.js'

@@ -13,13 +13,13 @@ import {
   Dropdown,
   Form,
   Input,
+  type InputRef,
   Pagination,
   Progress,
   Select,
   Space,
   Switch,
   Tag,
-  type InputRef,
 } from 'antd'
 import { saveAs } from 'file-saver'
 import { t } from 'i18next'
@@ -34,8 +34,10 @@ import {
 } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 import { useNavigate } from 'react-router-dom'
+
 import { getBooksCoverPath } from '../../../core/api/books/cover.js'
 import { booksDownloadRouter } from '../../../core/api/books/download.js'
+import { booksExportListRouter } from '../../../core/api/books/export-list.js'
 import { booksMoveAfterRouter } from '../../../core/api/books/move-after.js'
 import { booksMoveTopRouter } from '../../../core/api/books/move-top.js'
 import type { BookPage } from '../../../core/api/books/page.js'
@@ -55,12 +57,13 @@ import { Icon } from '../../components/icon.js'
 import { LinkWrap } from '../../components/link-wrap.js'
 import { SpinCenter } from '../../components/spin.js'
 import { useSyncedDebounced } from '../../hooks/use-synced-debounce.js'
-import { useHotkeys, type HotkeyItem } from '../../hotkey/hotkey-state.js'
+import { type HotkeyItem, useHotkeys } from '../../hotkey/hotkey-state.js'
 import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { exportBooks } from './actions.js'
 import { useBookEditDialog } from './edit.js'
+import styles from './index.module.scss'
 import {
   activatedIndexAtom,
   archivedAtom,
@@ -70,8 +73,6 @@ import {
   searchAtom,
   usePage,
 } from './index-atoms.js'
-import styles from './index.module.scss'
-import { booksExportListRouter } from '../../../core/api/books/export-list.js'
 
 const DragType = 'book'
 
@@ -407,11 +408,41 @@ function useHomeHotKeys({
       [['s', 's', 'p'], t('hotkey.sortOrder'), orderSelectPrev],
 
       // selection
-      ['x', t('hotkey.select'), () => select(false)],
-      ['v', t('hotkey.select'), () => select(false)],
-      [{ shift: true, key: 'x' }, t('hotkey.selectShift'), () => select(true)],
-      [{ shift: true, key: 'v' }, t('hotkey.selectShift'), () => select(true)],
-      [{ shift: true, key: 'a' }, t('hotkey.selectAll'), () => selectAll()],
+      [
+        'x',
+        t('hotkey.select'),
+        () => {
+          select(false)
+        },
+      ],
+      [
+        'v',
+        t('hotkey.select'),
+        () => {
+          select(false)
+        },
+      ],
+      [
+        { shift: true, key: 'x' },
+        t('hotkey.selectShift'),
+        () => {
+          select(true)
+        },
+      ],
+      [
+        { shift: true, key: 'v' },
+        t('hotkey.selectShift'),
+        () => {
+          select(true)
+        },
+      ],
+      [
+        { shift: true, key: 'a' },
+        t('hotkey.selectAll'),
+        () => {
+          selectAll()
+        },
+      ],
 
       // action
       ['t', t('hotkey.goMoveTop'), moveBookTop],
@@ -498,7 +529,9 @@ function BookButtons({
           {
             key: 'edit',
             label: t('edit'),
-            onClick: () => openBookEdit(book.uuid),
+            onClick: () => {
+              openBookEdit(book.uuid)
+            },
           },
           {
             key: 'archive',
@@ -518,12 +551,16 @@ function BookButtons({
           {
             key: 'export-epub',
             label: `${t('export')} EPUB`,
-            onClick: () => async(() => exportEpub()),
+            onClick: () => {
+              async(() => exportEpub())
+            },
           },
           {
             key: 'remove',
             label: t('remove'),
-            onClick: () => removeBooks([book]),
+            onClick: () => {
+              removeBooks([book])
+            },
           },
         ],
       }}
@@ -612,7 +649,7 @@ function BookRow({
 
   const [coverLoaded, setCoverLoaded] = useState(false)
 
-  const coverUrl = `${getBooksCoverPath(book.uuid)}`
+  const coverUrl = getBooksCoverPath(book.uuid)
 
   const opacity = isDragging ? 0.2 : 1
   useLayoutEffect(() => {
@@ -1022,9 +1059,13 @@ export function BookList() {
   const Pager =
     dataBooks.pageCount > 1 ? (
       <Pagination
-        onChange={(page) => setPage(page)}
+        onChange={(page) => {
+          setPage(page)
+        }}
         pageSize={perPage}
-        onShowSizeChange={(_, size) => setPerPage(size)}
+        onShowSizeChange={(_, size) => {
+          setPerPage(size)
+        }}
         current={page}
         total={dataBooks.count}
       ></Pagination>
@@ -1036,16 +1077,28 @@ export function BookList() {
         {progressPercent !== null && <Progress percent={progressPercent} />}
         <Form layout="inline">
           <Form.Item label={t('archive')}>
-            <Switch checked={archived} onChange={(v) => setArchived(v)} />
+            <Switch
+              checked={archived}
+              onChange={(v) => {
+                setArchived(v)
+              }}
+            />
           </Form.Item>
           <Form.Item label={t('favorite')}>
-            <Switch checked={favorited} onChange={(v) => setFavorited(v)} />
+            <Switch
+              checked={favorited}
+              onChange={(v) => {
+                setFavorited(v)
+              }}
+            />
           </Form.Item>
           <Form.Item label={t('search')}>
             <Input
               value={search}
               placeholder={t('search')}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value)
+              }}
               ref={refSearchInput}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') refSearchInput.current?.blur()
@@ -1058,7 +1111,9 @@ export function BookList() {
               filterOption={filterOptionLabel}
               popupMatchSelectWidth={false}
               value={order}
-              onChange={(v) => setOrder(v)}
+              onChange={(v) => {
+                setOrder(v)
+              }}
               options={[
                 {
                   label: t('sortOrder.item.default'),

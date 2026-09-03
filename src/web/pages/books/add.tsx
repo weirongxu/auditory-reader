@@ -1,6 +1,7 @@
 import { Tabs } from 'antd'
 import { t } from 'i18next'
 import { useState } from 'react'
+
 import { AddFile } from './add/file.js'
 import { AddImport } from './add/import.js'
 import { AddText } from './add/text.js'
@@ -13,7 +14,9 @@ export function BookAdd() {
   return (
     <Tabs
       defaultActiveKey={tab}
-      onChange={(k) => setTab(k as TabType)}
+      onChange={(k) => {
+        setTab(k as TabType)
+      }}
       destroyInactiveTabPane
       items={[
         {

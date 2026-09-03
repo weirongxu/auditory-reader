@@ -1,5 +1,6 @@
 import { t } from 'i18next'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { eventBan } from '../../../../../core/util/dom.js'
 import { useHotkeys } from '../../../../hotkey/hotkey-state.js'
@@ -69,7 +70,7 @@ function NavTree({
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
 
   const selectedNav = useMemo(() => {
-    return book.flattenedNavs[selectedIndex] as BookTypes.Nav | undefined
+    return book.flattenedNavs[selectedIndex]
   }, [book.flattenedNavs, selectedIndex])
 
   // selected hotkeys
@@ -115,7 +116,7 @@ function NavTree({
 
   // scroll to selected nav
   useEffect(() => {
-    void panelExpanded
+    panelExpanded
     if (!selectedNav) return
     const navDiv = refNav.current
     if (!navDiv) return

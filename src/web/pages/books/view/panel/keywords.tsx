@@ -7,6 +7,7 @@ import {
 import { Dropdown, Space } from 'antd'
 import { t } from 'i18next'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { booksKeywordsRouter } from '../../../../../core/api/books/keywords.js'
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { useAction } from '../../../../../core/route/action.js'
@@ -195,7 +196,9 @@ function Keywords({
       [
         ['g', 'n'],
         t('hotkey.keywordNote'),
-        () => openEdit(selectedKeyword ?? null),
+        () => {
+          openEdit(selectedKeyword ?? null)
+        },
       ],
       [{ shift: true, key: 'K' }, t('hotkey.speakKeyword'), speakKeyword],
     ])

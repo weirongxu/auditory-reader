@@ -4,6 +4,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { t } from 'i18next'
 import { useMemo } from 'react'
+
 import type { BookTypes } from '../../../../../core/book/types.js'
 import { Icon } from '../../../../components/icon.js'
 import { usePanelExpanded, useViewPanelType } from '../../../../store.js'
@@ -42,7 +43,9 @@ export function useBookPanel(
   )
 
   const toggleExpanded = useMemo(
-    () => () => setPanelExpanded((v) => !v),
+    () => () => {
+      setPanelExpanded((v) => !v)
+    },
     [setPanelExpanded],
   )
 
@@ -101,7 +104,9 @@ export function useBookPanel(
             'book-panel-overlay',
             viewPanelType === 'none' ? 'hidden' : '',
           ].join(' ')}
-          onClick={() => setViewPanelType('none')}
+          onClick={() => {
+            setViewPanelType('none')
+          }}
         ></div>
       </>
     ),

@@ -8,7 +8,9 @@ export function debounceFn<A extends Array<any>>(
   let timer: NodeJS.Timeout | undefined
   return (...args: A) => {
     clearTimeout(timer)
-    timer = setTimeout(() => fn(...args), delay)
+    timer = setTimeout(() => {
+      fn(...args)
+    }, delay)
   }
 }
 

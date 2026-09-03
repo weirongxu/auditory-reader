@@ -1,10 +1,11 @@
-import fs from 'fs'
 import path from '@file-services/path'
+import fs from 'fs'
+
 import { env } from '../../env.js'
+import type { BookEntityBase } from '../entity/book-entity-base.js'
 import { BookEntityFS } from '../entity/book-entity-fs.js'
 import type { BookTypes } from '../types.js'
 import { BookListBase } from './book-list-base.js'
-import type { BookEntityBase } from '../entity/book-entity-base.js'
 
 export class BookListFS extends BookListBase {
   /**
