@@ -32,8 +32,6 @@
  * Copyright 2024 Fonticons, Inc.
  */
 
-/*! @license https://github.com/onury/invert-color */
-
 /**
  * @license React
  * react-is.production.min.js
