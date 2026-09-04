@@ -190,4 +190,12 @@ export const langZh: LangEn = {
   light: '亮色',
   cancel: '取消',
   all: '全部',
+  tts: {
+    provider: {
+      webSpeech: {
+        name: '浏览器语音',
+        desc: '浏览器内置语音，依赖操作系统 / 浏览器语音库。',
+      },
+    },
+  },
 }

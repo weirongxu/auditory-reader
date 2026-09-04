@@ -47,10 +47,10 @@ import { booksUpdateRouter } from '../../../core/api/books/update.js'
 import { sortOrders } from '../../../core/book/enums.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
+import { registry, speak } from '../../../core/tts/index.js'
 import { filterOptionLabel } from '../../../core/util/antd.js'
 import { getBookExtension } from '../../../core/util/book.js'
 import { async } from '../../../core/util/promise.js'
-import { Speech } from '../../../core/util/speech.js'
 import { uiConfirm } from '../../common/confirm.js'
 import { previewImgSrcAtom } from '../../common/preview-image.js'
 import { Icon } from '../../components/icon.js'
@@ -58,7 +58,12 @@ import { LinkWrap } from '../../components/link-wrap.js'
 import { SpinCenter } from '../../components/spin.js'
 import { useSyncedDebounced } from '../../hooks/use-synced-debounce.js'
 import { type HotkeyItem, useHotkeys } from '../../hotkey/hotkey-state.js'
-import { useGetVoice, usePersonReplace, useSpeechSpeed } from '../../store.js'
+import {
+  usePersonReplace,
+  useSpeechSpeed,
+  useTtsProviderId,
+  useVoiceForBook,
+} from '../../store.js'
 import { globalStore } from '../../store/global.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { exportBooks } from './actions.js'
@@ -242,7 +247,8 @@ function useHomeHotKeys({
   const [, setFavorited] = useAtom(favoritedAtom)
   const [isPersonReplace] = usePersonReplace()
   const [speechSpeed] = useSpeechSpeed()
-  const { getVoice } = useGetVoice()
+  const getVoice = useVoiceForBook()
+  const [ttsProviderId] = useTtsProviderId()
   const { addHotkeys } = useHotkeys()
   const { openBookEdit } = useBookEditDialog(reload)
   const nav = useNavigate()
@@ -363,12 +369,14 @@ function useHomeHotKeys({
       })
     }
 
-    const speech = new Speech()
     const speakBookName = () => {
       if (!currentBook) return
       const voice = getVoice(currentBook)
       if (!voice) return
-      void speech.speak(currentBook.name, {
+      const provider = registry.get(ttsProviderId) ?? registry.getDefault()
+      if (!provider) return
+      void speak(provider, {
+        text: currentBook.name,
         voice,
         speed: speechSpeed,
         isPersonReplace,
@@ -497,6 +505,7 @@ function useHomeHotKeys({
     setFavorited,
     setPage,
     speechSpeed,
+    ttsProviderId,
   ])
 }
 

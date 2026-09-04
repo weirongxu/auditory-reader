@@ -21,12 +21,14 @@ import { useNavigate } from 'react-router-dom'
 
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookTypes } from '../../../../core/book/types.js'
+import { registry } from '../../../../core/tts/index.js'
 import { filterOptionLabel } from '../../../../core/util/antd.js'
 import { bookProgress } from '../../../../core/util/book.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { async } from '../../../../core/util/promise.js'
 import { Icon } from '../../../components/icon.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
+import { tKey } from '../../../locale/i18n.js'
 import {
   useAutoSection,
   useDisabledVertical,
@@ -37,6 +39,7 @@ import {
   useSpeechSpeed,
   useStopTimer,
   useStopTimerSeconds,
+  useTtsProviderId,
   useVoice,
 } from '../../../store.js'
 import { SettingLine } from '../../layout/settings.js'
@@ -197,14 +200,10 @@ function BookEditButton() {
 
 function VoicesSelect() {
   const { book } = useBookContext()
-  const { voiceURI, setVoiceURI, allSortedVoices } = useVoice(book.item)
+  const { voice, setVoice, voices } = useVoice(book.item)
   const voiceOptions = useMemo(
-    () =>
-      allSortedVoices.map((v) => ({
-        label: v.name,
-        value: v.voiceURI,
-      })),
-    [allSortedVoices],
+    () => voices.map((v) => ({ label: v.name, value: v.voiceId })),
+    [voices],
   )
   return (
     <SettingLine>
@@ -213,11 +212,41 @@ function VoicesSelect() {
         filterOption={filterOptionLabel}
         popupMatchSelectWidth={false}
         style={{ width: '100%' }}
-        value={voiceURI}
-        onChange={(value) => {
-          setVoiceURI(value)
+        value={voice?.voiceId ?? null}
+        onChange={(voiceId) => {
+          const v = voices.find((v) => v.voiceId === voiceId) ?? null
+          setVoice(v)
         }}
         options={voiceOptions}
+      ></Select>
+    </SettingLine>
+  )
+}
+
+function TtsProviderSelect() {
+  const [providerId, setProviderId] = useTtsProviderId()
+  return (
+    <SettingLine>
+      <Select
+        value={providerId}
+        onChange={setProviderId}
+        popupMatchSelectWidth={false}
+        style={{ width: '100%' }}
+        options={registry.list().map((p) => ({
+          label: tKey(p.nameKey),
+          value: p.id,
+          description: p.descriptionKey ? tKey(p.descriptionKey) : undefined,
+        }))}
+        optionRender={(option) => (
+          <div>
+            <div>{option.data.label}</div>
+            {option.data.description && (
+              <div style={{ color: '#999', fontSize: '12px' }}>
+                {option.data.description}
+              </div>
+            )}
+          </div>
+        )}
       ></Select>
     </SettingLine>
   )
@@ -239,6 +268,7 @@ export function usePlayerUI({
   const { annotations, keywords, setViewPanelType, BookPanelView } =
     useBookPanel(book, player, activeNavs, pos, selection)
   const { voice } = useVoice(book.item)
+  const [ttsProviderId] = useTtsProviderId()
   const [autoNextSection] = useAutoSection()
   const [isPersonReplace] = usePersonReplace()
   const [stopTimerEnabled] = useStopTimer()
@@ -257,6 +287,7 @@ export function usePlayerUI({
       autoNextSection,
       isPersonReplace,
       speechSpeed,
+      ttsProviderId,
       voice,
       paragraphRepeat,
       pageList,
@@ -478,6 +509,7 @@ export function usePlayerUI({
       <Space direction="vertical">
         <BookSearchButton player={player} />
         <BookEditButton />
+        <TtsProviderSelect />
         <VoicesSelect />
       </Space>
     )

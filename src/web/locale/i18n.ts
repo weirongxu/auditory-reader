@@ -1,5 +1,9 @@
 import i18n from 'i18next'
 
+import type {
+  TtsProviderDescKey,
+  TtsProviderNameKey,
+} from '../../core/tts/types.js'
 import { langEn } from './langs/en.js'
 import { langZh } from './langs/zh.js'
 
@@ -24,3 +28,7 @@ i18n
     lng: global.navigator.languages.at(0) ?? 'en',
   })
   .catch(console.error)
+
+export function tKey(key: TtsProviderNameKey | TtsProviderDescKey): string {
+  return i18n.t(key)
+}

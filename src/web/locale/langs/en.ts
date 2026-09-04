@@ -188,6 +188,14 @@ export const langEn = {
   light: 'Light',
   cancel: 'Cancel',
   all: 'All',
+  tts: {
+    provider: {
+      webSpeech: {
+        name: 'Browser Voice',
+        desc: 'Browser built-in. Depends on OS / browser voice library.',
+      },
+    },
+  },
 }
 
 export type LangEn = typeof langEn

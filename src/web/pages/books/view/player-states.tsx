@@ -2,6 +2,7 @@ import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
 
 import type { BookTypes } from '../../../../core/book/types.js'
+import type { TtsProviderId, VoiceMeta } from '../../../../core/tts/index.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
 import type { PageListType } from '../../../store.js'
@@ -27,7 +28,8 @@ type PlayerReadonlyStates = {
   keywords: BookTypes.PropertyKeyword[] | undefined
   isPersonReplace: boolean
   speechSpeed: number
-  voice: null | SpeechSynthesisVoice
+  ttsProviderId: TtsProviderId
+  voice: null | VoiceMeta
   autoNextSection: boolean
   paragraphRepeat: number
   pageList: PageListType
@@ -102,6 +104,7 @@ export class PlayerStatesManager {
     keywords: [],
     isPersonReplace: false,
     speechSpeed: 1,
+    ttsProviderId: 'webSpeech',
     voice: null,
     autoNextSection: false,
     paragraphRepeat: 1,
@@ -130,6 +133,10 @@ export class PlayerStatesManager {
 
   get speechSpeed() {
     return this.#readonlyStates.speechSpeed
+  }
+
+  get ttsProviderId() {
+    return this.#readonlyStates.ttsProviderId
   }
 
   get autoNextSection() {
@@ -232,6 +239,7 @@ export function usePlayerUISync(
     keywords,
     isPersonReplace,
     speechSpeed,
+    ttsProviderId,
     voice,
     autoNextSection,
     paragraphRepeat,
@@ -255,6 +263,10 @@ export function usePlayerUISync(
   useEffect(() => {
     player.states.syncUIState('speechSpeed', speechSpeed)
   }, [player, speechSpeed])
+
+  useEffect(() => {
+    player.states.syncUIState('ttsProviderId', ttsProviderId)
+  }, [player, ttsProviderId])
 
   useEffect(() => {
     player.states.syncUIState('voice', voice)

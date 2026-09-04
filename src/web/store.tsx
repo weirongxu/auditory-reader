@@ -1,21 +1,10 @@
 import { atom, useAtom } from 'jotai'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { BookTypes } from '../core/book/types.js'
-import { isBrowser } from '../core/util/browser.js'
+import type { TtsProviderId, VoiceMeta } from '../core/tts/index.js'
+import { registry } from '../core/tts/index.js'
 import { orderBy } from '../core/util/collection.js'
-import { globalStore } from './store/global.js'
-
-const allVoicesAtom = atom<SpeechSynthesisVoice[]>([])
-if (isBrowser) {
-  const loadVoices = () => {
-    globalStore.set(allVoicesAtom, speechSynthesis.getVoices())
-  }
-  loadVoices()
-  if ('addEventListener' in window.speechSynthesis) {
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
-  }
-}
 
 function createStore<T>(options: {
   storeKey: string
@@ -52,94 +41,105 @@ export const useViewPanelType = createStore<ViewPanelType>({
   write: limitViewPanelType,
 })
 
-/**
- * Dict[book-lang] = voiceURI
- */
-const useLangVoiceURIDict = createStore<Record<string, string>>({
-  storeKey: 'langVoiceURIDict',
-  read: (uriDictStr) => (uriDictStr ? JSON.parse(uriDictStr) : {}),
-  write: (uriDict) => JSON.stringify(uriDict),
+const limitTtsProviderId = (v: string | null): TtsProviderId =>
+  v === 'webSpeech' ? v : (registry.list()[0]?.id ?? 'webSpeech')
+
+export const useTtsProviderId = createStore<TtsProviderId>({
+  storeKey: 'ttsProviderId',
+  read: limitTtsProviderId,
+  write: (v) => v,
 })
 
-export const useGetVoice = () => {
-  const [dict] = useLangVoiceURIDict()
-  const [allVoices] = useAtom(allVoicesAtom)
+/**
+ * Dict[provider][book-lang] = voiceId
+ */
+const useTtsVoiceDict = createStore<
+  Partial<Record<TtsProviderId, Record<string, string>>>
+>({
+  storeKey: 'ttsVoiceDict',
+  read: (s) => {
+    if (s) return JSON.parse(s)
+    const legacy = localStorage.getItem('langVoiceURIDict')
+    if (!legacy) return {}
+    return { webSpeech: JSON.parse(legacy) }
+  },
+  write: (d) => JSON.stringify(d),
+})
 
-  const getAllSortedVoices = useCallback(
-    (book: BookTypes.Entity) => {
-      return orderBy(allVoices, 'desc', (v) => [
-        v.lang.startsWith(`${book.langCode}-`),
-        !v.localService,
-      ])
-    },
-    [allVoices],
-  )
+export const useTtsVoices = (providerId: TtsProviderId): VoiceMeta[] => {
+  const provider = registry.get(providerId)
+  const [voices, setVoices] = useState(() => provider?.getVoices() ?? [])
 
-  const getVoice = useCallback(
-    (book: BookTypes.Entity) => {
-      const allSortedVoices = getAllSortedVoices(book)
-      const uri = dict[book.langCode]
-      const voice = uri ? allSortedVoices.find((v) => v.voiceURI === uri) : null
-      return voice ?? allSortedVoices.at(0) ?? null
-    },
-    [dict, getAllSortedVoices],
-  )
+  useEffect(() => {
+    if (!provider) return
+    return provider.onVoicesChange(() => setVoices(provider.getVoices()))
+  }, [provider])
 
-  return { getVoice, getAllSortedVoices }
+  return voices
 }
 
-const useLangVoiceURI = (book: BookTypes.Entity) => {
-  const [dict, setDict] = useLangVoiceURIDict()
+const sortVoices = (voices: VoiceMeta[], langCode: string): VoiceMeta[] =>
+  orderBy(voices, 'desc', (v) => [
+    v.lang.startsWith(`${langCode}-`),
+    !v.localService,
+  ])
 
-  const langURI = useMemo<string | null>(
-    () => dict[book.langCode] ?? null,
-    [book.langCode, dict],
-  )
+export const useVoiceForBook = () => {
+  const [providerId] = useTtsProviderId()
+  const [voiceDict] = useTtsVoiceDict()
+  const voices = useTtsVoices(providerId)
 
-  const setLangURI = useCallback(
-    (langURI: string | null) => {
-      const newDict = { ...dict }
-      if (langURI) newDict[book.langCode] = langURI
-      else delete newDict[book.langCode]
-      setDict(newDict)
+  return useCallback(
+    (book: BookTypes.Entity): VoiceMeta | null => {
+      const sorted = sortVoices(voices, book.langCode)
+      const voiceId = voiceDict[providerId]?.[book.langCode]
+      const voice = voiceId
+        ? (sorted.find((v) => v.voiceId === voiceId) ?? null)
+        : null
+      return voice ?? sorted[0] ?? null
     },
-    [book.langCode, dict, setDict],
+    [voices, voiceDict, providerId],
   )
-
-  return [langURI, setLangURI] as const
 }
 
 export const useVoice = (book: BookTypes.Entity) => {
-  const [langVoiceURI, setLangVoiceURI] = useLangVoiceURI(book)
-  const { getAllSortedVoices, getVoice } = useGetVoice()
+  const [providerId] = useTtsProviderId()
+  const voices = useTtsVoices(providerId)
+  const [voiceDict, setVoiceDict] = useTtsVoiceDict()
 
-  const allSortedVoices = useMemo(() => {
-    return getAllSortedVoices(book)
-  }, [book, getAllSortedVoices])
-
-  const voiceURI = useMemo((): string | null => {
-    return langVoiceURI ?? allSortedVoices[0]?.voiceURI ?? null
-  }, [allSortedVoices, langVoiceURI])
-
-  const setVoiceURI = useCallback(
-    (voiceURI: string | null) => {
-      setLangVoiceURI(voiceURI)
-    },
-    [setLangVoiceURI],
+  const sortedVoices = useMemo(
+    () => sortVoices(voices, book.langCode),
+    [voices, book.langCode],
   )
 
-  const voice = useMemo(() => {
-    return getVoice(book) ?? null
-  }, [book, getVoice])
+  const voiceId = voiceDict[providerId]?.[book.langCode] ?? null
+  const voice = useMemo(
+    () =>
+      voiceId
+        ? (sortedVoices.find((v) => v.voiceId === voiceId) ?? null)
+        : null,
+    [voiceId, sortedVoices],
+  )
+  const finalVoice = voice ?? sortedVoices[0] ?? null
 
   const setVoice = useCallback(
-    (voice: SpeechSynthesisVoice | null) => {
-      setVoiceURI(voice?.voiceURI ?? null)
+    (next: VoiceMeta | null) => {
+      const nextDict = { ...voiceDict }
+      const providerDict = { ...(nextDict[providerId] ?? {}) }
+      if (next) providerDict[book.langCode] = next.voiceId
+      else delete providerDict[book.langCode]
+      nextDict[providerId] = providerDict
+      setVoiceDict(nextDict)
     },
-    [setVoiceURI],
+    [providerId, book.langCode, voiceDict, setVoiceDict],
   )
 
-  return { voiceURI, setVoiceURI, voice, setVoice, allSortedVoices }
+  return {
+    voice: finalVoice,
+    setVoice,
+    voices: sortedVoices,
+    providerId,
+  }
 }
 
 export const useAutoSection = createStore<boolean>({

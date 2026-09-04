@@ -1,7 +1,8 @@
 import { Mutex } from 'async-mutex'
 
+import type { SpeakResult, TtsProvider } from '../../../../core/tts/index.js'
+import { registry, speak } from '../../../../core/tts/index.js'
 import type { ReadablePartText } from '../../../../core/util/readable.js'
-import { type SpeakResult, Speech } from '../../../../core/util/speech.js'
 import { UttererHighlight } from './highlight/utterer-highlight.js'
 import type { Player } from './player.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
@@ -22,7 +23,6 @@ export class UttererSuspendStored {
 export class Utterer {
   hl: UttererHighlight
   states: PlayerStatesManager
-  speech: Speech
 
   constructor(
     public player: Player,
@@ -31,19 +31,21 @@ export class Utterer {
   ) {
     this.states = states
     this.hl = new UttererHighlight(iframeCtrler, states)
+  }
 
-    this.speech = new Speech()
+  #getActiveProvider(): TtsProvider | undefined {
+    return registry.get(this.states.ttsProviderId) ?? registry.getDefault()
   }
 
   cancel() {
-    this.speech.cancel()
+    this.#getActiveProvider()?.cancel()
   }
 
   async suspend() {
     const mutexRelease = await suspendMutex.acquire()
     const stored = new UttererSuspendStored(this.states.started, mutexRelease)
     this.states.started = false
-    this.speech.cancel()
+    this.#getActiveProvider()?.cancel()
     return stored
   }
 
@@ -55,8 +57,11 @@ export class Utterer {
 
   async speakNode(node: ReadablePartText): Promise<SpeakResult> {
     if (!this.states.voice) return 'done'
+    const provider = this.#getActiveProvider()
+    if (!provider) return 'done'
 
-    return this.speech.speak(node.text, {
+    return speak(provider, {
+      text: node.text,
       voice: this.states.voice,
       speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
@@ -78,8 +83,11 @@ export class Utterer {
 
   async speakText(text: string): Promise<SpeakResult> {
     if (!this.states.voice) return 'done'
+    const provider = this.#getActiveProvider()
+    if (!provider) return 'done'
 
-    return this.speech.speak(text, {
+    return speak(provider, {
+      text,
       voice: this.states.voice,
       speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
