@@ -116,21 +116,52 @@ function getParentBlockElem(elem: HTMLElement | null): HTMLElement | undefined {
   }
 }
 
-function fixPageBreak(elem: HTMLElement) {
+function getPageBreak(elem: HTMLElement, type: 'before' | 'after') {
   const style = getComputedStyle(elem)
-  const breakBeforeList = [
-    style.getPropertyValue('page-break-before'),
-    style.getPropertyValue('break-before'),
-  ]
-  if (breakBeforeList.some((b) => b === 'always')) {
-    elem.style.breakBefore = 'column'
+  return [`page-break-${type}`, `break-${type}`].some(
+    (property) => style.getPropertyValue(property) === 'always',
+  )
+}
+
+/**
+ * A forced column break at the edge of the content creates an extra empty
+ * column, which inflates the page width & page count.
+ * Remove the breaks with no content following/preceding them.
+ */
+export function removeEdgePageBreaks(
+  breakAfterElems: HTMLElement[],
+  breakBeforeElems: HTMLElement[],
+  contentNodes: Node[],
+) {
+  const hasContentBefore = (elem: HTMLElement) => {
+    const { Node } = requiredDomView(elem)
+    return contentNodes.some(
+      (node) =>
+        !!(
+          elem.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_PRECEDING
+        ),
+    )
   }
-  const breakAfters = [
-    style.getPropertyValue('page-break-after'),
-    style.getPropertyValue('break-after'),
-  ]
-  if (breakAfters.some((b) => b === 'always')) {
-    elem.style.breakAfter = 'column'
+  const hasContentAfter = (elem: HTMLElement) => {
+    const { Node } = requiredDomView(elem)
+    return contentNodes.some((node) => {
+      const position = elem.compareDocumentPosition(node)
+      return (
+        !!(position & Node.DOCUMENT_POSITION_FOLLOWING) &&
+        !(position & Node.DOCUMENT_POSITION_CONTAINED_BY)
+      )
+    })
+  }
+
+  for (const elem of breakAfterElems) {
+    if (!hasContentAfter(elem)) {
+      elem.style.removeProperty('break-after')
+    }
+  }
+  for (const elem of breakBeforeElems) {
+    if (!hasContentBefore(elem)) {
+      elem.style.removeProperty('break-before')
+    }
   }
 }
 
@@ -171,6 +202,8 @@ export class ReadableExtractor {
   #accNavAnchors?: string[]
   #alias: TextAlias[] = []
   #navAnchorSet: Set<string>
+  #breakAfterElems: HTMLElement[] = []
+  #breakBeforeElems: HTMLElement[] = []
 
   constructor(
     private doc: Document,
@@ -196,7 +229,14 @@ export class ReadableExtractor {
           this.addRuby(node)
         }
 
-        fixPageBreak(node)
+        if (getPageBreak(node, 'before')) {
+          node.style.breakBefore = 'column'
+          this.#breakBeforeElems.push(node)
+        }
+        if (getPageBreak(node, 'after')) {
+          node.style.breakAfter = 'column'
+          this.#breakAfterElems.push(node)
+        }
 
         // image
         if (isImageElement(node)) {
@@ -242,6 +282,12 @@ export class ReadableExtractor {
 
       this.addText(node)
     }
+
+    removeEdgePageBreaks(
+      this.#breakAfterElems,
+      this.#breakBeforeElems,
+      this.#parts.map((part) => part.elem),
+    )
   }
 
   private popAccAnchors() {
