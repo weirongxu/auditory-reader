@@ -43,7 +43,7 @@ const appPublicRoot = config.appPublicPath || process.env.APP_PUBLIC_PATH || '/'
 export const env: Env = {
   isProduction: process.env.NODE_ENV === 'production',
   appMode: (process.env.APP_MODE as AppMode | undefined) || 'server',
-  appPort: config.appPort ?? 4001,
+  appPort: config.appPort ?? 4221,
   appBodyLimit: config.appBodyLimit ?? '20mb',
   appPublicRoot,
   appApiRoot: path.join(appPublicRoot, 'api'),

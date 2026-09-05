@@ -62,7 +62,7 @@ export default defineConfig({
     proxy: isServer
       ? {
           context: ['/api'],
-          target: 'http://localhost:4001',
+          target: 'http://localhost:4221',
         }
       : undefined,
   },

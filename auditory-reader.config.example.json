@@ -1,5 +1,5 @@
 {
-  "$schema": "./speech.config.schema.json",
+  "$schema": "./auditory-reader.config.schema.json",
   "appBodyLimit": "20mb",
   "accounts": [
     {

@@ -6,6 +6,6 @@ services:
     working_dir: /app
     command: 'npm start'
     ports:
-      - '0.0.0.0:8080:4001'
+      - '0.0.0.0:8080:4221'
     volumes:
       - ../:/app
