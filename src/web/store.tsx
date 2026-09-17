@@ -2,9 +2,9 @@ import { atom, useAtom } from 'jotai'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { BookTypes } from '../core/book/types.js'
-import type { TtsProviderId, VoiceMeta } from '../core/tts/index.js'
-import { registry } from '../core/tts/index.js'
 import { orderBy } from '../core/util/collection.js'
+import type { TtsProviderId, VoiceMeta } from './tts/index.js'
+import { registry } from './tts/index.js'
 
 function createStore<T>(options: {
   storeKey: string
@@ -41,8 +41,12 @@ export const useViewPanelType = createStore<ViewPanelType>({
   write: limitViewPanelType,
 })
 
-const limitTtsProviderId = (v: string | null): TtsProviderId =>
-  v === 'webSpeech' ? v : (registry.list()[0]?.id ?? 'webSpeech')
+const limitTtsProviderId = (v: string | null): TtsProviderId => {
+  for (const provider of registry.list()) {
+    if (provider.id === v) return provider.id
+  }
+  return registry.getDefault()?.id ?? 'webSpeech'
+}
 
 export const useTtsProviderId = createStore<TtsProviderId>({
   storeKey: 'ttsProviderId',
@@ -66,13 +70,22 @@ const useTtsVoiceDict = createStore<
   write: (d) => JSON.stringify(d),
 })
 
-export const useTtsVoices = (providerId: TtsProviderId): VoiceMeta[] => {
+export const useTtsVoices = (providerId: TtsProviderId): VoiceMeta[] | null => {
   const provider = registry.get(providerId)
-  const [voices, setVoices] = useState(() => provider?.getVoices() ?? [])
+  const [voices, setVoices] = useState<VoiceMeta[] | null>(null)
 
   useEffect(() => {
-    if (!provider) return
-    return provider.onVoicesChange(() => setVoices(provider.getVoices()))
+    if (!provider) {
+      setVoices([])
+      return
+    }
+    let cancelled = false
+    void provider.getVoices().then((list) => {
+      if (!cancelled) setVoices(list)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [provider])
 
   return voices
@@ -81,7 +94,7 @@ export const useTtsVoices = (providerId: TtsProviderId): VoiceMeta[] => {
 const sortVoices = (voices: VoiceMeta[], langCode: string): VoiceMeta[] =>
   orderBy(voices, 'desc', (v) => [
     v.lang.startsWith(`${langCode}-`),
-    !v.localService,
+    !v.isServerTts,
   ])
 
 export const useVoiceForBook = () => {
@@ -91,7 +104,7 @@ export const useVoiceForBook = () => {
 
   return useCallback(
     (book: BookTypes.Entity): VoiceMeta | null => {
-      const sorted = sortVoices(voices, book.langCode)
+      const sorted = sortVoices(voices ?? [], book.langCode)
       const voiceId = voiceDict[providerId]?.[book.langCode]
       const voice = voiceId
         ? (sorted.find((v) => v.voiceId === voiceId) ?? null)
@@ -108,19 +121,19 @@ export const useVoice = (book: BookTypes.Entity) => {
   const [voiceDict, setVoiceDict] = useTtsVoiceDict()
 
   const sortedVoices = useMemo(
-    () => sortVoices(voices, book.langCode),
+    () => (voices ? sortVoices(voices, book.langCode) : null),
     [voices, book.langCode],
   )
 
   const voiceId = voiceDict[providerId]?.[book.langCode] ?? null
   const voice = useMemo(
     () =>
-      voiceId
+      voiceId && sortedVoices
         ? (sortedVoices.find((v) => v.voiceId === voiceId) ?? null)
         : null,
     [voiceId, sortedVoices],
   )
-  const finalVoice = voice ?? sortedVoices[0] ?? null
+  const finalVoice = voice ?? sortedVoices?.[0] ?? null
 
   const setVoice = useCallback(
     (next: VoiceMeta | null) => {
@@ -137,7 +150,7 @@ export const useVoice = (book: BookTypes.Entity) => {
   return {
     voice: finalVoice,
     setVoice,
-    voices: sortedVoices,
+    voices,
     providerId,
   }
 }

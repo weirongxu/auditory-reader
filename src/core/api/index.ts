@@ -29,6 +29,8 @@ import { booksUpdateRouter } from './books/update.js'
 import { booksViewRouter } from './books/view.js'
 import { loginRouter } from './login.js'
 import { logoutRouter } from './logout.js'
+import { ttsSpeakRouter } from './tts/speak.js'
+import { ttsVoicesRouter } from './tts/voices.js'
 import { userRouter } from './user.js'
 
 export const ROUTERS = [
@@ -63,4 +65,6 @@ export const ROUTERS = [
   booksCoverRouter,
   booksRenderRouter,
   booksSearchRouter,
+  ttsVoicesRouter,
+  ttsSpeakRouter,
 ] satisfies URouter[]

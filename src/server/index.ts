@@ -10,6 +10,7 @@ process.env.APP_MODE = 'server'
 
 // modules
 import 'isomorphic-fetch'
+import './tts/routes.js'
 
 import path from '@file-services/path'
 import express from 'express'
@@ -48,13 +49,16 @@ app.use(
   }),
 )
 
+// eslint-disable-next-line no-console
 console.debug('register routes')
 for (const router of ROUTERS) {
   const fullRoutePath = router.isDynamic
     ? `${router.fullRoutePath}/*`
     : router.fullRoutePath
+  // eslint-disable-next-line no-console
   console.debug('  ', router.method, fullRoutePath)
   app[router.method](fullRoutePath, (req, res) => {
+    // eslint-disable-next-line no-console
     console.debug(req.method, req.path)
     const dynamicPaths = router.getDynamicPaths(req.path)
     if (router.handler) {
@@ -88,4 +92,5 @@ for (const router of ROUTERS) {
 
 app.listen(env.appPort)
 
+// eslint-disable-next-line no-console -- server startup message is useful in logs
 console.log(`Server started at port ${env.appPort}`)

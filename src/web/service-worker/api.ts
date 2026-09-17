@@ -14,11 +14,13 @@ export default null
 declare let self: ServiceWorkerGlobalScope
 
 self.addEventListener('install', (event) => {
-  console.log('service-worker: installed')
+  // eslint-disable-next-line no-console
+  console.debug('service-worker: installed')
   event.waitUntil(self.skipWaiting())
 })
 
 self.addEventListener('activate', (event) => {
+  // eslint-disable-next-line no-console
   console.log('service-worker: activate event in progress.')
   event.waitUntil(self.clients.claim())
 })

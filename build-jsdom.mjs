@@ -1,3 +1,4 @@
+// @ts-check
 import { build } from 'esbuild'
 import { clean } from 'esbuild-plugin-clean'
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
@@ -6,10 +7,11 @@ import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
 
+/** @type {import('esbuild').Plugin} */
 const jsdomPatchPlugin = {
   name: 'jsdom-patch',
-  setup(build) {
-    build.onLoad({ filter: /XMLHttpRequest-impl\.js$/ }, async (args) => {
+  setup(pluginBuild) {
+    pluginBuild.onLoad({ filter: /XMLHttpRequest-impl\.js$/ }, async (args) => {
       let contents = await fs.promises.readFile(args.path, 'utf8')
       contents = contents.replace(
         'const syncWorkerFile = require.resolve ? require.resolve("./xhr-sync-worker.js") : null;',
@@ -36,4 +38,5 @@ await build({
   ],
 })
 
+// eslint-disable-next-line no-console -- build script, useful progress output
 console.debug(`built jsdom`)

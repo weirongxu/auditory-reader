@@ -468,6 +468,7 @@ export class PlayerIframeController {
   public async scrollToPercent(percent: number, jump: boolean) {
     const scrollElement = this.doc?.scrollingElement
 
+    // eslint-disable-next-line no-console
     console.debug(`scrollElement: ${scrollElement?.tagName ?? 'null'}`)
     if (!scrollElement) return
 
@@ -1215,8 +1216,11 @@ export class PlayerIframeController {
     this.viewWidth = viewRect.width
     this.viewOffsetWidth = viewRect.width + this.pageListGap
     this.viewHeight = viewRect.height
+    // eslint-disable-next-line no-console
     console.debug(`viewWidth: ${this.viewWidth}`)
+    // eslint-disable-next-line no-console
     console.debug(`viewOffsetWidth: ${this.viewOffsetWidth}`)
+    // eslint-disable-next-line no-console
     console.debug(`viewHeight: ${this.viewHeight}`)
   }
 
@@ -1279,8 +1283,11 @@ export class PlayerIframeController {
     if (pageCount < 1) pageCount = 1
 
     this.pageListCount = pageCount
+    // eslint-disable-next-line no-console
     console.debug(`pageListScrollWidth: ${this.pageListScrollWidth}`)
+    // eslint-disable-next-line no-console
     console.debug(`pageListColumnWidth: ${this.pageListColumnWidth}`)
+    // eslint-disable-next-line no-console
     console.debug(`pageListCount: ${this.pageListCount}`)
 
     this.parsePageList(html)

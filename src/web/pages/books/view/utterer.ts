@@ -1,15 +1,21 @@
 import { Mutex } from 'async-mutex'
+import { t } from 'i18next'
 
-import type { SpeakResult, TtsProvider } from '../../../../core/tts/index.js'
-import { registry, speak } from '../../../../core/tts/index.js'
 import type { ReadablePartText } from '../../../../core/util/readable.js'
+import { notificationApi } from '../../../common/notification.js'
+import type {
+  SpeakInput,
+  SpeakResult,
+  TtsProvider,
+  VoiceMeta,
+} from '../../../tts/index.js'
+import { registry, speak } from '../../../tts/index.js'
 import { UttererHighlight } from './highlight/utterer-highlight.js'
 import type { Player } from './player.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
-import { rewindPlay, shutterPlay } from './sound.js'
-
-const speakRetriedMax = 3
+import { rainStart, rainStop, rewindPlay, shutterPlay } from './sound.js'
+import { createQuoteRainListener } from './utterer-quote.js'
 
 const suspendMutex = new Mutex()
 
@@ -23,6 +29,8 @@ export class UttererSuspendStored {
 export class Utterer {
   hl: UttererHighlight
   states: PlayerStatesManager
+  // TODO 看能否重构并且去掉 #loopGeneration
+  #loopGeneration = 0
 
   constructor(
     public player: Player,
@@ -33,19 +41,19 @@ export class Utterer {
     this.hl = new UttererHighlight(iframeCtrler, states)
   }
 
-  #getActiveProvider(): TtsProvider | undefined {
-    return registry.get(this.states.ttsProviderId) ?? registry.getDefault()
+  get #activeProvider(): TtsProvider | undefined {
+    return registry.get(this.states.ttsProviderId)
   }
 
   cancel() {
-    this.#getActiveProvider()?.cancel()
+    this.#activeProvider?.cancel()
   }
 
   async suspend() {
     const mutexRelease = await suspendMutex.acquire()
     const stored = new UttererSuspendStored(this.states.started, mutexRelease)
     this.states.started = false
-    this.#getActiveProvider()?.cancel()
+    this.#activeProvider?.cancel()
     return stored
   }
 
@@ -55,14 +63,36 @@ export class Utterer {
     this.startLoop()
   }
 
-  async speakNode(node: ReadablePartText): Promise<SpeakResult> {
-    if (!this.states.voice) return 'done'
-    const provider = this.#getActiveProvider()
-    if (!provider) return 'done'
+  #speakGuard(): { provider: TtsProvider; voice: VoiceMeta } {
+    const provider = this.#activeProvider
+    if (!provider) throw new Error('tts provider not found')
+    const voice = this.states.voice
+    if (!voice) throw new Error('tts voice not selected')
+    return { provider, voice }
+  }
 
+  async #speakWithQuote(
+    provider: TtsProvider,
+    options: SpeakInput,
+  ): Promise<SpeakResult> {
+    const quoteRainListener = createQuoteRainListener(options.text, {
+      start: rainStart,
+      stop: rainStop,
+    })
     return speak(provider, {
-      text: node.text,
-      voice: this.states.voice,
+      ...options,
+      onBoundary: (event) => {
+        quoteRainListener(event)
+        options.onBoundary?.(event)
+      },
+    }).finally(rainStop)
+  }
+
+  async speakNode(node: ReadablePartText): Promise<SpeakResult> {
+    const { provider, voice } = this.#speakGuard()
+
+    return this.#speakWithQuote(provider, {
+      voice,
       speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
       alias: this.player.iframeCtrler.alias,
@@ -78,17 +108,16 @@ export class Utterer {
           true,
         )
       },
+      text: node.text,
     })
   }
 
   async speakText(text: string): Promise<SpeakResult> {
-    if (!this.states.voice) return 'done'
-    const provider = this.#getActiveProvider()
-    if (!provider) return 'done'
+    const { provider, voice } = this.#speakGuard()
 
-    return speak(provider, {
+    return this.#speakWithQuote(provider, {
       text,
-      voice: this.states.voice,
+      voice,
       speed: this.states.speechSpeed,
       isPersonReplace: this.states.isPersonReplace,
       alias: this.player.iframeCtrler.alias,
@@ -121,13 +150,16 @@ export class Utterer {
   }
 
   startLoop() {
-    this.#startLoop().catch(console.error)
+    this.#loopGeneration += 1
+    void this.#startLoop(this.#loopGeneration)
   }
 
-  async #startLoop() {
-    let retriedCount = 0
+  async #startLoop(generation: number) {
+    // TODO #startLoop 得想办法重构
+    const isStale = () =>
+      !this.states.started || generation !== this.#loopGeneration
     while (true) {
-      if (!this.states.started) return
+      if (isStale()) return
       try {
         const node = this.player.iframeCtrler.readableParts.at(
           this.states.pos.paragraph,
@@ -139,6 +171,7 @@ export class Utterer {
               for (let i = 0; i < this.states.paragraphRepeat; i++) {
                 const ret = await this.speakNode(node)
                 if (ret === 'cancel') {
+                  if (isStale()) return
                   isCancel = true
                   break
                 } else if (i !== this.states.paragraphRepeat - 1) {
@@ -160,11 +193,13 @@ export class Utterer {
         await this.nextPart()
       } catch (err) {
         console.error(err)
-        retriedCount += 1
-        if (retriedCount > speakRetriedMax) {
-          await this.nextPart()
-          retriedCount = 0
-        }
+        if (isStale()) return
+        notificationApi().error({
+          message: t('error.speak'),
+          description: err instanceof Error ? err.message : err?.toString(),
+        })
+        this.player.pause()
+        return
       }
     }
   }

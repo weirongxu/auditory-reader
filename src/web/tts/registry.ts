@@ -1,4 +1,4 @@
-import type { TtsProvider, TtsProviderId } from './types.js'
+import type { TtsProvider, TtsProviderId } from '../../core/tts/types.js'
 
 class TtsRegistry {
   #providers = new Map<TtsProviderId, TtsProvider>()

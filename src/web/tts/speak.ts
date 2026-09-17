@@ -1,12 +1,12 @@
-import { ZH_PERSON_RULES } from '../consts.js'
-import { findLast } from '../util/collection.js'
-import { aliasReplace } from './alias.js'
+import { ZH_PERSON_RULES } from '../../core/consts.js'
+import { aliasReplace } from '../../core/tts/alias.js'
 import type {
   HighlightEvent,
   SpeakInput,
   SpeakResult,
   TtsProvider,
-} from './types.js'
+} from '../../core/tts/types.js'
+import { findLast } from '../../core/util/collection.js'
 
 function replacePersonText(text: string): string {
   for (const [key, value] of Object.entries(ZH_PERSON_RULES)) {
@@ -40,7 +40,9 @@ function remapBoundary(
   }
 }
 
-export function speak(
+const ATTEMPTS = 3
+
+export async function speak(
   provider: TtsProvider,
   input: SpeakInput,
 ): Promise<SpeakResult> {
@@ -55,9 +57,20 @@ export function speak(
     }
   }
 
-  return provider.speak(text, {
-    voice: input.voice,
-    speed: input.speed,
-    onBoundary,
-  })
+  let lastError: unknown
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+    if (input.signal?.aborted) return 'cancel'
+    try {
+      const result = await provider.speak(text, {
+        voice: input.voice,
+        speed: input.speed,
+        signal: input.signal,
+        onBoundary,
+      })
+      return result
+    } catch (err) {
+      lastError = err
+    }
+  }
+  throw lastError
 }

@@ -143,6 +143,7 @@ export const langZh: LangEn = {
   },
   error: {
     login: '$t(account)或$t(password)错误',
+    speak: '朗读失败',
   },
   title: '标题',
   note: '备注',
@@ -155,6 +156,7 @@ export const langZh: LangEn = {
   logout: '登出',
   submit: '提交',
   select: '选择',
+  loading: '加载中...',
   add: '添加',
   tmpStore: '存储临时文件',
   top: '置顶',
@@ -195,6 +197,22 @@ export const langZh: LangEn = {
       webSpeech: {
         name: '浏览器语音',
         desc: '浏览器内置语音，依赖操作系统 / 浏览器语音库。',
+      },
+      kokoro: {
+        name: 'Kokoro',
+        desc: '本地服务器模型（sherpa-onnx），高音质。',
+      },
+      matcha: {
+        name: 'Matcha',
+        desc: '本地服务器模型（sherpa-onnx），速度更快。',
+      },
+      melo: {
+        name: 'Melo',
+        desc: '本地服务器模型（sherpa-onnx）。',
+      },
+      edge: {
+        name: '微软在线',
+        desc: '微软 Edge 在线语音，需外网，可能失效。',
       },
     },
   },

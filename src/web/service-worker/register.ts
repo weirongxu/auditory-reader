@@ -14,7 +14,7 @@ export async function registerAPI() {
     return 'successful'
   }
   if (!('serviceWorker' in navigator)) {
-    console.log('service-worker: unsupported')
+    console.warn('service-worker: unsupported')
     return 'unsupported'
   }
   await unregister()
@@ -27,7 +27,8 @@ export async function registerAPI() {
   )
   await navigator.serviceWorker.ready
   if (service.active) {
-    console.log('service-worker: registered')
+    // eslint-disable-next-line no-console
+    console.debug('service-worker: registered')
     return 'successful'
   }
   return 'failed'

@@ -28,6 +28,26 @@ export type RouterOptions = {
   isDynamic?: boolean
 }
 
+async function toActionError(res: Response): Promise<ActionError<string>> {
+  let text = await res.text()
+  try {
+    const json: unknown = JSON.parse(text)
+    if (hasErrorMessage(json)) text = json.message
+  } catch {
+    return new ActionError(text)
+  }
+  return new ActionError(text)
+}
+
+function hasErrorMessage(value: unknown): value is { message: string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'message' in value &&
+    typeof value.message === 'string'
+  )
+}
+
 export class URouter<Req = any, Res = any> {
   fullRoutePath: string
   method: RouterMethod
@@ -98,7 +118,7 @@ export class URouter<Req = any, Res = any> {
       body: body ? JSON.stringify(body) : null,
     })
     if (res.status === 401) throw new ActionUnauthorized()
-    if (!res.ok) throw new ActionError(await res.text())
+    if (!res.ok) throw await toActionError(res)
     return await res.blob()
   }
 

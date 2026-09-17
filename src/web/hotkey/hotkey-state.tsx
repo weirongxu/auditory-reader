@@ -159,7 +159,8 @@ function getListener() {
     }
     const triggeredKey = getHotkeyKey(hotkey)
 
-    console.log('triggered-key:', triggeredKey)
+    // eslint-disable-next-line no-console
+    console.debug('triggered-key:', triggeredKey)
     const fullKey = curKeySeq + triggeredKey
     const fullSubKey = fullKey + sequenceSymbol
     const targetRet = hotkeyItems.find(([key]) => key === fullKey)

@@ -30,8 +30,8 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.6",
     "@mozilla/readability": "^0.6.0",
-    "@react-hookz/web": "^25.3.0",
-    "@types/jsdom": "^21.1.7",
+    "@react-hookz/web": "^26.1.0",
+    "@types/jsdom": "^30.0.0",
     "@types/mime-types": "^3.0.1",
     "antd": "^5.29.3",
     "async-mutex": "^0.5.0",
@@ -50,11 +50,13 @@
     "jsdom": "^25.0.1",
     "jszip": "^3.10.1",
     "mime-types": "^3.0.2",
+    "msedge-tts": "^2.0.7",
     "react": "^18.3.1",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "6.30.3",
+    "sherpa-onnx-node": "^1.13.7",
     "type-fest": "^5.9.0",
     "uuid": "^13.0.2"
   },
@@ -79,7 +81,7 @@
     "@types/react-dom": "^18.3.7",
     "@types/session-file-store": "^1.2.6",
     "@types/uuid": "^11.0.0",
-    "esbuild": "^0.27.7",
+    "esbuild": "^0.28.2",
     "esbuild-plugin-clean": "^1.0.1",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "eslint": "^9.39.5",
@@ -91,7 +93,7 @@
     "session-file-store": "^1.5.0",
     "tsx": "^4.23.13",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.7"
+    "vitest": "^5.0.0"
   },
   "engines": {
     "node": ">=20"

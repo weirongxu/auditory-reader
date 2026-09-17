@@ -10,6 +10,7 @@ export default defineConfig([
     ],
     extends: [tsconfig],
     rules: {
+      'no-undef': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-base-to-string': 'off',
       '@typescript-eslint/no-confusing-void-expression': 'off',

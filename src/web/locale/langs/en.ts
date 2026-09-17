@@ -141,6 +141,7 @@ export const langEn = {
   },
   error: {
     login: '$t(account) or $t(password) error',
+    speak: 'Speak failed',
   },
   title: 'Title',
   note: 'Note',
@@ -153,6 +154,7 @@ export const langEn = {
   logout: 'Logout',
   submit: 'Submit',
   select: 'Select',
+  loading: 'Loading...',
   add: 'Add',
   tmpStore: 'Store temporary file',
   top: 'Top',
@@ -193,6 +195,22 @@ export const langEn = {
       webSpeech: {
         name: 'Browser Voice',
         desc: 'Browser built-in. Depends on OS / browser voice library.',
+      },
+      kokoro: {
+        name: 'Kokoro',
+        desc: 'Local server model (sherpa-onnx), high quality.',
+      },
+      matcha: {
+        name: 'Matcha',
+        desc: 'Local server model (sherpa-onnx), faster.',
+      },
+      melo: {
+        name: 'Melo',
+        desc: 'Local server model (sherpa-onnx).',
+      },
+      edge: {
+        name: 'Microsoft Online',
+        desc: 'Microsoft Edge online voice. Requires internet access, may become unavailable.',
       },
     },
   },

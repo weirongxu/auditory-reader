@@ -21,6 +21,7 @@ A Speech Reader, Support Epub, Text.
 - Create a configuration file.
   - `cp auditory-reader.config.example.json auditory-reader.config.json`
   - Use text editor to open and edit the `auditory-reader.config.json`
+- For local server TTS voices (Kokoro / Matcha / Melo), download models into `server-data/tts-models` with `scripts/download-tts-models.sh`.
 - Run
   - `pnpm start`
 

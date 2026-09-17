@@ -21,7 +21,6 @@ import { useNavigate } from 'react-router-dom'
 
 import { booksTmpStoreRouter } from '../../../../core/api/books/tmp-store.js'
 import type { BookTypes } from '../../../../core/book/types.js'
-import { registry } from '../../../../core/tts/index.js'
 import { filterOptionLabel } from '../../../../core/util/antd.js'
 import { bookProgress } from '../../../../core/util/book.js'
 import { isMobile } from '../../../../core/util/browser.js'
@@ -42,6 +41,7 @@ import {
   useTtsProviderId,
   useVoice,
 } from '../../../store.js'
+import { registry, type VoiceMeta } from '../../../tts/index.js'
 import { SettingLine } from '../../layout/settings.js'
 import { useAppBarSync } from '../../layout/use-app-bar.js'
 import { useBookEditDialog } from '../edit.js'
@@ -201,8 +201,9 @@ function BookEditButton() {
 function VoicesSelect() {
   const { book } = useBookContext()
   const { voice, setVoice, voices } = useVoice(book.item)
+  const isLoading = voices === null
   const voiceOptions = useMemo(
-    () => voices.map((v) => ({ label: v.name, value: v.voiceId })),
+    () => (voices ?? []).map((v) => ({ label: v.name, value: v.voiceId })),
     [voices],
   )
   return (
@@ -212,9 +213,12 @@ function VoicesSelect() {
         filterOption={filterOptionLabel}
         popupMatchSelectWidth={false}
         style={{ width: '100%' }}
+        disabled={isLoading}
+        placeholder={isLoading ? t('loading') : undefined}
         value={voice?.voiceId ?? null}
         onChange={(voiceId) => {
-          const v = voices.find((v) => v.voiceId === voiceId) ?? null
+          let v: VoiceMeta | null = null
+          if (voices) v = voices.find((v) => v.voiceId === voiceId) ?? null
           setVoice(v)
         }}
         options={voiceOptions}
@@ -235,7 +239,7 @@ function TtsProviderSelect() {
         options={registry.list().map((p) => ({
           label: tKey(p.nameKey),
           value: p.id,
-          description: p.descriptionKey ? tKey(p.descriptionKey) : undefined,
+          description: tKey(p.descriptionKey),
         }))}
         optionRender={(option) => (
           <div>

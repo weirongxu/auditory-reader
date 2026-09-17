@@ -47,7 +47,6 @@ import { booksUpdateRouter } from '../../../core/api/books/update.js'
 import { sortOrders } from '../../../core/book/enums.js'
 import type { BookTypes } from '../../../core/book/types.js'
 import { useAction } from '../../../core/route/action.js'
-import { registry, speak } from '../../../core/tts/index.js'
 import { filterOptionLabel } from '../../../core/util/antd.js'
 import { getBookExtension } from '../../../core/util/book.js'
 import { async } from '../../../core/util/promise.js'
@@ -65,6 +64,7 @@ import {
   useVoiceForBook,
 } from '../../store.js'
 import { globalStore } from '../../store/global.js'
+import { registry, speak } from '../../tts/index.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { exportBooks } from './actions.js'
 import { useBookEditDialog } from './edit.js'
@@ -375,12 +375,12 @@ function useHomeHotKeys({
       if (!voice) return
       const provider = registry.get(ttsProviderId) ?? registry.getDefault()
       if (!provider) return
-      void speak(provider, {
+      speak(provider, {
         text: currentBook.name,
         voice,
         speed: speechSpeed,
         isPersonReplace,
-      })
+      }).catch(console.error)
     }
 
     const hotkeys: HotkeyItem[] = [

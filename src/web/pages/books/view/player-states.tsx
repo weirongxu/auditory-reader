@@ -2,7 +2,7 @@ import type { Dispatch } from 'react'
 import { useEffect, useMemo } from 'react'
 
 import type { BookTypes } from '../../../../core/book/types.js'
-import type { TtsProviderId, VoiceMeta } from '../../../../core/tts/index.js'
+import type { TtsProviderId, VoiceMeta } from '../../../../core/tts/types.js'
 import { isMobile } from '../../../../core/util/browser.js'
 import { ChangedEmitter } from '../../../../core/util/emitter.js'
 import type { PageListType } from '../../../store.js'
