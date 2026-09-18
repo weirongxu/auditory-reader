@@ -1,6 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { TimelineEntry } from '../../../core/tts/types.js'
 import { ServerTtsProvider } from './server.js'
+
+const voice = {
+  providerId: 'kokoro',
+  voiceId: '0',
+  name: 'v',
+  lang: 'en',
+  isServerTts: true,
+} as const
+
+// Build an envelope blob like the server route returns.
+const envelopeBlob = (audio: string, timeline: TimelineEntry[] = []): Blob => {
+  const metaJson = JSON.stringify({ contentType: 'audio/mpeg', timeline })
+  const header = new ArrayBuffer(4)
+  new DataView(header).setUint32(
+    0,
+    new TextEncoder().encode(metaJson).byteLength,
+  )
+  return new Blob([header, metaJson, audio])
+}
 
 type Listener = (event?: unknown) => void
 
@@ -13,6 +33,7 @@ class FakeAudio {
   played = false
   failPlay = playFails
   playReject: ((reason?: unknown) => void) | undefined
+  currentTime = 0
 
   constructor(public url: string) {
     audioInstances.push(this)
@@ -20,6 +41,10 @@ class FakeAudio {
 
   addEventListener(name: string, listener: Listener): void {
     this.listeners.set(name, listener)
+  }
+
+  removeEventListener(name: string): void {
+    this.listeners.delete(name)
   }
 
   play(): Promise<void> {
@@ -38,6 +63,11 @@ class FakeAudio {
 
   emit(name: string): void {
     this.listeners.get(name)?.()
+  }
+
+  advance(seconds: number): void {
+    this.currentTime = seconds
+    this.emit('timeupdate')
   }
 }
 
@@ -71,19 +101,10 @@ describe('ServerTtsProvider', () => {
   it('rejects and cleans up when audio play is blocked', async () => {
     playFails = true
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -96,19 +117,10 @@ describe('ServerTtsProvider', () => {
 
   it('resolves cancel when audio play is blocked after cancel', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -122,19 +134,10 @@ describe('ServerTtsProvider', () => {
 
   it('rejects when the audio element emits an error event', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -147,19 +150,10 @@ describe('ServerTtsProvider', () => {
 
   it('resolves cancel when the audio element emits an error event after cancel', async () => {
     stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -171,19 +165,10 @@ describe('ServerTtsProvider', () => {
 
   it('treats cancel after natural end or repeated cancel as a silent noop', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -210,13 +195,6 @@ describe('ServerTtsProvider', () => {
       ),
     )
     const provider = new ServerTtsProvider('kokoro')
-    const voice = {
-      providerId: 'kokoro',
-      voiceId: '0',
-      name: 'v',
-      lang: 'en',
-      isServerTts: true,
-    } as const
 
     const first = provider.speak('slow paragraph', { voice, speed: 1 })
     const second = provider.speak('next speak while pending', {
@@ -231,15 +209,8 @@ describe('ServerTtsProvider', () => {
 
   it('cancels the previous session when speaking again during playback', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
-    const voice = {
-      providerId: 'kokoro',
-      voiceId: '0',
-      name: 'v',
-      lang: 'en',
-      isServerTts: true,
-    } as const
 
     const first = provider.speak('hi', { voice, speed: 1 })
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
@@ -258,15 +229,8 @@ describe('ServerTtsProvider', () => {
 
   it('cancels the ongoing speak when the same signal aborts after a previous speak completed', async () => {
     stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
-    const voice = {
-      providerId: 'kokoro',
-      voiceId: '0',
-      name: 'v',
-      lang: 'en',
-      isServerTts: true,
-    } as const
     const controller = new AbortController()
 
     const first = provider.speak('first', {
@@ -293,15 +257,8 @@ describe('ServerTtsProvider', () => {
 
   it("does not cancel the next speak when a finished speak's signal aborts later", async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
-    const voice = {
-      providerId: 'kokoro',
-      voiceId: '0',
-      name: 'v',
-      lang: 'en',
-      isServerTts: true,
-    } as const
 
     const firstController = new AbortController()
     const first = provider.speak('first', {
@@ -329,19 +286,10 @@ describe('ServerTtsProvider', () => {
 
   it('resolves done and revokes url when playback ends', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -354,19 +302,10 @@ describe('ServerTtsProvider', () => {
 
   it('resolves cancel when canceled during playback', async () => {
     const { revoked } = stubBrowserGlobals()
-    stubFetchBlob(new Blob(['audio']))
+    stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -391,16 +330,7 @@ describe('ServerTtsProvider', () => {
     )
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
-      speed: 1,
-    })
+    const promise = provider.speak('hi', { voice, speed: 1 })
 
     provider.cancel()
     await expect(promise).resolves.toBe('cancel')
@@ -423,13 +353,7 @@ describe('ServerTtsProvider', () => {
     const controller = new AbortController()
 
     const promise = provider.speak('hi', {
-      voice: {
-        providerId: 'kokoro',
-        voiceId: '0',
-        name: 'v',
-        lang: 'en',
-        isServerTts: true,
-      },
+      voice,
       speed: 1,
       signal: controller.signal,
     })
@@ -446,18 +370,53 @@ describe('ServerTtsProvider', () => {
     )
     const provider = new ServerTtsProvider('kokoro')
 
-    await expect(
-      provider.speak('hi', {
-        voice: {
-          providerId: 'kokoro',
-          voiceId: '0',
-          name: 'v',
-          lang: 'en',
-          isServerTts: true,
-        },
-        speed: 1,
-      }),
-    ).rejects.toThrow()
+    await expect(provider.speak('hi', { voice, speed: 1 })).rejects.toThrow()
+  })
+
+  it('emits boundary events sorted by startTime and only once per entry', async () => {
+    stubBrowserGlobals()
+    stubFetchBlob(
+      envelopeBlob('audio', [
+        { charIndex: 6, charLength: 3, startTime: 0.4, endTime: 0.6 },
+        { charIndex: 0, charLength: 3, startTime: 0.0, endTime: 0.2 },
+        { charIndex: 3, charLength: 3, startTime: 0.2, endTime: 0.4 },
+      ]),
+    )
+    const provider = new ServerTtsProvider('kokoro')
+    const onBoundary = vi.fn()
+
+    const promise = provider.speak('hello world', {
+      voice,
+      speed: 1,
+      onBoundary,
+    })
+
+    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    const audio = audioInstances.at(-1)
+
+    audio?.advance(0.25)
+    expect(onBoundary).toHaveBeenCalledTimes(1)
+    expect(onBoundary).toHaveBeenLastCalledWith({ charIndex: 0, charLength: 3 })
+
+    audio?.advance(0.45)
+    expect(onBoundary).toHaveBeenCalledTimes(2)
+    expect(onBoundary).toHaveBeenLastCalledWith({ charIndex: 3, charLength: 3 })
+
+    audio?.advance(0.65)
+    expect(onBoundary).toHaveBeenCalledTimes(3)
+    expect(onBoundary).toHaveBeenLastCalledWith({ charIndex: 6, charLength: 3 })
+
+    // Forward-only: replaying an already-passed time emits nothing new,
+    // and later progress still advances the cursor past the replayed time.
+    audio?.advance(0.25)
+    expect(onBoundary).toHaveBeenCalledTimes(3)
+    expect(onBoundary).toHaveBeenLastCalledWith({ charIndex: 6, charLength: 3 })
+
+    audio?.advance(0.5)
+    expect(onBoundary).toHaveBeenCalledTimes(3)
+
+    audio?.emit('ended')
+    await expect(promise).resolves.toBe('done')
   })
 
   it('degrades to empty voices when voices fetch fails', async () => {

@@ -523,6 +523,28 @@ export class PlayerIframeController {
     const isLoadNewPath = force || absPath !== this.#curAbsPath
     this.#curAbsPath = absPath
 
+    const updatePos = () => {
+      // update paragraph
+      let paragraph = this.states.pos.paragraph
+      if (locate.paragraph !== undefined) {
+        paragraph =
+          locate.paragraph < 0
+            ? this.readableParts.length + locate.paragraph
+            : locate.paragraph
+        // if exceeds readablePart range
+        if (paragraph < 0) paragraph = 0
+        else if (paragraph >= this.readableParts.length)
+          paragraph = this.readableParts.length - 1
+      } else if (locate.anchorId)
+        paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
+
+      // update pos
+      this.states.pos = {
+        section,
+        paragraph,
+      }
+    }
+
     try {
       // load iframe
       if (isLoadNewPath) {
@@ -554,28 +576,12 @@ export class PlayerIframeController {
         this.readableParts = readableExtractor.toReadableParts()
         this.alias = readableExtractor.alias()
 
+        updatePos()
+
         // loaded
         await this.onLoaded(iframe)
-      }
-
-      // update paragraph
-      let paragraph = this.states.pos.paragraph
-      if (locate.paragraph !== undefined) {
-        paragraph =
-          locate.paragraph < 0
-            ? this.readableParts.length + locate.paragraph
-            : locate.paragraph
-        // if exceeds readablePart range
-        if (paragraph < 0) paragraph = 0
-        else if (paragraph >= this.readableParts.length)
-          paragraph = this.readableParts.length - 1
-      } else if (locate.anchorId)
-        paragraph = this.getReadablePartIndexByAnchorId(locate.anchorId) ?? 0
-
-      // update pos
-      this.states.pos = {
-        section,
-        paragraph,
+      } else {
+        updatePos()
       }
 
       // scroll to paragraph

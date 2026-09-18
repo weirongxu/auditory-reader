@@ -33,6 +33,15 @@ export interface SpeakParamsInput {
   speed: number
 }
 
+export interface TimelineEntry {
+  charIndex: number
+  charLength: number
+  /** Seconds. */
+  startTime: number
+  /** Seconds. */
+  endTime: number
+}
+
 export interface HighlightEvent {
   charIndex: number
   charLength: number

@@ -79,6 +79,7 @@ export class EdgeEngine extends TtsEngine {
       return {
         buffer: await streamToBuffer(audioStream),
         contentType: 'audio/mpeg',
+        timeline: [],
       }
     } finally {
       tts.close()

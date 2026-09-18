@@ -84,6 +84,7 @@ export class SherpaEngine extends TtsEngine {
     return {
       buffer: encodeWav(audio.samples, audio.sampleRate),
       contentType: 'audio/wav',
+      timeline: [],
     }
   }
 }
