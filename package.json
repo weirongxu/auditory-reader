@@ -18,7 +18,7 @@
     "test:types": "tsc --noEmit",
     "test:lint": "eslint --fix .",
     "test:unit": "vitest run",
-    "prepare": "node build-jsdom.js",
+    "prepare": "node build-jsdom.mjs",
     "predeploy": "rsbuild build --env-mode deploy",
     "deploy": "gh-pages -d sw-public",
     "start": "node lib/server/index.js"
