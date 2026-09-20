@@ -131,7 +131,7 @@ export class Player {
       // Skip when same position
       return
 
-    const stored = await this.utterer.suspend()
+    const release = await this.utterer.suspend()
     if (this.states.pos.section === section) {
       // Same section
       void pressEnterPlay()
@@ -150,7 +150,7 @@ export class Player {
         animated,
       })
     }
-    this.utterer.resume(stored)
+    this.utterer.resume(release)
   }
 
   async gotoSection(section: number, paragraph: number) {
@@ -174,9 +174,9 @@ export class Player {
   }
 
   async gotoUrlPath(urlPath: string) {
-    const stored = await this.utterer.suspend()
+    const release = await this.utterer.suspend()
     await this.iframeCtrler.gotoUrlPath(urlPath)
-    this.utterer.resume(stored)
+    this.utterer.resume(release)
   }
 
   get isFirstPage() {

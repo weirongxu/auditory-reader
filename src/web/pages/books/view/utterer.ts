@@ -19,18 +19,12 @@ import { createQuoteRainListener } from './utterer-quote.js'
 
 const suspendMutex = new Mutex()
 
-export class UttererSuspendStored {
-  constructor(
-    public started: boolean,
-    public mutexRelease: () => void,
-  ) {}
-}
-
 export class Utterer {
   hl: UttererHighlight
   states: PlayerStatesManager
   // TODO 看能否重构并且去掉 #loopGeneration
   #loopGeneration = 0
+  #suspended = false
 
   constructor(
     public player: Player,
@@ -49,17 +43,16 @@ export class Utterer {
     this.#activeProvider?.cancel()
   }
 
-  async suspend() {
+  async suspend(): Promise<() => void> {
     const mutexRelease = await suspendMutex.acquire()
-    const stored = new UttererSuspendStored(this.states.started, mutexRelease)
-    this.states.started = false
+    this.#suspended = true
     this.#activeProvider?.cancel()
-    return stored
+    return mutexRelease
   }
 
-  resume(stored: UttererSuspendStored) {
-    this.states.started = stored.started
-    stored.mutexRelease()
+  resume(mutexRelease: () => void) {
+    this.#suspended = false
+    mutexRelease()
     this.startLoop()
   }
 
@@ -157,7 +150,9 @@ export class Utterer {
   async #startLoop(generation: number) {
     // TODO #startLoop 得想办法重构
     const isStale = () =>
-      !this.states.started || generation !== this.#loopGeneration
+      this.#suspended ||
+      !this.states.started ||
+      generation !== this.#loopGeneration
     while (true) {
       if (isStale()) return
       try {
