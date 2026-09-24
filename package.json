@@ -58,7 +58,8 @@
     "react-router-dom": "6.30.3",
     "sherpa-onnx-node": "^1.13.7",
     "type-fest": "^5.9.0",
-    "uuid": "^13.0.2"
+    "uuid": "^13.0.2",
+    "wasm-media-encoders": "^0.7.0"
   },
   "devDependencies": {
     "@raidou/eslint-config-react": "^4.1.0",

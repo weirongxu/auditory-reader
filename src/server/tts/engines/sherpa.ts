@@ -2,7 +2,7 @@ import type { OfflineTtsInstance } from 'sherpa-onnx-node'
 import sherpa from 'sherpa-onnx-node'
 
 import type { ServerVoiceMeta } from '../../../core/tts/types.js'
-import { encodeWav } from '../helper/wav.js'
+import { encodeMp3 } from '../helper/mp3.js'
 import type { SpeakAudio } from '../types.js'
 import { type EngineSpeakParams, TtsEngine } from './base.js'
 import {
@@ -82,8 +82,8 @@ export class SherpaEngine extends TtsEngine {
       speed,
     })
     return {
-      buffer: encodeWav(audio.samples, audio.sampleRate),
-      contentType: 'audio/wav',
+      buffer: await encodeMp3(audio.samples, audio.sampleRate),
+      contentType: 'audio/mpeg',
       timeline: [],
     }
   }
