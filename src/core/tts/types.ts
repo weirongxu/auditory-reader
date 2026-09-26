@@ -42,6 +42,11 @@ export interface TimelineEntry {
   endTime: number
 }
 
+export interface SpeakEnvelope {
+  audio: Blob
+  timeline: TimelineEntry[]
+}
+
 export interface HighlightEvent {
   charIndex: number
   charLength: number

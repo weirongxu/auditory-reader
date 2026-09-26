@@ -1,7 +1,7 @@
 import type { DBSchema, IDBPDatabase } from 'idb'
 import { openDB } from 'idb'
 
-import type { SpeakEnvelope } from './envelope.js'
+import type { SpeakEnvelope } from '../tts/types.js'
 
 const TTS_CACHE_DB_NAME = 'tts-cache'
 
@@ -18,7 +18,7 @@ interface TtsCacheDB extends DBSchema {
 
 let dbPromise: Promise<IDBPDatabase<TtsCacheDB>> | undefined
 
-export async function getDB(): Promise<IDBPDatabase<TtsCacheDB>> {
+export async function getTtsCacheDB(): Promise<IDBPDatabase<TtsCacheDB>> {
   if (typeof indexedDB === 'undefined') {
     throw new Error('indexeddb is not available')
   }

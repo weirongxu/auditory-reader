@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { TimelineEntry } from '../../core/tts/types.js'
+import type { SpeakEnvelope } from '../../core/tts/types.js'
 
 const timelineEntrySchema = z.object({
   charIndex: z.number(),
@@ -13,11 +13,6 @@ const metaSchema = z.object({
   contentType: z.string().min(1),
   timeline: z.array(timelineEntrySchema),
 })
-
-export interface SpeakEnvelope {
-  audio: Blob
-  timeline: TimelineEntry[]
-}
 
 // Format: [u32be metaJsonByteLength][meta JSON (UTF-8)][audio bytes],
 // where meta JSON is { contentType, timeline }.

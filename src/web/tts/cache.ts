@@ -1,8 +1,7 @@
 import { Mutex } from 'async-mutex'
 
-import type { SpeakParamsInput } from '../../core/tts/types.js'
-import { getDB, TTS_CACHE_STORE_NAME } from './cache-db.js'
-import type { SpeakEnvelope } from './envelope.js'
+import { getTtsCacheDB, TTS_CACHE_STORE_NAME } from '../../core/db/tts-cache.js'
+import type { SpeakEnvelope, SpeakParamsInput } from '../../core/tts/types.js'
 
 function joinParams(params: SpeakParamsInput): string {
   return [
@@ -29,7 +28,7 @@ export async function speakCacheKey(params: SpeakParamsInput): Promise<string> {
 export async function cacheGet(
   key: string,
 ): Promise<SpeakEnvelope | undefined> {
-  const db = await getDB()
+  const db = await getTtsCacheDB()
   const entry = await db.get(TTS_CACHE_STORE_NAME, key)
   // An app upgrade may have changed the stored layout.
   if (
@@ -49,7 +48,7 @@ export async function cachePut(
   key: string,
   entry: SpeakEnvelope,
 ): Promise<void> {
-  const db = await getDB()
+  const db = await getTtsCacheDB()
   await db.put(TTS_CACHE_STORE_NAME, entry, key)
 }
 

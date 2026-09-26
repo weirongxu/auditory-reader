@@ -1,11 +1,11 @@
 import { TMP_UUID } from '../consts.js'
+import { BookListIndexedDB } from '../db/book/list.js'
 import { env } from '../env.js'
 import { ErrorRequestResponse } from '../route/session.js'
 import { BookEpub } from './book-epub.js'
 import type { BookEntityBase } from './entity/book-entity-base.js'
 import type { BookListBase } from './list/book-list-base.js'
 import { BookListFS } from './list/book-list-fs.js'
-import { BookListIndexedDB } from './list/book-list-indexed-db.js'
 import type { BookTypes } from './types.js'
 
 const extractUuid = (

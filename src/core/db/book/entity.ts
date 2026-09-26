@@ -1,6 +1,6 @@
-import { getDB } from '../indexedDB.js'
-import type { BookTypes } from '../types.js'
-import { BookEntityBase } from './book-entity-base.js'
+import { BookEntityBase } from '../../book/entity/book-entity-base.js'
+import type { BookTypes } from '../../book/types.js'
+import { getBookDB } from './db.js'
 
 export class BookEntityIndexedDB extends BookEntityBase {
   protected propJson?: BookTypes.PropertyJson
@@ -23,7 +23,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
   }
 
   async readFileBuffer(): Promise<ArrayBuffer> {
-    const db = await getDB()
+    const db = await getBookDB()
     const data = await db.get('book-data', this.uid)
     if (!data) throw new Error(`book(${this.uid}) data not found`)
     return data.data
@@ -35,7 +35,7 @@ export class BookEntityIndexedDB extends BookEntityBase {
   }
 
   protected async writeFile(file: ArrayBuffer) {
-    const db = await getDB()
+    const db = await getBookDB()
     await db.put(
       'book-data',
       {
@@ -46,21 +46,21 @@ export class BookEntityIndexedDB extends BookEntityBase {
   }
 
   async delete(): Promise<void> {
-    const db = await getDB()
+    const db = await getBookDB()
     await db.delete('book-data', this.uid)
     await db.delete('book-properties', this.uid)
   }
 
   async readProp(): Promise<BookTypes.PropertyJson> {
     if (!this.propJson) {
-      const db = await getDB()
+      const db = await getBookDB()
       this.propJson = (await db.get('book-properties', this.uid)) ?? {}
     }
     return this.propJson
   }
 
   async writeProp(prop: BookTypes.PropertyJson) {
-    const db = await getDB()
+    const db = await getBookDB()
     await db.put('book-properties', prop, this.uid)
   }
 }

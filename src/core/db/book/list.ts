@@ -1,12 +1,12 @@
-import type { BookEntityBase } from '../entity/book-entity-base.js'
-import { BookEntityIndexedDB } from '../entity/book-entity-indexed-db.js'
-import { getDB } from '../indexedDB.js'
-import type { BookTypes } from '../types.js'
-import { BookListBase } from './book-list-base.js'
+import type { BookEntityBase } from '../../book/entity/book-entity-base.js'
+import { BookListBase } from '../../book/list/book-list-base.js'
+import type { BookTypes } from '../../book/types.js'
+import { getBookDB } from './db.js'
+import { BookEntityIndexedDB } from './entity.js'
 
 export class BookListIndexedDB extends BookListBase {
   protected async readJson(): Promise<BookTypes.Json> {
-    const db = await getDB()
+    const db = await getBookDB()
     const storedJson = await db.get('book-json', 'default')
     if (!storedJson) {
       const defaultJson = this.getDefaultJson()
@@ -17,7 +17,7 @@ export class BookListIndexedDB extends BookListBase {
   }
 
   protected async writeJson(json: BookTypes.Json): Promise<void> {
-    const db = await getDB()
+    const db = await getBookDB()
     await db.put('book-json', json, 'default')
   }
 

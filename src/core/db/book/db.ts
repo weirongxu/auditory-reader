@@ -1,9 +1,9 @@
 import type { DBSchema, IDBPDatabase } from 'idb'
 import { openDB } from 'idb'
 
-import type { BookTypes } from './types.js'
+import type { BookTypes } from '../../book/types.js'
 
-interface MyDB extends DBSchema {
+interface BookDB extends DBSchema {
   'book-json': {
     key: string
     value: BookTypes.Json
@@ -22,11 +22,11 @@ interface MyDB extends DBSchema {
   }
 }
 
-let dbPromise: Promise<IDBPDatabase<MyDB>> | undefined
+let dbPromise: Promise<IDBPDatabase<BookDB>> | undefined
 
-export async function getDB() {
+export async function getBookDB() {
   try {
-    return await (dbPromise ??= openDB<MyDB>('auditory-reader', 1, {
+    return await (dbPromise ??= openDB<BookDB>('auditory-reader', 1, {
       upgrade(db) {
         db.createObjectStore('book-json', {
           autoIncrement: false,

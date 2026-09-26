@@ -8,9 +8,12 @@ import {
   vi,
 } from 'vitest'
 
-import type { SpeakParamsInput, TimelineEntry } from '../../core/tts/types.js'
+import type {
+  SpeakEnvelope,
+  SpeakParamsInput,
+  TimelineEntry,
+} from '../../core/tts/types.js'
 import { cachedSpeak, cacheGet, cachePut, speakCacheKey } from './cache.js'
-import type { SpeakEnvelope } from './envelope.js'
 import {
   failNextIdbOperation,
   hasEntry,
