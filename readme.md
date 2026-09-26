@@ -38,3 +38,9 @@ A Speech Reader, Support Epub, Text.
 ### HTTP Server version
 
 - `pnpm dev:server`
+
+## HTTPS (Secure Context)
+
+- Service Worker version requires HTTPS or localhost (`navigator.serviceWorker`).
+- Screen wake lock during playback requires HTTPS or localhost, otherwise it is silently unavailable.
+- Everything else (speech synthesis, IndexedDB caches, EPUB parsing) works on plain HTTP.

@@ -9,60 +9,9 @@ import type {
   TimelineEntry,
   VoiceMeta,
 } from '../../../core/tts/types.js'
+import { cachedSpeak } from '../cache.js'
+import { decodeSpeakEnvelope } from '../envelope.js'
 import { BaseTtsProvider } from './base.js'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function isTimelineEntry(entry: unknown): entry is TimelineEntry {
-  return (
-    isRecord(entry) &&
-    Number.isFinite(entry.charIndex) &&
-    Number.isFinite(entry.charLength) &&
-    Number.isFinite(entry.startTime) &&
-    Number.isFinite(entry.endTime)
-  )
-}
-
-interface SpeakEnvelope {
-  audio: Blob
-  timeline: TimelineEntry[]
-}
-
-// Format: [u32be metaJsonByteLength][meta JSON (UTF-8)][audio bytes],
-// where meta JSON is { contentType, timeline }.
-async function decodeSpeakEnvelope(blob: Blob): Promise<SpeakEnvelope> {
-  try {
-    const buffer = await blob.arrayBuffer()
-    // Internal messages only document the failure; the outer catch replaces
-    // them with the single uniform envelope error.
-    if (buffer.byteLength < 4) throw new Error('meta too short')
-    const view = new DataView(buffer)
-    const metaEnd = 4 + view.getUint32(0)
-    if (metaEnd > buffer.byteLength) throw new Error('meta out of bounds')
-    const meta: unknown = JSON.parse(
-      new TextDecoder('utf-8').decode(buffer.slice(4, metaEnd)),
-    )
-    // isRecord excludes null/array, so non-record meta degrades to an empty
-    // object and fails the content validation below.
-    const { contentType, timeline } = isRecord(meta) ? meta : {}
-    if (
-      typeof contentType !== 'string' ||
-      contentType.length === 0 ||
-      !Array.isArray(timeline) ||
-      !timeline.every(isTimelineEntry)
-    ) {
-      throw new Error('invalid meta')
-    }
-    return {
-      audio: new Blob([buffer.slice(metaEnd)], { type: contentType }),
-      timeline,
-    }
-  } catch (error) {
-    throw new Error('tts speak envelope invalid', { cause: error })
-  }
-}
 
 /** Emits onBoundary for timeline entries as audio playback progresses. */
 class TimelinePlayer {
@@ -141,15 +90,16 @@ export class ServerTtsProvider extends BaseTtsProvider {
       speed,
     }
     try {
-      const blob = await ttsSpeakRouter.file(params, signal)
-      if (signal.aborted) return 'cancel'
-      const { audio, timeline } = await decodeSpeakEnvelope(blob)
+      const entry = await cachedSpeak(params, async () => {
+        const blob = await ttsSpeakRouter.file(params, signal)
+        return decodeSpeakEnvelope(blob)
+      })
       if (signal.aborted) return 'cancel'
       const timelinePlayer =
-        timeline.length > 0 && onBoundary
-          ? new TimelinePlayer(timeline, onBoundary)
+        entry.timeline.length > 0 && onBoundary
+          ? new TimelinePlayer(entry.timeline, onBoundary)
           : undefined
-      return await this.#audioPlay(audio, signal, timelinePlayer)
+      return await this.#audioPlay(entry.audio, signal, timelinePlayer)
     } catch (error) {
       if (signal.aborted) return 'cancel'
       throw error instanceof Error

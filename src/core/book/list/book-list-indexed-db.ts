@@ -10,7 +10,7 @@ export class BookListIndexedDB extends BookListBase {
     const storedJson = await db.get('book-json', 'default')
     if (!storedJson) {
       const defaultJson = this.getDefaultJson()
-      await db.add('book-json', defaultJson, 'default')
+      await db.put('book-json', defaultJson, 'default')
       return defaultJson
     }
     return storedJson

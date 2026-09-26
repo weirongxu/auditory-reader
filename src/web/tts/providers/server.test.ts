@@ -1,7 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { TimelineEntry } from '../../../core/tts/types.js'
+import { stubIdb } from '../testing/idb-stub.js'
 import { ServerTtsProvider } from './server.js'
+
+stubIdb()
 
 const voice = {
   providerId: 'kokoro',
@@ -91,7 +94,16 @@ const stubFetchBlob = (blob: Blob) => {
   )
 }
 
+// The provider caches speak results per text in a module-level store; keep
+// each call's text unique so tests stay independent of cache hits.
+let textSeq = 0
+const uniqueText = (text: string): string => `${text}#${textSeq++}`
+
 describe('ServerTtsProvider', () => {
+  beforeEach(() => {
+    stubIdb()
+  })
+
   afterEach(() => {
     vi.unstubAllGlobals()
     audioInstances.length = 0
@@ -104,7 +116,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -120,7 +132,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -137,7 +149,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -153,7 +165,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -168,7 +180,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -188,6 +200,11 @@ describe('ServerTtsProvider', () => {
       vi.fn(
         (_url, init?: { signal?: AbortSignal }) =>
           new Promise<Response>((_resolve, reject) => {
+            // Real fetch rejects immediately for an already-aborted signal.
+            if (init?.signal?.aborted) {
+              reject(new Error('aborted'))
+              return
+            }
             init?.signal?.addEventListener('abort', () =>
               reject(new Error('aborted')),
             )
@@ -196,8 +213,11 @@ describe('ServerTtsProvider', () => {
     )
     const provider = new ServerTtsProvider('kokoro')
 
-    const first = provider.speak('slow paragraph', { voice, speed: 1 })
-    const second = provider.speak('next speak while pending', {
+    const first = provider.speak(uniqueText('slow paragraph'), {
+      voice,
+      speed: 1,
+    })
+    const second = provider.speak(uniqueText('next speak while pending'), {
       voice,
       speed: 1,
     })
@@ -212,11 +232,11 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const first = provider.speak('hi', { voice, speed: 1 })
+    const first = provider.speak(uniqueText('hi'), { voice, speed: 1 })
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const firstAudio = audioInstances.at(-1)
 
-    const second = provider.speak('hi again', { voice, speed: 1 })
+    const second = provider.speak(uniqueText('hi again'), { voice, speed: 1 })
     await expect(first).resolves.toBe('cancel')
     expect(firstAudio?.paused).toBe(true)
     expect(revoked).toEqual(['blob:fake'])
@@ -233,7 +253,7 @@ describe('ServerTtsProvider', () => {
     const provider = new ServerTtsProvider('kokoro')
     const controller = new AbortController()
 
-    const first = provider.speak('first', {
+    const first = provider.speak(uniqueText('first'), {
       voice,
       speed: 1,
       signal: controller.signal,
@@ -242,7 +262,7 @@ describe('ServerTtsProvider', () => {
     audioInstances.at(-1)?.emit('ended')
     await expect(first).resolves.toBe('done')
 
-    const second = provider.speak('second', {
+    const second = provider.speak(uniqueText('second'), {
       voice,
       speed: 1,
       signal: controller.signal,
@@ -261,7 +281,7 @@ describe('ServerTtsProvider', () => {
     const provider = new ServerTtsProvider('kokoro')
 
     const firstController = new AbortController()
-    const first = provider.speak('first', {
+    const first = provider.speak(uniqueText('first'), {
       voice,
       speed: 1,
       signal: firstController.signal,
@@ -273,7 +293,7 @@ describe('ServerTtsProvider', () => {
     firstController.abort()
 
     const secondController = new AbortController()
-    const second = provider.speak('second', {
+    const second = provider.speak(uniqueText('second'), {
       voice,
       speed: 1,
       signal: secondController.signal,
@@ -289,7 +309,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -305,7 +325,7 @@ describe('ServerTtsProvider', () => {
     stubFetchBlob(envelopeBlob('audio'))
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     await vi.waitFor(() => expect(audioInstances.length).toBe(1))
     const audio = audioInstances.at(-1)
@@ -322,6 +342,11 @@ describe('ServerTtsProvider', () => {
       vi.fn(
         (_url, init?: { signal?: AbortSignal }) =>
           new Promise<Response>((_resolve, reject) => {
+            // Real fetch rejects immediately for an already-aborted signal.
+            if (init?.signal?.aborted) {
+              reject(new Error('aborted'))
+              return
+            }
             init?.signal?.addEventListener('abort', () =>
               reject(new Error('aborted')),
             )
@@ -330,7 +355,7 @@ describe('ServerTtsProvider', () => {
     )
     const provider = new ServerTtsProvider('kokoro')
 
-    const promise = provider.speak('hi', { voice, speed: 1 })
+    const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
     provider.cancel()
     await expect(promise).resolves.toBe('cancel')
@@ -343,6 +368,11 @@ describe('ServerTtsProvider', () => {
       vi.fn(
         (_url, init?: { signal?: AbortSignal }) =>
           new Promise<Response>((_resolve, reject) => {
+            // Real fetch rejects immediately for an already-aborted signal.
+            if (init?.signal?.aborted) {
+              reject(new Error('aborted'))
+              return
+            }
             init?.signal?.addEventListener('abort', () =>
               reject(new Error('aborted')),
             )
@@ -352,7 +382,7 @@ describe('ServerTtsProvider', () => {
     const provider = new ServerTtsProvider('kokoro')
     const controller = new AbortController()
 
-    const promise = provider.speak('hi', {
+    const promise = provider.speak(uniqueText('hi'), {
       voice,
       speed: 1,
       signal: controller.signal,
@@ -370,7 +400,9 @@ describe('ServerTtsProvider', () => {
     )
     const provider = new ServerTtsProvider('kokoro')
 
-    await expect(provider.speak('hi', { voice, speed: 1 })).rejects.toThrow()
+    await expect(
+      provider.speak(uniqueText('hi'), { voice, speed: 1 }),
+    ).rejects.toThrow()
   })
 
   it('emits boundary events sorted by startTime and only once per entry', async () => {
@@ -385,7 +417,7 @@ describe('ServerTtsProvider', () => {
     const provider = new ServerTtsProvider('kokoro')
     const onBoundary = vi.fn()
 
-    const promise = provider.speak('hello world', {
+    const promise = provider.speak(uniqueText('hello world'), {
       voice,
       speed: 1,
       onBoundary,

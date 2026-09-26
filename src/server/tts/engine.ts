@@ -18,10 +18,10 @@ export const engines: Record<ServerTtsProviderId, TtsEngine> = {
   edge: new EdgeEngine(),
 }
 
-export function isServerTtsProviderId(
-  value: string,
-): value is ServerTtsProviderId {
-  return (SERVER_TTS_PROVIDER_IDS as readonly string[]).includes(value)
+const SERVER_TTS_PROVIDER_ID_SET = new Set<string>(SERVER_TTS_PROVIDER_IDS)
+
+function isServerTtsProviderId(value: string): value is ServerTtsProviderId {
+  return SERVER_TTS_PROVIDER_ID_SET.has(value)
 }
 
 export function findEngine(providerId: string): TtsEngine | undefined {

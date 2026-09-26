@@ -1,4 +1,4 @@
-import type { DBSchema } from 'idb'
+import type { DBSchema, IDBPDatabase } from 'idb'
 import { openDB } from 'idb'
 
 import type { BookTypes } from './types.js'
@@ -22,18 +22,26 @@ interface MyDB extends DBSchema {
   }
 }
 
+let dbPromise: Promise<IDBPDatabase<MyDB>> | undefined
+
 export async function getDB() {
-  return await openDB<MyDB>('auditory-reader', 1, {
-    upgrade(db) {
-      db.createObjectStore('book-json', {
-        autoIncrement: false,
-      })
-      db.createObjectStore('book-data', {
-        autoIncrement: false,
-      })
-      db.createObjectStore('book-properties', {
-        autoIncrement: false,
-      })
-    },
-  })
+  try {
+    return await (dbPromise ??= openDB<MyDB>('auditory-reader', 1, {
+      upgrade(db) {
+        db.createObjectStore('book-json', {
+          autoIncrement: false,
+        })
+        db.createObjectStore('book-data', {
+          autoIncrement: false,
+        })
+        db.createObjectStore('book-properties', {
+          autoIncrement: false,
+        })
+      },
+    }))
+  } catch (error: unknown) {
+    // Avoid poisoning dbPromise with a permanently-rejected promise.
+    dbPromise = undefined
+    throw error
+  }
 }
