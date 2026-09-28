@@ -60,7 +60,8 @@ export const useBookView = (uuid: string) => {
     const flattenedNavs = []
     const stack = [...bookData.navs]
     while (stack.length) {
-      const cur = stack.shift()!
+      const cur = stack.shift()
+      if (!cur) throw new Error('flatten navs: empty stack entry')
       flattenedNavs.push(cur)
       stack.unshift(...cur.children)
     }

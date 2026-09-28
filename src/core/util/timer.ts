@@ -1,7 +1,7 @@
 import { range } from './collection.js'
 import { sleep } from './promise.js'
 
-export function debounceFn<A extends Array<any>>(
+export function debounceFn<A extends unknown[]>(
   delay: number,
   fn: (...args: A) => void,
 ): (...args: A) => void {
@@ -14,10 +14,10 @@ export function debounceFn<A extends Array<any>>(
   }
 }
 
-export function throttleFn<A extends Array<any>, R>(
+export function throttleFn<A extends unknown[], R>(
   delay: number,
   fn: (...args: A) => R,
-): (...args: A) => R | void {
+): (...args: A) => R | undefined {
   let isThrottled = false
   return (...args: A) => {
     if (!isThrottled) {
@@ -29,10 +29,10 @@ export function throttleFn<A extends Array<any>, R>(
   }
 }
 
-export function throttleTailFn<A extends Array<any>, R>(
+export function throttleTailFn<A extends unknown[], R>(
   delay: number,
   fn: (...args: A) => R,
-): (...args: A) => R | void {
+): (...args: A) => R | undefined {
   let timer: NodeJS.Timeout | undefined
   let isThrottled = false
   return (...args: A) => {

@@ -28,10 +28,6 @@ export abstract class BookEntityBase {
   }
 
   async reset() {
-    await this.posSet({
-      section: 0,
-      paragraph: 0,
-    })
     await this.annotationsDeleteAll()
   }
 
@@ -40,23 +36,6 @@ export abstract class BookEntityBase {
   abstract readProp(): Promise<BookTypes.PropertyJson>
 
   abstract writeProp(prop: BookTypes.PropertyJson): Promise<void>
-
-  /**
-   * @deprecated
-   */
-  async posGet(): Promise<BookTypes.PropertyPosition | undefined> {
-    const prop = await this.readProp()
-    return prop.position
-  }
-
-  /**
-   * @deprecated
-   */
-  async posSet(pos: BookTypes.PropertyPosition): Promise<void> {
-    const prop = await this.readProp()
-    prop.position = pos
-    await this.writeProp(prop)
-  }
 
   private sortAnnotations(annotations: BookTypes.PropertyAnnotation[]) {
     return orderBy(annotations, 'asc', (n) => [

@@ -223,7 +223,7 @@ function Annotations({
 
   // scroll to selected annotation
   useEffect(() => {
-    panelExpanded
+    void panelExpanded
     if (!selectedAnnotation) return
     const annotationDiv = refAnnotation.current
     if (!annotationDiv) return

@@ -5,7 +5,7 @@ import type { BookTypes } from '../../book/types.js'
 import { TMP_UUID } from '../../consts.js'
 import { URouter } from '../../route/router.js'
 
-export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
+export const booksTmpStoreRouter = new URouter<unknown, BookTypes.EntityJson>(
   'books/tmp-store',
 ).routeLogined(async ({ userInfo }) => {
   const bookEntityTmp = await bookManager.entity(userInfo.account, TMP_UUID)
@@ -25,18 +25,11 @@ export const booksTmpStoreRouter = new URouter<any, BookTypes.EntityJson>(
   }
 
   const buf = await bookEntityTmp.readFileBuffer()
-  const pos = await bookEntityTmp.posGet()
   const annotations = await bookEntityTmp.annotationsGet()
 
   const entityJson = await bookManager.list(userInfo.account).add(entity, buf)
 
   const bookEntity = await bookManager.entity(userInfo.account, entityJson.uuid)
-  await bookEntity.posSet(
-    pos ?? {
-      section: 0,
-      paragraph: 0,
-    },
-  )
   await bookEntity.annotationsUpsert(annotations)
 
   return entityJson

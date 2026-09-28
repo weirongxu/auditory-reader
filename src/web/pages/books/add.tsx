@@ -17,7 +17,7 @@ export function BookAdd() {
       onChange={(k) => {
         setTab(k as TabType)
       }}
-      destroyInactiveTabPane
+      destroyOnHidden
       items={[
         {
           key: 'text',

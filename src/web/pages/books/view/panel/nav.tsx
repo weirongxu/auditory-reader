@@ -116,7 +116,7 @@ function NavTree({
 
   // scroll to selected nav
   useEffect(() => {
-    panelExpanded
+    void panelExpanded
     if (!selectedNav) return
     const navDiv = refNav.current
     if (!navDiv) return

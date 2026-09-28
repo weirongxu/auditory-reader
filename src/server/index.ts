@@ -2,7 +2,7 @@
 import { JSDOM } from 'jsdom'
 
 import { env } from '../core/env.js'
-// @ts-ignore
+// @ts-expect-error JSDOM is not declared on globalThis
 globalThis.JSDOM = JSDOM
 
 // env
@@ -63,7 +63,7 @@ for (const router of ROUTERS) {
     const dynamicPaths = router.getDynamicPaths(req.path)
     if (router.handler) {
       const ctx = {
-        req: URequest.fromNode<any>(req, dynamicPaths),
+        req: URequest.fromNode<unknown>(req, dynamicPaths),
         res: UResponse.fromNode(res),
       }
       Promise.resolve(router.handler(ctx))
@@ -73,7 +73,7 @@ for (const router of ROUTERS) {
             res.send(data)
           }
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           if (error instanceof ErrorRequestResponse) {
             res.status(400)
             res.send({ message: error.message })

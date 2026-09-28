@@ -41,7 +41,8 @@ export class SingleEmitter<T> {
   }
 }
 
-export class Emitter<T extends Record<string, any>> {
+export class Emitter<T extends Record<string, unknown>> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #listeners = new Map<string, SingleEmitter<any>>()
 
   on<K extends keyof T & string>(
@@ -59,7 +60,7 @@ export class Emitter<T extends Record<string, any>> {
   fire<K extends keyof T & string>(name: K, value: T[K]) {
     const sEmitter = this.#listeners.get(name)
     if (!sEmitter) return
-    Promise.resolve(sEmitter.fire(value)).catch(console.error)
+    sEmitter.fire(value)
   }
 
   off<K extends keyof T & string>(name: K) {
@@ -70,7 +71,9 @@ export class Emitter<T extends Record<string, any>> {
 /**
  * Emitter only fired when value changed
  */
-export class ChangedEmitter<T extends Record<string, any>> extends Emitter<T> {
+export class ChangedEmitter<
+  T extends Record<string, unknown>,
+> extends Emitter<T> {
   #lastValues = new Map<string, unknown>()
 
   on<K extends keyof T & string>(

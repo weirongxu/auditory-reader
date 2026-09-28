@@ -19,7 +19,7 @@ export const booksCoverRouter = new URouter<BookCoverQuery>('books/cover', {
   const file = await book.cover()
   if (!file) throw new ErrorRequestResponse('cover in book not found')
 
-  if (file.mediaType) res.header('Content-Type', file.mediaType.toString())
+  if (file.mediaType) res.header('Content-Type', file.mediaType)
   return file.buffer
 })
 

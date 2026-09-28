@@ -9,7 +9,7 @@ export type DOMView = DOMWindow
 
 const viewSym = Symbol('DOMView')
 
-export function isInputElement(element: any): element is Element {
+export function isInputElement(element: unknown): element is Element {
   if (element instanceof Element) {
     const elemName = element.tagName.toLowerCase()
     if (['textarea', 'input'].includes(elemName)) return true
@@ -22,46 +22,53 @@ export function jsDOMParser(xml: string): {
   doc: Document
 } {
   const dom: JSDOM =
-    // @ts-ignore
+    // @ts-expect-error JSDOM is not declared on globalThis
     new globalThis.JSDOM('', { pretendToBeVisual: true })
   const DOMParser = dom.window.DOMParser
   const parser = new DOMParser()
   const doc = parser.parseFromString(xml, 'text/html')
-  // @ts-ignore
+  // @ts-expect-error symbol key is not declared on Document
   doc[viewSym] = dom.window
   return { view: dom.window, doc }
 }
 
-export function getDomView(node: any): DOMView | undefined {
+type ViewCarrier = {
+  defaultView?: DOMView | null
+  ownerDocument?:
+    ({ defaultView?: DOMView | null } & { [viewSym]?: DOMView }) | null
+}
+
+export function getDomView(node: unknown): DOMView | undefined {
+  const carrier = node as ViewCarrier | undefined | null
   return (
-    node?.defaultView ||
-    node?.ownerDocument?.defaultView ||
-    node?.ownerDocument?.[viewSym]
+    carrier?.defaultView ||
+    carrier?.ownerDocument?.defaultView ||
+    carrier?.ownerDocument?.[viewSym]
   )
 }
 
-export function requiredDomView(node: any): DOMView {
+export function requiredDomView(node: unknown): DOMView {
   const view = getDomView(node)
   if (!view) throw new Error('no dom view')
   return view
 }
 
-export function isTextNode(node: any): node is Text {
+export function isTextNode(node: unknown): node is Text {
   const view = getDomView(node)
   return !!view && node instanceof view.Text
 }
 
-export function isElement(node: any): node is HTMLElement {
+export function isElement(node: unknown): node is HTMLElement {
   const view = getDomView(node)
   return !!view && node instanceof view.HTMLElement
 }
 
-export function isImageElement(node: any): node is HTMLImageElement {
+export function isImageElement(node: unknown): node is HTMLImageElement {
   const view = getDomView(node)
   return !!view && node instanceof view.HTMLImageElement
 }
 
-export function isAnchorElement(node: any): node is HTMLAnchorElement {
+export function isAnchorElement(node: unknown): node is HTMLAnchorElement {
   const view = getDomView(node)
   return !!view && node instanceof view.HTMLAnchorElement
 }
@@ -113,7 +120,7 @@ function serializeBodyXml({ view, doc }: { view: DOMView; doc: Document }) {
   let content = ''
   for (const node of nodes) {
     if (node.nodeType === view.Node.TEXT_NODE) {
-      content += node.textContent
+      content += node.textContent ?? ''
     } else {
       content += new view.XMLSerializer().serializeToString(node)
     }

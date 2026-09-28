@@ -2,16 +2,31 @@
 
 import '../../bundle/jsdom.js'
 
-import isPlainObject from 'is-plain-obj'
-
 import { ROUTERS } from '../../core/api/index.js'
 import { getActionPath } from '../../core/route/action.js'
 import { URequest } from '../../core/route/request.js'
 import { UResponse, UResponseHold } from '../../core/route/response.js'
 import { ErrorRequestResponse } from '../../core/route/session.js'
+import { toError } from '../../core/util/errors.js'
 
 export default null
 declare let self: ServiceWorkerGlobalScope
+
+function toBodyInit(body: unknown): BodyInit | null {
+  if (body == null) return null
+  if (
+    typeof body === 'string' ||
+    body instanceof ArrayBuffer ||
+    body instanceof Blob
+  )
+    return body
+  if (ArrayBuffer.isView(body)) {
+    // NOTE: Node Buffer/typed arrays are ArrayBuffer-backed here; the DOM type
+    // just tracks the wider ArrayBufferLike.
+    return body as ArrayBufferView<ArrayBuffer>
+  }
+  return JSON.stringify(body)
+}
 
 self.addEventListener('install', (event) => {
   // eslint-disable-next-line no-console
@@ -43,35 +58,34 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       Promise.resolve(
         router.handler({
-          req: URequest.fromBrowser<any>(
+          req: URequest.fromBrowser<unknown>(
             req,
             router.getDynamicPaths(url.pathname),
           ),
           res: UResponse.fromBrowser(resH),
         }),
       )
-        .then((body: any) => {
-          const data = isPlainObject(body) ? JSON.stringify(body) : body
-          return new Response(data, {
-            status: resH.status ?? 200,
-            headers: resH.headers,
-          })
-        })
-        .catch((error) => {
+        .then((body) => toBodyInit(body))
+        .then(
+          (data) =>
+            new Response(data, {
+              status: resH.status ?? 200,
+              headers: resH.headers,
+            }),
+        )
+        .catch((error: unknown) => {
           if (error instanceof ErrorRequestResponse) {
             return new Response(JSON.stringify({ message: error.message }), {
               status: 400,
               headers: resH.headers,
             })
-          } else {
-            const msg =
-              error instanceof Error ? error.message : error?.toString()
-            console.error(error)
-            return new Response(JSON.stringify({ message: msg }), {
-              status: 500,
-              headers: resH.headers,
-            })
           }
+          const msg = toError(error).message
+          console.error(error)
+          return new Response(JSON.stringify({ message: msg }), {
+            status: 500,
+            headers: resH.headers,
+          })
         }),
     )
   }

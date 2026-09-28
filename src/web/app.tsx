@@ -37,7 +37,7 @@ function AppEntry() {
           setLoadedStatus('Service worker load failed')
         else setLoadedStatus(true)
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setLoadedStatus('Service worker load failed')
         console.error(err)
       })

@@ -10,8 +10,7 @@ export const booksPositionRouter = new URouter<
   const body = await req.body
   const bookEntity = await bookManager.entity(userInfo.account, body.uuid)
   return (
-    bookEntity.entity.position ??
-    (await bookEntity.posGet()) ?? {
+    bookEntity.entity.position ?? {
       section: 0,
       paragraph: 0,
     }

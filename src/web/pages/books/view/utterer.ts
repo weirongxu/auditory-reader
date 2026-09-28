@@ -153,7 +153,7 @@ export class Utterer {
       this.#suspended ||
       !this.states.started ||
       generation !== this.#loopGeneration
-    while (true) {
+    for (;;) {
       if (isStale()) return
       try {
         const node = this.player.iframeCtrler.readableParts.at(

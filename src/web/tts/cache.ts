@@ -15,7 +15,11 @@ function joinParams(params: SpeakParamsInput): string {
 export async function speakCacheKey(params: SpeakParamsInput): Promise<string> {
   const raw = joinParams(params)
   // Non-secure contexts and some test envs lack crypto.subtle; raw key is still deterministic.
-  if (globalThis.crypto?.subtle === undefined) return raw
+  if (
+    typeof globalThis.crypto !== 'object' ||
+    typeof globalThis.crypto.subtle === 'undefined'
+  )
+    return raw
   const digest = await crypto.subtle.digest(
     'SHA-1',
     new TextEncoder().encode(raw),

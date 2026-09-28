@@ -14,7 +14,7 @@ type ApiContext<R, P, M> = {
   res: UResponse<P>
 } & M
 
-type ApiHandler<R = any, P = any, M = object> = (
+type ApiHandler<R = unknown, P = unknown, M = object> = (
   context: ApiContext<R, P, M>,
 ) => P | Promise<P>
 
@@ -48,12 +48,12 @@ function hasErrorMessage(value: unknown): value is { message: string } {
   )
 }
 
-export class URouter<Req = any, Res = any> {
+export class URouter<Req = unknown, Res = unknown> {
   fullRoutePath: string
   method: RouterMethod
   responseType: RouterResponseType
   isDynamic: boolean
-  handler?: ApiHandler<Req, Res>
+  handler?(context: ApiContext<unknown, unknown, object>): unknown
 
   constructor(
     public readonly routePath: string,
@@ -134,10 +134,10 @@ export class URouter<Req = any, Res = any> {
       const userInfo = session.userInfo()
       if (!userInfo) {
         context.res.status(401)
-        return {} as any
+        return {} as Res
       }
       return handler({
-        ...(context as ApiContext<Req, Res, any>),
+        ...context,
         userInfo,
       })
     })

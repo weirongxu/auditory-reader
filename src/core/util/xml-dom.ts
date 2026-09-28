@@ -119,7 +119,7 @@ export class XMLElem {
     if (!node.children) return
     let text = ''
     for (const c of node.children) {
-      text += this.getDescendantsText(c)
+      text += this.getDescendantsText(c) ?? ''
     }
     return text
   }

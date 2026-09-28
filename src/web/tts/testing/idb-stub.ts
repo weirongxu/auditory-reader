@@ -8,7 +8,7 @@ import { vi } from 'vitest'
 const store = new Map<string, unknown>()
 
 // Fault injection: one queued failure per store operation kind.
-const pendingFailures = new Map<'get' | 'put' | 'delete', unknown>()
+const pendingFailures = new Map<'get' | 'put' | 'delete', string>()
 
 /**
  * Make the next `get`/`put`/`delete` store operation fail with `error`.
@@ -17,7 +17,7 @@ const pendingFailures = new Map<'get' | 'put' | 'delete', unknown>()
  */
 export function failNextIdbOperation(
   operation: 'get' | 'put' | 'delete',
-  error: unknown,
+  error: string,
 ): void {
   pendingFailures.set(operation, error)
 }
@@ -28,9 +28,7 @@ function consumeFailure(
   const error = pendingFailures.get(operation)
   if (error === undefined) return null
   pendingFailures.delete(operation)
-  return error instanceof DOMException
-    ? error
-    : new DOMException(String(error), 'AbortError')
+  return new DOMException(error, 'AbortError')
 }
 
 /** Read a raw store entry for assertions (unknown: entries may be corrupt). */

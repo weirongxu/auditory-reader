@@ -118,7 +118,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     audio?.playReject?.(new Error('autoplay blocked'))
 
@@ -134,7 +136,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     provider.cancel()
     audio?.playReject?.(new Error('autoplay blocked'))
@@ -151,7 +155,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     audio?.emit('error')
 
@@ -167,7 +173,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     provider.cancel()
     audio?.emit('error')
@@ -182,14 +190,20 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     audio?.emit('ended')
     await expect(promise).resolves.toBe('done')
     expect(revoked).toEqual(['blob:fake'])
 
-    expect(() => provider.cancel()).not.toThrow()
-    expect(() => provider.cancel()).not.toThrow()
+    expect(() => {
+      provider.cancel()
+    }).not.toThrow()
+    expect(() => {
+      provider.cancel()
+    }).not.toThrow()
     expect(revoked).toEqual(['blob:fake'])
   })
 
@@ -205,9 +219,9 @@ describe('ServerTtsProvider', () => {
               reject(new Error('aborted'))
               return
             }
-            init?.signal?.addEventListener('abort', () =>
-              reject(new Error('aborted')),
-            )
+            init?.signal?.addEventListener('abort', () => {
+              reject(new Error('aborted'))
+            })
           }),
       ),
     )
@@ -233,7 +247,9 @@ describe('ServerTtsProvider', () => {
     const provider = new ServerTtsProvider('kokoro')
 
     const first = provider.speak(uniqueText('hi'), { voice, speed: 1 })
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const firstAudio = audioInstances.at(-1)
 
     const second = provider.speak(uniqueText('hi again'), { voice, speed: 1 })
@@ -241,7 +257,9 @@ describe('ServerTtsProvider', () => {
     expect(firstAudio?.paused).toBe(true)
     expect(revoked).toEqual(['blob:fake'])
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(2))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(2)
+    })
     audioInstances.at(-1)?.emit('ended')
     await expect(second).resolves.toBe('done')
     expect(revoked).toEqual(['blob:fake', 'blob:fake'])
@@ -258,7 +276,9 @@ describe('ServerTtsProvider', () => {
       speed: 1,
       signal: controller.signal,
     })
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     audioInstances.at(-1)?.emit('ended')
     await expect(first).resolves.toBe('done')
 
@@ -267,7 +287,9 @@ describe('ServerTtsProvider', () => {
       speed: 1,
       signal: controller.signal,
     })
-    await vi.waitFor(() => expect(audioInstances.length).toBe(2))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(2)
+    })
 
     controller.abort()
 
@@ -286,7 +308,9 @@ describe('ServerTtsProvider', () => {
       speed: 1,
       signal: firstController.signal,
     })
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     audioInstances.at(-1)?.emit('ended')
     await expect(first).resolves.toBe('done')
 
@@ -298,7 +322,9 @@ describe('ServerTtsProvider', () => {
       speed: 1,
       signal: secondController.signal,
     })
-    await vi.waitFor(() => expect(audioInstances.length).toBe(2))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(2)
+    })
     audioInstances.at(-1)?.emit('ended')
     await expect(second).resolves.toBe('done')
     expect(revoked).toEqual(['blob:fake', 'blob:fake'])
@@ -311,7 +337,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     expect(audio?.played).toBe(true)
 
@@ -327,7 +355,9 @@ describe('ServerTtsProvider', () => {
 
     const promise = provider.speak(uniqueText('hi'), { voice, speed: 1 })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
     provider.cancel()
     await expect(promise).resolves.toBe('cancel')
@@ -347,9 +377,9 @@ describe('ServerTtsProvider', () => {
               reject(new Error('aborted'))
               return
             }
-            init?.signal?.addEventListener('abort', () =>
-              reject(new Error('aborted')),
-            )
+            init?.signal?.addEventListener('abort', () => {
+              reject(new Error('aborted'))
+            })
           }),
       ),
     )
@@ -373,9 +403,9 @@ describe('ServerTtsProvider', () => {
               reject(new Error('aborted'))
               return
             }
-            init?.signal?.addEventListener('abort', () =>
-              reject(new Error('aborted')),
-            )
+            init?.signal?.addEventListener('abort', () => {
+              reject(new Error('aborted'))
+            })
           }),
       ),
     )
@@ -423,7 +453,9 @@ describe('ServerTtsProvider', () => {
       onBoundary,
     })
 
-    await vi.waitFor(() => expect(audioInstances.length).toBe(1))
+    await vi.waitFor(() => {
+      expect(audioInstances.length).toBe(1)
+    })
     const audio = audioInstances.at(-1)
 
     audio?.advance(0.25)

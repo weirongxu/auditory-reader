@@ -58,7 +58,7 @@ export function bookEntityRawToEntityRender(
     name: entity.name,
     langCode: entity.langCode,
     isFavorited: entity.isFavorited,
-    isArchived: Boolean(entity.isArchived),
+    isArchived: entity.isArchived,
     uuid: entity.uuid,
     createdAt: new Date(entity.createdAt),
     updatedAt: new Date(entity.updatedAt),

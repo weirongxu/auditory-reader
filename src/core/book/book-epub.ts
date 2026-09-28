@@ -6,6 +6,12 @@ import type { XMLElem } from '../util/xml-dom.js'
 import { XMLDOMLoader } from '../util/xml-dom.js'
 import type { BookTypes } from './types.js'
 
+function requiredAttribute(elem: XMLElem, name: string): string {
+  const value = elem.getAttribute(name)
+  if (value === undefined) throw new Error(`epub attribute "${name}" not found`)
+  return value
+}
+
 // JSDOM unsupported :scope selector
 
 /**
@@ -134,9 +140,9 @@ export class BookEpub {
         this.rootPkg.findDescendant('manifest')?.childrenFilter('item') ?? []
       this.#manifestItems = items.map((item) => {
         return {
-          id: item.getAttribute('id')!,
-          href: path.join(this.rootDir, item.getAttribute('href')!),
-          mediaType: item.getAttribute('media-type')!,
+          id: requiredAttribute(item, 'id'),
+          href: path.join(this.rootDir, requiredAttribute(item, 'href')),
+          mediaType: requiredAttribute(item, 'media-type'),
           properties: item.getAttribute('properties') ?? undefined,
         }
       })
@@ -159,13 +165,13 @@ export class BookEpub {
     if (!this.#spineItems) {
       this.#spineItems = compact(
         [...this.spine.childrenFilter('itemref')].map((item) => {
-          const idref = item.getAttribute('idref')!
+          const idref = requiredAttribute(item, 'idref')
           const manifest = this.manifestItems.find((m) => m.id === idref)
           if (!manifest) return
           return {
             manifest,
             idref,
-            linear: item.getAttribute('linear')!,
+            linear: item.getAttribute('linear') ?? 'yes',
           }
         }),
       )

@@ -107,7 +107,7 @@ export const useConfirmHotkey = ({
     () => {
       onCloseRef.current()
     },
-    { enable: !!enable && !!onClose },
+    { enable },
   )
 }
 

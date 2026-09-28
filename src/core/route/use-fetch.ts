@@ -1,6 +1,8 @@
 import type { DependencyList } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { toError } from '../util/errors.js'
+
 export type ReloadOptions = {
   signal?: AbortSignal | undefined
   clean?: boolean | undefined
@@ -21,9 +23,9 @@ export function useFetchBase<Res>(
         if (signal.aborted) return
         setData(res)
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         if (signal.aborted) return
-        setError(error)
+        setError(toError(error))
       })
   }, [])
 
@@ -55,9 +57,9 @@ export function useFetchBase<Res>(
   return { data, error, reload }
 }
 
-export function useFetch<
-  Res,
-  Args extends Readonly<Array<any>> | readonly [any],
->(args: Args, callback: (...args: Args) => Promise<Res>) {
+export function useFetch<Res, Args extends readonly unknown[]>(
+  args: Args,
+  callback: (...args: Args) => Promise<Res>,
+) {
   return useFetchBase(() => callback(...args), { deps: [JSON.stringify(args)] })
 }

@@ -27,20 +27,12 @@ export function base64ToUint8array(base64Str: string): Uint8Array<ArrayBuffer> {
 }
 
 export function arrayBufferToBuffer(ab: ArrayBuffer): Buffer {
-  const buf = Buffer.alloc(ab.byteLength)
-  const view = new Uint8Array(ab)
-  for (let i = 0; i < buf.length; ++i) {
-    buf[i] = view[i]!
-  }
-  return buf
+  return Buffer.from(new Uint8Array(ab))
 }
 
 export function bufferToArrayBuffer(buf: Buffer): ArrayBuffer {
   const ab = new ArrayBuffer(buf.length)
-  const view = new Uint8Array(ab)
-  for (let i = 0; i < buf.length; ++i) {
-    view[i] = buf[i]!
-  }
+  new Uint8Array(ab).set(buf)
   return ab
 }
 

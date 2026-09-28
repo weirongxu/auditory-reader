@@ -167,8 +167,8 @@ function useSelector(books: BookTypes.Entity[] | null) {
       const book = books?.[index]
       if (!book) return
       setLastSelectedIndex(index)
-      let checked = false
       let targetUuids: string[]
+      let checked: boolean
       if (
         lastSelectedIndex !== undefined &&
         lastSelectedIndex !== index &&
@@ -457,7 +457,9 @@ function useHomeHotKeys({
       [
         'e',
         t('hotkey.edit'),
-        () => currentBook && openBookEdit(currentBook.uuid),
+        () => {
+          if (currentBook) openBookEdit(currentBook.uuid)
+        },
       ],
       [
         'Enter',
@@ -610,7 +612,7 @@ function BookRow({
   const [, setActivatedIndex] = useAtom(activatedIndexAtom)
   const refEl = useRef<HTMLTableRowElement>(null)
 
-  const [, drop] = useDrop<DragItem, void>({
+  const [, drop] = useDrop<DragItem, undefined>({
     accept: DragType,
     hover(item) {
       const dragIndex = books.findIndex((book) => book.uuid === item.uuid)
@@ -946,7 +948,7 @@ export function BookList() {
 
   const OperationBtnGroup = useMemo(() => {
     return (
-      <Button.Group>
+      <Space.Compact>
         {!selectedUuids.length && (
           <Button
             type="primary"
@@ -1022,7 +1024,7 @@ export function BookList() {
             </Button>
           </>
         )}
-      </Button.Group>
+      </Space.Compact>
     )
   }, [moveBooksTop, reload, removeBooks, selectedBooks, selectedUuids])
 

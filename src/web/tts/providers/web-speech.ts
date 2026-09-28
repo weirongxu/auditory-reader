@@ -42,11 +42,13 @@ export class WebSpeechProvider extends BaseTtsProvider {
   ): Promise<SpeakResult> {
     const utterance = new SpeechSynthesisUtterance()
     const boundaryListener = onBoundary
-      ? (event: SpeechSynthesisEvent) =>
+      ? (event: SpeechSynthesisEvent) => {
           onBoundary({
             charIndex: event.charIndex,
-            charLength: event.charLength ?? 0,
+            charLength:
+              typeof event.charLength === 'number' ? event.charLength : 0,
           })
+        }
       : undefined
 
     utterance.rate = speed

@@ -12,21 +12,22 @@ const extractUuid = (
   method: (
     account: string,
     uuid: BookTypes.EntityUUID,
-    ...args: any[]
+    ...args: never[]
   ) => unknown,
   context: ClassMethodDecoratorContext,
 ) => {
   const methodName = context.name
-  context.addInitializer(function (this: any) {
-    this[methodName] = function (
-      account: string,
-      uuid: BookTypes.EntityUUID,
-      ...args: unknown[]
-    ) {
-      const extractedUuid =
-        uuid === TMP_UUID ? bookManager.reqTmpUuid(account) : uuid
-      return method.call(this, account, extractedUuid, ...args)
-    }
+  context.addInitializer(function () {
+    Object.defineProperty(this, methodName, {
+      value(account: string, uuid: BookTypes.EntityUUID, ...args: never[]) {
+        const extractedUuid =
+          uuid === TMP_UUID ? bookManager.reqTmpUuid(account) : uuid
+        return method.call(this, account, extractedUuid, ...args)
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    })
   })
 }
 

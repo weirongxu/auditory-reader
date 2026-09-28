@@ -151,13 +151,13 @@ describe('cachedSpeak', () => {
 describe('cache error propagation', () => {
   it('cacheGet rejects with the injected store error', async () => {
     const key = await speakCacheKey(base)
-    failNextIdbOperation('get', new Error('get exploded'))
+    failNextIdbOperation('get', 'get exploded')
     await expect(cacheGet(key)).rejects.toThrow('get exploded')
   })
 
   it('cachePut rejects with the injected store error', async () => {
     const key = await speakCacheKey(base)
-    failNextIdbOperation('put', new Error('put exploded'))
+    failNextIdbOperation('put', 'put exploded')
     await expect(cachePut(key, entry())).rejects.toThrow('put exploded')
   })
 })
@@ -186,7 +186,7 @@ describe('cachedSpeak put failure', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     const params = { ...base, text: 'put-failure' }
     const synthesize = vi.fn(async () => entry('survived'))
-    failNextIdbOperation('put', new Error('put exploded'))
+    failNextIdbOperation('put', 'put exploded')
 
     const result = await cachedSpeak(params, synthesize)
     expect(synthesize).toHaveBeenCalledTimes(1)

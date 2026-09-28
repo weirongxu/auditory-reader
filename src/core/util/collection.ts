@@ -111,7 +111,9 @@ export function maxBy<T>(
   getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = maxIndexBy(list, getValue)
-  return list[index]!
+  const value = list[index]
+  if (value === undefined) throw new Error('maxBy list is empty')
+  return value
 }
 
 export function minIndexBy<T>(
@@ -136,7 +138,9 @@ export function minBy<T>(
   getValue: (value: T, index: number, list: T[]) => number,
 ): T {
   const index = minIndexBy(list, getValue)
-  return list[index]!
+  const value = list[index]
+  if (value === undefined) throw new Error('minBy list is empty')
+  return value
 }
 
 export function uniqBy<T, V>(

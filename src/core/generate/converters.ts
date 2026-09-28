@@ -11,10 +11,9 @@ export async function textToEpub(
   title: string,
   langCode: LangCode,
 ) {
-  let body = splitParagraph(text)
+  const body = splitParagraph(text)
     .map((p) => `<p>${p}</p>`)
     .join('\r\n')
-  body = text
     .replace(/<p>/g, '<p class="para">')
     .replace(/<h1>/g, '<h1 class="heading">')
 

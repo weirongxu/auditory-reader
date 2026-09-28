@@ -37,10 +37,12 @@ export function* walkerNode(doc: Document, root: HTMLElement) {
   const view = requiredDomView(root)
   const walker = doc.createTreeWalker(root, view.NodeFilter.SHOW_ALL)
 
-  while (true) {
-    const curNode = walker.nextNode()
-    if (curNode) yield curNode
-    else break
+  for (
+    let curNode: Node | null = walker.nextNode();
+    curNode;
+    curNode = walker.nextNode()
+  ) {
+    yield curNode
   }
 }
 
@@ -260,7 +262,7 @@ export class ReadableExtractor {
         // skip invisible
         const isVisible =
           // JSDom not support checkVisibility
-          node.checkVisibility
+          typeof node.checkVisibility === 'function'
             ? node.checkVisibility({
                 contentVisibilityAuto: true,
                 checkOpacity: true,

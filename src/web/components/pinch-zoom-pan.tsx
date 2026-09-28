@@ -101,7 +101,7 @@ const mountPinchZoomPan = (
 
   function addEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
-    listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
+    listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => void,
   ): void {
     overlay.addEventListener(type, listener)
     disposes.push(() => {

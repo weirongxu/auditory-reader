@@ -566,7 +566,10 @@ export class PlayerIframeController {
         await loaded
 
         const doc = iframe.contentDocument
-        if (!doc) return messageApi().error('iframe load failed')
+        if (!doc) {
+          await messageApi().error('iframe load failed')
+          return
+        }
 
         // load readableParts & alias
         const readableExtractor = new ReadableExtractor(

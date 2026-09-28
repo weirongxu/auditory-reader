@@ -16,6 +16,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { Button, Popover, Select, Space, Tag } from 'antd'
 import { t } from 'i18next'
+import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -300,7 +301,7 @@ export function usePlayerUI({
     })
 
   const PlayerCtrlGroup1 = useMemo(() => {
-    const buttons: (JSX.Element | null)[] = [
+    const buttons: (React.JSX.Element | null)[] = [
       <TooltipButton
         key="nav"
         hotkey="t"
@@ -397,7 +398,7 @@ export function usePlayerUI({
         </ControlButton>,
       )
 
-    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
+    return <Space.Compact>{buttons.filter(Boolean)}</Space.Compact>
   }, [
     collapsed,
     isFirstParagraph,
@@ -410,7 +411,7 @@ export function usePlayerUI({
   ])
 
   const PlayerCtrlGroup2 = useMemo(() => {
-    const buttons: (JSX.Element | null)[] = [
+    const buttons: (React.JSX.Element | null)[] = [
       annotations && annotations.length > 0 ? (
         <TooltipButton
           key="annotations"
@@ -439,11 +440,11 @@ export function usePlayerUI({
       ) : null,
     ]
 
-    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
+    return <Space.Compact>{buttons.filter(Boolean)}</Space.Compact>
   }, [annotations, keywords, setViewPanelType])
 
   const PlayerCtrlGroupRight = useMemo(() => {
-    const buttons: (JSX.Element | null)[] = [
+    const buttons: (React.JSX.Element | null)[] = [
       <TooltipButton
         key="annotation"
         description={t('hotkey.annotationToggle')}
@@ -468,7 +469,7 @@ export function usePlayerUI({
       ) : null,
     ]
 
-    return <Button.Group>{buttons.filter(Boolean)}</Button.Group>
+    return <Space.Compact>{buttons.filter(Boolean)}</Space.Compact>
   }, [player, pos, selection])
 
   const TimerRemainUI = useMemo(() => {

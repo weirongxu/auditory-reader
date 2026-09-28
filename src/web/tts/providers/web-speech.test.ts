@@ -215,7 +215,9 @@ describe('WebSpeechProvider', () => {
     expect(onBoundary).not.toHaveBeenCalled()
     expect(() => utterance?.emit('boundary', { charIndex: 0 })).not.toThrow()
     expect(onBoundary).not.toHaveBeenCalled()
-    expect(() => provider.cancel()).not.toThrow()
+    expect(() => {
+      provider.cancel()
+    }).not.toThrow()
     expect(() => utterance?.emit('end')).not.toThrow()
   })
 })

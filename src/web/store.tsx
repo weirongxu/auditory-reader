@@ -140,6 +140,7 @@ export const useVoice = (book: BookTypes.Entity) => {
       const nextDict = { ...voiceDict }
       const providerDict = { ...(nextDict[providerId] ?? {}) }
       if (next) providerDict[book.langCode] = next.voiceId
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       else delete providerDict[book.langCode]
       nextDict[providerId] = providerDict
       setVoiceDict(nextDict)

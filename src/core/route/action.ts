@@ -5,15 +5,12 @@ import type { NavigateFunction } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
 
 import { env } from '../env.js'
+import { toError } from '../util/errors.js'
 import type { URouter } from './router.js'
 
 export type Action<ReqType, ResType> = (body: ReqType) => Promise<ResType>
 
-export class ActionUnauthorized extends Error {
-  constructor() {
-    super()
-  }
-}
+export class ActionUnauthorized extends Error {}
 
 export class ActionRequestError extends Error {
   constructor(public readonly message: string) {
@@ -58,7 +55,7 @@ export function useAction<Req, Res>(
   const argJson = JSON.stringify(arg)
   const refOptions = useSyncedRef<ActionOptions | undefined>(options)
   const [data, setData] = useState<Res>()
-  const [error, setError] = useState<any>()
+  const [error, setError] = useState<Error>()
 
   const load = useCallback(
     (signal: AbortSignal) => {
@@ -68,14 +65,13 @@ export function useAction<Req, Res>(
           if (signal.aborted) return
           setData(res)
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           if (signal.aborted) return
           if (error instanceof ActionUnauthorized) {
             navigate('/login')
             return null
-          } else {
-            setError(error)
           }
+          setError(toError(error))
         })
     },
     [navigate, refArg, router],
