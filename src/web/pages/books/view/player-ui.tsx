@@ -49,8 +49,8 @@ import { useBookEditDialog } from '../edit.js'
 import { useBookContext } from '../view.context.js'
 import { BookSearchButton } from './book-search.js'
 import { useBookPanel } from './panel/panel.js'
-import type { Player } from './player.js'
 import { usePlayerUISync } from './player-states.js'
+import type { Player } from './player.js'
 
 function ControlButton(props: {
   disabled?: boolean

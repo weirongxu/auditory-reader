@@ -11,7 +11,6 @@ process.env.APP_MODE = 'server'
 // modules
 import 'isomorphic-fetch'
 import './tts/routes.js'
-
 import path from '@file-services/path'
 import express from 'express'
 import session from 'express-session'

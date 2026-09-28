@@ -23,7 +23,8 @@ export const booksFetchUrlInfoRouter = new URouter<
   const dom = await fetchDom(body.url)
   const doc = dom.doc
   const article = new Readability(doc).parse()
-  let title: string, lang: string | undefined
+  let title: string
+  let lang: string | undefined
   if (article) {
     title = article.title ?? ''
     lang = article.lang ?? undefined

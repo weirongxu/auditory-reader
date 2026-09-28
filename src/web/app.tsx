@@ -1,7 +1,6 @@
 // styles
 import './app.scss'
 import 'antd/dist/reset.css'
-
 // modules
 import { Alert } from 'antd'
 import { Provider } from 'jotai'

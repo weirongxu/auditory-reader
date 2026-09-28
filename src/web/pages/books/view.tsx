@@ -3,8 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { booksPageParagraphsRouter } from '../../../core/api/books/page-paragraphs.js'
-import { booksPositionRouter } from '../../../core/api/books/position.js'
 import { booksPositionSyncRouter } from '../../../core/api/books/position-sync.js'
+import { booksPositionRouter } from '../../../core/api/books/position.js'
 import {
   booksViewRouter,
   type BookViewRes,
@@ -17,8 +17,9 @@ import { SpinCenter } from '../../components/spin.js'
 import { usePushTitle } from '../../hooks/use-title.js'
 import { NotFound } from '../not-found.js'
 import { bookContextAtom, useBookContext } from './view.context.js'
-import styles from './view.module.scss'
 import { useViewer } from './view/viewer.js'
+
+import styles from './view.module.scss'
 
 export interface BookView extends BookViewRes {
   flattenedNavs: BookTypes.Nav[]

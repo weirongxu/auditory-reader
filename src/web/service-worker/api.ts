@@ -1,7 +1,6 @@
 /// <reference lib="webworker"/>
 
 import '../../bundle/jsdom.js'
-
 import { ROUTERS } from '../../core/api/index.js'
 import { getActionPath } from '../../core/route/action.js'
 import { URequest } from '../../core/route/request.js'

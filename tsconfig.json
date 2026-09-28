@@ -4,11 +4,7 @@
     "jsx": "react-jsx",
     "declaration": false,
     "allowJs": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ES2023",
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ES2023"],
     "target": "ES2022",
     "module": "nodenext",
     "stripInternal": true,
@@ -24,15 +20,6 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true
   },
-  "exclude": [
-    "src/bundle",
-  ],
-  "include": [
-    "src",
-    "*.ts",
-    "*.tsx",
-    "*.js",
-    "*.jsx",
-    "*.mjs",
-  ]
+  "exclude": ["src/bundle"],
+  "include": ["src", "*.ts", "*.tsx", "*.js", "*.jsx", "*.mjs"]
 }

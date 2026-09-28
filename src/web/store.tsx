@@ -138,7 +138,7 @@ export const useVoice = (book: BookTypes.Entity) => {
   const setVoice = useCallback(
     (next: VoiceMeta | null) => {
       const nextDict = { ...voiceDict }
-      const providerDict = { ...(nextDict[providerId] ?? {}) }
+      const providerDict = { ...nextDict[providerId] }
       if (next) providerDict[book.langCode] = next.voiceId
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       else delete providerDict[book.langCode]

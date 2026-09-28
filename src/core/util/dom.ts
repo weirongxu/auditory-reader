@@ -35,7 +35,8 @@ export function jsDOMParser(xml: string): {
 type ViewCarrier = {
   defaultView?: DOMView | null
   ownerDocument?:
-    ({ defaultView?: DOMView | null } & { [viewSym]?: DOMView }) | null
+    | ({ defaultView?: DOMView | null } & { [viewSym]?: DOMView })
+    | null
 }
 
 export function getDomView(node: unknown): DOMView | undefined {
@@ -134,9 +135,9 @@ export async function htmlImgs2DataURL(
 ) {
   const baseURL = options.baseURL ? new URL(options.baseURL) : undefined
   const imgs = [...element.querySelectorAll('img')]
-  const headers = new Headers({
-    ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
-  })
+  const headers = new Headers(
+    options.referrer ? { Referer: options.referrer ?? undefined } : {},
+  )
   for (const img of imgs) {
     let src =
       img.src ||
@@ -166,9 +167,9 @@ export async function svgImgs2DataURL(
   options: { referrer?: string; baseURL?: string } = {},
 ) {
   const imgs = [...svgElement.querySelectorAll('image')]
-  const headers = new Headers({
-    ...(options.referrer ? { Referer: options.referrer ?? undefined } : {}),
-  })
+  const headers = new Headers(
+    options.referrer ? { Referer: options.referrer ?? undefined } : {},
+  )
   for (const img of imgs) {
     const relativeSrc = img.href.baseVal
     if (!relativeSrc) continue

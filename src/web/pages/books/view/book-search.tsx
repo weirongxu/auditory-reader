@@ -16,8 +16,9 @@ import { FlexBox } from '../../../components/flex-box.js'
 import { useKeyEscape } from '../../../hooks/use-escape.js'
 import { useHotkeys } from '../../../hotkey/hotkey-state.js'
 import { useBookContext } from '../view.context.js'
-import styles from './book-search.module.scss'
 import type { Player } from './player.js'
+
+import styles from './book-search.module.scss'
 
 const openAtom = atom(false)
 

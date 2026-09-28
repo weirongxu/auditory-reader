@@ -13,9 +13,10 @@ import { LinkWrap } from '../../components/link-wrap.js'
 import { defaultTitle, useTitle } from '../../hooks/use-title.js'
 import { AppBarProgress } from './app-bar-progress.js'
 import { DragFile } from './drag-file.js'
-import styles from './layout.module.scss'
 import { GlobalSettings, SettingLine } from './settings.js'
 import { appBarStatesAtom } from './use-app-bar.js'
+
+import styles from './layout.module.scss'
 
 export const Layout = ({ children }: { children?: React.ReactNode }) => {
   const title = useTitle() ?? defaultTitle

@@ -9,6 +9,7 @@ import { capitalize } from '../../core/util/text.js'
 import { iframeWinAtom } from '../atoms.js'
 import { useKeyEscape } from '../hooks/use-escape.js'
 import { globalStore } from '../store/global.js'
+
 import styles from './hotkey-state.module.scss'
 
 type Hotkey =

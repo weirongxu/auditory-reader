@@ -11,9 +11,9 @@ import type {
 } from '../../../tts/index.js'
 import { registry, speak } from '../../../tts/index.js'
 import { UttererHighlight } from './highlight/utterer-highlight.js'
-import type { Player } from './player.js'
 import type { PlayerIframeController } from './player-iframe-controller.js'
 import type { PlayerStatesManager } from './player-states.js'
+import type { Player } from './player.js'
 import { rainStart, rainStop, rewindPlay, shutterPlay } from './sound.js'
 import { createQuoteRainListener } from './utterer-quote.js'
 

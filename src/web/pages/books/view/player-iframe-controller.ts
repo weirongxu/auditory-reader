@@ -59,8 +59,8 @@ import { globalStyle } from '../../../style.js'
 import { AnnotationHighlight } from './highlight/annotation-highlight.js'
 import type { HighlightBlock } from './highlight/highlight.js'
 import { KeywordHighlight } from './highlight/keyword-highlight.js'
-import type { Player } from './player.js'
 import type { PlayerStatesManager } from './player-states.js'
+import type { Player } from './player.js'
 
 type PageListNode = {
   topmost?: {
@@ -1018,7 +1018,8 @@ export class PlayerIframeController {
     doc.addEventListener('selectionchange', () => {
       const boxSelector = `.${PARA_BOX_CLASS}`
       const getSelectionPosRange = ():
-        (BookTypes.PropertyRange & { paragraph: number }) | undefined => {
+        | (BookTypes.PropertyRange & { paragraph: number })
+        | undefined => {
         const sel = doc.getSelection()
         if (!sel || sel.rangeCount <= 0) return
         const range = sel.getRangeAt(0)
@@ -1357,8 +1358,9 @@ export class PlayerIframeController {
       this.pageListResizeCurFocusPart = this.readableParts.at(paragraph)
     } else {
       // use pageListCurIndex as resize focus
-      this.pageListResizeCurFocusPart = this.pageList.at(this.pageListCurIndex)
-        ?.topmost?.readablePart
+      this.pageListResizeCurFocusPart = this.pageList.at(
+        this.pageListCurIndex,
+      )?.topmost?.readablePart
     }
   }
 

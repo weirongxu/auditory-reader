@@ -68,7 +68,6 @@ import { registry, speak } from '../../tts/index.js'
 import { useAppBarSync } from '../layout/use-app-bar.js'
 import { exportBooks } from './actions.js'
 import { useBookEditDialog } from './edit.js'
-import styles from './index.module.scss'
 import {
   activatedIndexAtom,
   archivedAtom,
@@ -78,6 +77,8 @@ import {
   searchAtom,
   usePage,
 } from './index-atoms.js'
+
+import styles from './index.module.scss'
 
 const DragType = 'book'
 
@@ -879,7 +880,7 @@ export function BookList() {
 
   const moveBooksTop = useCallback(
     async (books: BookTypes.Entity[]) => {
-      for (const book of [...books.reverse()]) {
+      for (const book of books.reverse()) {
         await booksMoveTopRouter.json({
           uuid: book.uuid,
         })

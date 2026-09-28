@@ -1,4 +1,4 @@
 - Test & support rtl
-  - `<meta content="vertical-rl" name="primary-writing-mode"/>`
-  - `<spine page-progression-direction="rtl"/>`
+    - `<meta content="vertical-rl" name="primary-writing-mode"/>`
+    - `<spine page-progression-direction="rtl"/>`
 - Record & download
