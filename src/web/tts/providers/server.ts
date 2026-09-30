@@ -9,7 +9,6 @@ import type {
   TimelineEntry,
   VoiceMeta,
 } from '../../../core/tts/types.js'
-import { cachedSpeak } from '../cache.js'
 import { decodeSpeakEnvelope } from '../envelope.js'
 import { BaseTtsProvider } from './base.js'
 
@@ -90,10 +89,9 @@ export class ServerTtsProvider extends BaseTtsProvider {
       speed,
     }
     try {
-      const entry = await cachedSpeak(params, async () => {
-        const blob = await ttsSpeakRouter.file(params, signal)
-        return decodeSpeakEnvelope(blob)
-      })
+      const entry = await decodeSpeakEnvelope(
+        await ttsSpeakRouter.file(params, signal),
+      )
       if (signal.aborted) return 'cancel'
       const timelinePlayer =
         entry.timeline.length > 0 && onBoundary
